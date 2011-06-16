@@ -7,9 +7,9 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Scanner;
 
+import lightLogger.Level;
 import lightLogger.Logger;
 import util.Convert;
-import util.Timer;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLBuildException;
@@ -26,9 +26,9 @@ import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 
 public class Vector {
-	
+
 	private static final Class<?> CLAZZ = Vector.class;
-	
+
 	/*** Globale Variablen ***/
 	public static final boolean EXIT_FAILURE = false; // 1;
 	public static final boolean EXIT_SUCCESS = true;// 0;
@@ -36,7 +36,8 @@ public class Vector {
 	// private static final Level TIME = new Level(32, "TIME");
 
 	private static final String KERNEL_PATH = "kernel.cl";
-	// private static final String KERNEL_SRC = "__kernel void addVec(__global int* vecC, const __global int* vecA, const __global int* vecB, const unsigned int size) { unsigned int w = get_global_id(0); if(w >= size) return; vecC[w] = vecA[w] + vecB[w]; }";
+	// private static final String KERNEL_SRC =
+	// "__kernel void addVec(__global int* vecC, const __global int* vecA, const __global int* vecB, const unsigned int size) { unsigned int w = get_global_id(0); if(w >= size) return; vecC[w] = vecA[w] + vecB[w]; }";
 
 	private static CLPlatform[] platforms;
 	private static ArrayList<CLDevice> devices;
@@ -45,15 +46,18 @@ public class Vector {
 	private static CLKernel kernel;
 	private static CLQueue cmdQ;
 
-	public synchronized static boolean addVec(CLDevice.Type clType, int[] vecC, int[] vecA,
-			int[] vecB) {
-		
-		Timer timer = new Timer();
+	public synchronized static boolean addVec(CLDevice.Type clType, int[] vecC,
+			int[] vecA, int[] vecB) {
 
 		try {
-			Logger.logDebug(CLAZZ, "addVec() vecA: " + Convert.toString(vecA));
-			Logger.logDebug(CLAZZ, "addVec() vecB: " + Convert.toString(vecB));
-			
+			if ((Logger.getLogMask() & Level.DEFAULT.DEBUG.getLevel()
+					.getValue()) == Level.DEFAULT.DEBUG.getLevel().getValue()) {
+				Logger.logDebug(CLAZZ,
+						"addVec() vecA: " + Convert.toString(vecA));
+				Logger.logDebug(CLAZZ,
+						"addVec() vecB: " + Convert.toString(vecB));
+			}
+
 			/*** Initialisiere OpenCL-Objekte ***/
 			initCL(clType);
 
@@ -66,9 +70,6 @@ public class Vector {
 					+ devices.get(0).getGlobalMemSize() / 1024);
 			Logger.logInfo(CLAZZ, "max local mem size (KB): "
 					+ devices.get(0).getLocalMemSize() / 1024);
-
-			/*** Erstellen und Vorbereiten der Daten ***/
-			timer.start();
 
 			/*** Erstellen und Vorbereiten der Daten ***/
 			IntBuffer tmpBuffer = ByteBuffer
@@ -103,7 +104,12 @@ public class Vector {
 			cBuffer.read(cmdQ, tmpBuffer, true, new CLEvent[0]);
 			tmpBuffer.clear();
 			tmpBuffer.get(vecC);
-			Logger.logDebug(CLAZZ, "addVec() vecC: " + Convert.toString(vecC));
+			
+			if ((Logger.getLogMask() & Level.DEFAULT.DEBUG.getLevel()
+					.getValue()) == Level.DEFAULT.DEBUG.getLevel().getValue()) {
+				Logger.logDebug(CLAZZ,
+						"addVec() vecC: " + Convert.toString(vecC));
+			}
 		} catch (CLException err) {
 			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
 					+ err.getCode());
@@ -117,7 +123,7 @@ public class Vector {
 
 		return EXIT_SUCCESS;
 	}
-	
+
 	private static void initCL(CLDevice.Type clType) throws Exception {
 		/*** Hole OpenCL-Plattformen z.B. AMD APP, NVIDIA CUDA ***/
 		platforms = JavaCL.listPlatforms();
@@ -147,15 +153,15 @@ public class Vector {
 		try {
 			program.build();
 		} catch (CLBuildException err) {
-			Logger.logError(CLAZZ, "Build log for \"" + devices.get(0)
-					+ "\n" + err.getMessage());
+			Logger.logError(CLAZZ, "Build log for \"" + devices.get(0) + "\n"
+					+ err.getMessage());
 			throw err;
 		}
 
 		/*** OpenCL-Kernel laden ***/
 		kernel = program.createKernel("addVec");
 	}
-	
+
 	private static String readFile(String fName) {
 		StringBuffer sb = new StringBuffer();
 		try {
@@ -171,5 +177,5 @@ public class Vector {
 		}
 		return sb.toString();
 	}
-	
+
 }

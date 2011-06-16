@@ -1,15 +1,12 @@
-/**
- * WordCount example. Using org.apache.hadoop.mapreduce instead of org.apache.hadoop.mapred and no deprecated methods.
- */
-
 package vecAdd;
+
+import java.util.StringTokenizer;
 
 import lightLogger.Logger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
@@ -30,27 +27,25 @@ public class VecAdd {
 			
 		Configuration conf = new Configuration(true);
 		conf.set("mapred.job.tracker", "local"); // use localjobrunner
+		conf.setInt("mapred.reduce.tasks", 0); // no reduce phase is needed
 
-		Cluster cluster = new Cluster(conf);
-		Job job = Job.getInstance(cluster);
-
+		Job job = new Job(conf, args[0]);
 		job.setJobName(args[0]);
 
 		job.setJarByClass(CLAZZ);
 		job.setOutputKeyClass(IntWritable.class);
 		job.setOutputValueClass(IntArrayWritable.class);
-		job.setMapperClass(Map.class);
-		//job.setCombinerClass(Reduce.class);
+		
 		if("ocl".equals(args[3])) {
-			job.setReducerClass(ReduceOCL.class);
+			job.setMapperClass(MapOCL.class);
 			Logger.logInfo(CLAZZ, "Using OpenCL");
 		}
 		else if("cpu".equals(args[3])) {
-			job.setReducerClass(ReduceCPU.class);
+			job.setMapperClass(MapCPU.class);
 			Logger.logInfo(CLAZZ, "Using CPU");
 		}
 		else {
-			job.setReducerClass(ReduceCPU.class);
+			job.setMapperClass(MapCPU.class);
 			Logger.logInfo(CLAZZ, "Using default (CPU)");
 		}
 		job.setInputFormatClass(TextInputFormat.class);
@@ -62,6 +57,30 @@ public class VecAdd {
 		int stat = job.waitForCompletion(true) ? 0 : 1;
 		Logger.logTrace(CLAZZ, "main end");
 		System.exit(stat);
+	}
+	
+	public static void readVector(StringTokenizer tokenizer, int[] a, int[] b) {
+		// Vector A
+		String tmp;
+		int i = 0;
+		
+		while (tokenizer.hasMoreTokens()) {
+			tmp = tokenizer.nextToken();
+			if (";".equals(tmp))
+				break;
+			else {
+				a[i++] = Integer.parseInt(tmp);
+			}
+		}
+		Logger.logInfo(CLAZZ, "Reading vector a finished");
+
+		// Vector B
+		i = 0;
+		while (tokenizer.hasMoreTokens()) {
+			tmp = tokenizer.nextToken();
+			b[i++] = Integer.parseInt(tmp);
+		}
+		Logger.logInfo(CLAZZ, "Reading vector b finished");
 	}
 
 }

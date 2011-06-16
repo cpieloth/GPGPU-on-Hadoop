@@ -31,4 +31,13 @@ public class Timer {
 		} else
 			return -1;
 	}
+	
+	@Override
+	public String toString() {
+		return this.toString("time");
+	}
+	
+	public String toString(String name) {
+		return name + "=" + this.getTimeInSeconds();
+	}
 }
