@@ -3,5 +3,6 @@ Beschreibung:	Einsatzmöglichkeiten von GPGPU in einem Hadoop-Cluster
 
 Benötigte Bibliotheken:
 * JavaCL - http://code.google.com/p/javacl/
-* LightLogger
+* JOCL - http://www.jocl.org/
 * hadoop-core-*.jar - http://hadoop.apache.org/
+* LightLogger
