@@ -1,0 +1,28 @@
+Hadoop Pipes must be compiled for MAC OS X.:
+
+cd $HADOOP_HOME/src/c++/utils
+./configure
+make install
+cd $HADOOP_HOME/src/c++/pipes
+./configure
+make install
+
+
+
+Include and library path for MAC OS X:
+
+$HADOOP_HOME/src/c++/install/include
+$HADOOP_HOME/src/c++/install/lib
+
+
+
+Unsolved error on MAC OS X v10.6.7:
+
+configure for pipes ->
+checking for HMAC_Init in -lssl... no
+configure: error: Cannot find libssl.so
+
+- gcc ... -lssl   is working
+- ln -s .../lib/libssl-*.dylib to .../lib/libssl.so   don't solve the error.
+- sudo port install openssl   and linking don't solve the error.
+- delete the part for SSL in configure is resulting in a compiled version, but the user defined program can't be compiled
