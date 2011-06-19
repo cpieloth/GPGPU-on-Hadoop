@@ -13,7 +13,7 @@ public:
 
   void map(HadoopPipes::MapContext& context)
   {
-    std::string line = context.getInputValue();
+    std::string line =  context.getInputValue();
     line.append("_map_called");
     context.emit(context.getInputKey(), line);
   }
@@ -28,9 +28,13 @@ public:
 
   void reduce(HadoopPipes::ReduceContext& context)
   {
-    std::string line = context.getInputValue();
-    line.append("_reduce_called");
-    context.emit(context.getInputKey(), line);
+    std::string line;
+    while(context.nextValue())
+    {
+    	line =  context.getInputValue();
+    	line.append("_reduce_called");
+    	context.emit(context.getInputKey(), line);
+    }
   }
 
 };
