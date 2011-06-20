@@ -45,7 +45,7 @@ public class MatMul {
 	private static char type, log;
 	private static final Level TIME = new Level(32, "TIME");
 
-	private static final String KERNEL_PATH = "matMul.cl";
+	private static final String KERNEL_PATH = "kernel.cl";
 
 	private static CLPlatform[] platforms;
 	private static ArrayList<CLDevice> devices;
