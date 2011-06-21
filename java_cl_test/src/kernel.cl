@@ -25,7 +25,7 @@ __kernel void matMulSingle(__global int* matC, const unsigned int mC, const unsi
 	matC[w] = tmp;
 }
 
-__kernel void maxInt(__global int* values, const int SIZE, const int CHK_SIZE)
+__kernel void maxInt(__global int* values, const unsigned int SIZE, const unsigned int CHK_SIZE)
 {
 	 __local int localTemp[64];
 	for (uint y = get_group_id(0); y < SIZE; y += get_num_groups(0))
