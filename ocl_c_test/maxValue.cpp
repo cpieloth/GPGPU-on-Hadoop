@@ -98,9 +98,22 @@ initCL(cl::Context & context, const cl_device_type CL_TYPE,
     std::vector<cl::Device> & devices, cl::CommandQueue & cmdQ,
     cl::Program & program, cl::Kernel & kernel)
 {
+  /*** Hole OpenCL-Plattformen z.B. AMD APP, NVIDIA CUDA ***/
+  std::vector<cl::Platform> platforms;
+  cl::Platform::get(&platforms);
+
+  /*** Hole OpenCL-Device des geforderten Typs z.B. GPU, CPU ***/
+  std::vector<cl::Device> devTmp;
+  for (std::vector<cl::Platform>::iterator it = platforms.begin(); it
+      != platforms.end(); ++it)
+    {
+      it->getDevices(CL_TYPE, &devTmp);
+      devices.insert(devices.end(), devTmp.begin(), devTmp.end());
+      devTmp.clear();
+    }
+
   /*** Erstelle OpenCL-Context und CommandQueue ***/
-  context = cl::Context(CL_TYPE);
-  devices = context.getInfo<CL_CONTEXT_DEVICES> ();
+  context = cl::Context(devices);
   cmdQ = cl::CommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
   /*** OpenCL-Quellcode einlesen ***/
