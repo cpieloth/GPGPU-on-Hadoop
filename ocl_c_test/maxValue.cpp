@@ -20,15 +20,6 @@
 
 using namespace logging;
 
-std::vector<cl::Platform> platforms;
-std::vector<cl::Device> devices;
-cl::Device device;
-cl::Context context;
-cl::Program program;
-cl::Program::Sources source;
-cl::Kernel kernel;
-cl::CommandQueue cmdQ;
-
 size_t size;
 char type;
 
@@ -110,50 +101,6 @@ calcWorkGroupSize(size_t dim, size_t* globalSize, size_t* localSize,
     }
 }
 
-void
-initCL(cl_device_type clType)
-{
-  /*** Hole OpenCL-Plattformen z.B. AMD APP, NVIDIA CUDA ***/
-  cl::Platform::get(&platforms);
-
-  /*** Hole OpenCL-Device des geforderten Typs z.B. GPU, CPU ***/
-  std::vector<cl::Device> devTmp;
-  for (std::vector<cl::Platform>::iterator it = platforms.begin(); it
-      != platforms.end(); ++it)
-    {
-      it->getDevices(clType, &devTmp);
-      devices.insert(devices.end(), devTmp.begin(), devTmp.end());
-      devTmp.clear();
-    }
-  device = devices.front();
-
-  /*** Erstelle OpenCL-Context und CommandQueue ***/
-  context = cl::Context(devices);
-  cmdQ = cl::CommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE);
-
-  /*** OpenCL-Quellcode einlesen ***/
-  std::string src = readFile(KERNEL_PATH);
-  cl::Program::Sources source;
-  source.push_back(std::make_pair(src.data(), src.length()));
-
-  /*** OpenCL-Programm aus Quellcode erstellen ***/
-  program = cl::Program(context, source);
-
-  try
-    {
-      program.build(devices);
-    }
-  catch (cl::Error& err)
-    {
-      Logger::logDebug(
-          "initCL",
-          Logger::sStream << err.what() << "\nBuild-Log fuer \""
-              << devices.front().getInfo<CL_DEVICE_NAME> () << "\":\n"
-              << program.getBuildInfo<CL_PROGRAM_BUILD_LOG> (devices.front()));
-      throw err;
-    }
-}
-
 double
 maxValue(int* values, const size_t SIZE)
 {
@@ -167,107 +114,140 @@ maxValue(int* values, const size_t SIZE)
   return timer.getTimeInSeconds();
 }
 
+void
+initCL(cl::Context & context, const cl_device_type CL_TYPE,
+    std::vector<cl::Device> & devices, cl::CommandQueue & cmdQ,
+    cl::Program & program, cl::Kernel & kernel)
+{
+  /*** Initialisiere OpenCL-Objekte ***/
+
+  /*** Erstelle OpenCL-Context und CommandQueue ***/
+  context = cl::Context(CL_TYPE);
+  devices = context.getInfo<CL_CONTEXT_DEVICES> ();
+  //device = devices.front();
+  cmdQ = cl::CommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
+  /*** OpenCL-Quellcode einlesen ***/
+  std::string src = readFile(KERNEL_PATH);
+  cl::Program::Sources source;
+  source.push_back(std::make_pair(src.data(), src.length()));
+  /*** OpenCL-Programm aus Quellcode erstellen ***/
+  program = cl::Program(context, source);
+  try
+    {
+      program.build(devices);
+    }
+  catch (cl::Error & err)
+    {
+      ;
+      Logger::logDebug(
+          "initCL",
+          Logger::sStream << err.what() << "\nBuild-Log fuer \""
+              << devices.front().getInfo<CL_DEVICE_NAME> () << "\":\n"
+              << program.getBuildInfo<CL_PROGRAM_BUILD_LOG> (devices.front()));
+      throw err;
+    }
+  kernel = cl::Kernel(program, "maxInt");
+}
+
 double
-maxValueCL(cl_device_type clType, int* values, const size_t SIZE)
+maxValueCL(const cl_device_type CL_TYPE, int* values, const size_t SIZE)
 {
   const std::string METHOD("maxValueCL");
   timeUtils::Clock timer;
 
+  std::vector<cl::Platform> platforms;
+  std::vector<cl::Device> devices;
+  cl::Context context;
+  cl::Program program;
+  cl::Program::Sources source;
+  cl::Kernel kernel;
+  cl::CommandQueue cmdQ;
+
   try
     {
       cl_int status = CL_SUCCESS;
-
-      /*** Initialisiere OpenCL-Objekte ***/
-      initCL(clType);
+      initCL(context, CL_TYPE, devices, cmdQ, program, kernel);
 
       /*** Ausgabe von Informationen ueber gewaehltes OpenCL-Device ***/
-#ifndef RUNTIME_MEASUREMENT
       Logger::logInfo(
           METHOD,
-          Logger::sStream << "max compute units: " << device.getInfo<
+          Logger::sStream << "max compute units: " << devices[0].getInfo<
               CL_DEVICE_MAX_COMPUTE_UNITS> ());
       Logger::logInfo(
           METHOD,
-          Logger::sStream << "max work item sizes: " << device.getInfo<
+          Logger::sStream << "max work item sizes: " << devices[0].getInfo<
               CL_DEVICE_MAX_WORK_ITEM_SIZES> ()[0]);
       Logger::logInfo(
           METHOD,
-          Logger::sStream << "max work group sizes: " << device.getInfo<
+          Logger::sStream << "max work group sizes: " << devices[0].getInfo<
               CL_DEVICE_MAX_WORK_GROUP_SIZE> ());
       Logger::logInfo(
           METHOD,
-          Logger::sStream << "max global mem size (KB): " << device.getInfo<
-              CL_DEVICE_GLOBAL_MEM_SIZE> () / 1024);
+          Logger::sStream << "max global mem size (KB): "
+              << devices[0].getInfo<CL_DEVICE_GLOBAL_MEM_SIZE> () / 1024);
       Logger::logInfo(
           METHOD,
-          Logger::sStream << "max local mem size (KB): " << device.getInfo<
+          Logger::sStream << "max local mem size (KB): " << devices[0].getInfo<
               CL_DEVICE_LOCAL_MEM_SIZE> () / 1024);
-#endif
 
       /*** Erstellen und Vorbereiten der Daten ***/
       timer.start();
-
       cl::Buffer vBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-          sizeof(int) * SIZE, &values[0], &status);
+          sizeof(cl_int) * SIZE, &values[0], &status);
       if (status != CL_SUCCESS)
         {
           throw cl::Error(status, "cl::Buffer values");
         }
+      cmdQ.finish();
 
-      const size_t MAX_GROUP_SIZE = device.getInfo<
+      /*** Arbeitsgrš§en berechnen ***/
+      // Anzahl der Work-Items = globalSize
+      // Work-Items pro Work-Group = localSize
+      const size_t MAX_GROUP_SIZE = devices[0].getInfo<
           CL_DEVICE_MAX_WORK_GROUP_SIZE> ();
       size_t globalSize[1] =
         { SIZE };
       size_t localSize[1] =
         { MAX_GROUP_SIZE };
       calcWorkGroupSize(1, globalSize, localSize, MAX_GROUP_SIZE);
+      Logger::logDebug(METHOD,
+          Logger::sStream << "globalSize[0]: " << globalSize[0]);
+      Logger::logDebug(METHOD,
+          Logger::sStream << "localSize[0]: " << localSize[0]);
 
       /*** Kernel-Argumente setzen  ***/
-      kernel = cl::Kernel(program, "maxInt");
-
       status = kernel.setArg(0, vBuffer);
       if (status != CL_SUCCESS)
         {
           throw cl::Error(status, "Kernel.SetArg");
         }
-      status = kernel.setArg(1, (cl_uint) SIZE);
+      status = kernel.setArg(1, (cl_uint)(SIZE));
       if (status != CL_SUCCESS)
         {
           throw cl::Error(status, "Kernel.SetArg");
         }
-      status = kernel.setArg(2, (cl_uint) localSize[0]);
+      status = kernel.setArg(2, (cl_uint)(localSize[0]));
       if (status != CL_SUCCESS)
         {
           throw cl::Error(status, "Kernel.SetArg");
         }
-      status = kernel.setArg(3, sizeof(cl_uint) * localSize[0], NULL);
+
+      status = kernel.setArg(3, sizeof(cl_int) * localSize[0], NULL);
       if (status != CL_SUCCESS)
         {
           throw cl::Error(status, "Kernel.SetArg");
         }
 
       /*** Kernel ausfuehren und auf Abarbeitung warten ***/
-      // Anzahl der Work-Items = globalSize
-      // Work-Items pro Work-Group = localSize
-
-
-#ifndef RUNTIME_MEASUREMENT
-      Logger::logDebug(METHOD,
-          Logger::sStream << "globalSize[0]: " << globalSize[0]);
-      Logger::logDebug(METHOD,
-          Logger::sStream << "localSize[0]: " << localSize[0]);
-#endif
-
       cl::KernelFunctor func = kernel.bind(cmdQ, cl::NDRange(globalSize[0]),
           cl::NDRange(localSize[0]));
 
       cl::Event event = func();
-      event.wait();
 
       cmdQ.finish();
 
       /*** Daten vom OpenCL-Device holen ***/
-      status = cmdQ.enqueueReadBuffer(vBuffer, true, 0, sizeof(int) * SIZE,
+      status = cmdQ.enqueueReadBuffer(vBuffer, true, 0, sizeof(cl_int) * SIZE,
           &values[0]);
       if (status != CL_SUCCESS)
         {
@@ -362,9 +342,9 @@ main(int argc, char** argv)
 
   fillVector(values, size);
 
-  values[(size_t)(size / 2)] = 4242;
+  values[(size_t) (size / 2)] = 4242;
   values[size - 1] = 7331;
-  values[(size_t)(size / 3)] = 2323;
+  values[(size_t) (size / 3)] = 2323;
 
   /*** Implementierung waehlen ***/
   switch (type)
@@ -379,18 +359,16 @@ main(int argc, char** argv)
     runtime = maxValueCL(CL_DEVICE_TYPE_CPU, values, size);
     break;
   default:
+    ;
     Logger::logError(METHOD,
         Logger::sStream << "Falsches Argument \"" << type << "\"");
     }
 
-  /*
-   // ACHTUNG getMatrixString wuerde immer berechnet werden! (bad_alloc moeglich)
-   if (runtime > -1 && (result.rows < 10 && result.cols < 10))
-   Logger::logDebug(METHOD,
-   Logger::sStream << "Ergebnis" << "\n" << getMatrixString(result));*/
+  // ACHTUNG getMatrixString wuerde immer berechnet werden! (bad_alloc moeglich)
+  // if (runtime > -1 && (result.rows < 10 && result.cols < 10))
   Logger::log(METHOD, TIME, Logger::sStream << "time=" << runtime << ";");
 
-  for (size_t i = 0; i < 8 && i < size; i++)
+  for (size_t i = 0; i < 15 && i < size; i++)
     std::cout << values[i] << std::endl;
 
   free(values);
