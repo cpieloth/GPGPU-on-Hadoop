@@ -15,10 +15,9 @@ public class MaxTemperature {
 	private static final Class<MaxTemperature> CLAZZ = MaxTemperature.class;
 	
 	public static void main(String[] args) throws Exception {
-		// Logger.logTrace(CLAZZ, "main start");
 		
 		if(args.length < 3) {
-			// Logger.logError(CLAZZ, "Arguments: <JobName> <InputPaths> <OutputPath>");
+			System.out.println("Arguments: <JobName> <InputPaths> <OutputPath>");
 			return;
 		}
 			
@@ -36,16 +35,13 @@ public class MaxTemperature {
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 		
-		
-		
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
 		FileInputFormat.setInputPaths(job, new Path(args[1]));
-		FileOutputFormat.setOutputPath(job, new Path(args[2]));
+		FileOutputFormat.setOutputPath(job, new Path(args[2] + "_" + args[0]));
 
 		int stat = job.waitForCompletion(true) ? 0 : 1;
-		// Logger.logTrace(CLAZZ, "main end");
 		System.exit(stat);
 	}
 }

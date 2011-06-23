@@ -17,15 +17,16 @@ public class MaxTemperatureMapper extends
 			MaxTemperatureMapper.Context context) throws IOException,
 			InterruptedException {
 		String line = value.toString();
+
+		if (line.startsWith("STN---"))
+			return;
+
 		String year = DataSet.getYear(line);
 		int airTemperature = DataSet.getMax(line);
 
-		// String quality = line.substring(92, 93);
-
-		if (airTemperature != DataSet.MISSING /* && quality.matches("[01459]") */) {
+		if (airTemperature != DataSet.MISSING) {
 			context.write(new Text(year), new IntWritable(airTemperature));
 		}
-
 	}
 
 }
