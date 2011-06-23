@@ -225,13 +225,8 @@ maxValueCL(const cl_device_type CL_TYPE, int* values, size_t len)
             {
               throw cl::Error(status, "Kernel.SetArg");
             }
-          status = kernel.setArg(1, (cl_uint)(len));
-          if (status != CL_SUCCESS)
-            {
-              throw cl::Error(status, "Kernel.SetArg");
-            }
 
-          status = kernel.setArg(2, sizeof(cl_int) * localSize, NULL);
+          status = kernel.setArg(1, sizeof(cl_int) * localSize, NULL);
           if (status != CL_SUCCESS)
             {
               throw cl::Error(status, "Kernel.SetArg");
@@ -356,9 +351,14 @@ main(int argc, char** argv)
   fillVector(values, size);
 
   /*** Kontrollwerte ***/
+  /*
   values[(size_t) (size / 3)] = 2323;
   values[(size_t) (size / 2)] = 4242;
   values[size - 1] = 7331;
+  */
+  size_t max_pos = rand() % size;
+  values[max_pos] = 7331;
+
 
   Logger::logInfo(METHOD,
       Logger::sStream << getString(values, size > PRT_CNT ? PRT_CNT : size));
@@ -385,6 +385,7 @@ main(int argc, char** argv)
     Logger::logInfo(METHOD,
         Logger::sStream << getString(values, size > PRT_CNT ? PRT_CNT : size));
 
+  Logger::logInfo(METHOD, Logger::sStream << "max_pos: " << max_pos);
   Logger::log(METHOD, TIME, Logger::sStream << "time=" << runtime << ";");
 
   free(values);
