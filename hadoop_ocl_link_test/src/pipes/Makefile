@@ -22,6 +22,8 @@ ifeq ($(OSTYPE),Darwin)
 	LIBRARIES=-L$(HADOOP_HOME)/src/c++/install/lib -lhadooppipes -lhadooputils -lpthread -lssl
 endif
 
+# Hadoop >= 0.20.203.0 requires -lcrypto
+
 all: mrSimple
 
 %: %.cpp
