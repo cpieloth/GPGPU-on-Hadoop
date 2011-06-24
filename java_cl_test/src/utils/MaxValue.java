@@ -6,6 +6,9 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Scanner;
 
 import lightLogger.Logger;
@@ -14,9 +17,11 @@ import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLDevice;
 import com.nativelibs4java.opencl.CLDevice.QueueProperties;
+import com.nativelibs4java.opencl.CLDevice.Type;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLKernel;
+import com.nativelibs4java.opencl.CLKernel.LocalSize;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLPlatform;
 import com.nativelibs4java.opencl.CLProgram;
@@ -41,16 +46,35 @@ public class MaxValue {
 	private static final int EXIT_FAILURE = 1;
 	private static final int EXIT_SUCCESS = 0;
 
-	private static final String KERNEL_PATH = "src/kernel.cl";
-	private static final int WORK_GROUP_SIZE = 64;
+	private final static int MAX_VALUES = 65536; // max memory of opencl device,
+	// MAX_VALUE % 64 = 0
 
-	private static int maxValue(CLDevice.Type clType, int[] values) {
+	private static final String KERNEL_PATH = "src/kernel.cl";
+	private static final int WG_FAC = 64;
+
+	private static int getMaxIntOCL(int[] values, int size) {
+		System.out.println("getMaxIntOCL called. value.length=" + values.length
+				+ " size=" + size);
+		int EXIT_FAILURE = Integer.MIN_VALUE;
+		final CLDevice.Type CL_TYPE = CLDevice.Type.GPU;
+
+		// calculate optimal length
+		int offset = size;
+		if (size < values.length && size % WG_FAC != 0) {
+			size = (int) Math.ceil((double) size / WG_FAC) * WG_FAC;
+			size = size < values.length ? size : values.length;
+			System.out.println("resized to optimal start size " + size);
+		}
+		// fill end of array with minimum
+		for (int i = offset; i < size; i++)
+			values[i] = Integer.MIN_VALUE;
+
+		// FIXME wrong maxInt
 		try {
-			/*** Hole OpenCL-Plattformen z.B. AMD APP, NVIDIA CUDA ***/
+			// Init OpenCL
 			CLPlatform[] platforms = JavaCL.listPlatforms();
 
-			/*** Hole OpenCL-Device des geforderten Typs z.B. GPU, CPU ***/
-			EnumSet<CLDevice.Type> types = EnumSet.of(clType);
+			EnumSet<CLDevice.Type> types = EnumSet.of(CL_TYPE);
 			ArrayList<CLDevice> devices = new ArrayList<CLDevice>();
 			CLDevice[] devTmp;
 
@@ -59,68 +83,108 @@ public class MaxValue {
 				devices.addAll(Arrays.asList(devTmp));
 			}
 
-			/*** Erstelle OpenCL-Context und CommandQueue ***/
 			devTmp = new CLDevice[devices.size()];
 			CLContext context = JavaCL.createContext(null,
 					devices.toArray(devTmp));
 			CLQueue cmdQ = context
 					.createDefaultQueue(QueueProperties.ProfilingEnable);
 
-			/*** OpenCL-Quellcode einlesen ***/
 			String src = readFile(KERNEL_PATH);
 
-			/*** OpenCL-Programm aus Quellcode erstellen ***/
 			CLProgram program = context.createProgram(src);
 
 			try {
 				program.build();
 			} catch (Exception err) {
-				Logger.logError(CLAZZ, "Build log for \"" + devices.get(0)
-						+ "\n" + err.getMessage());
+				System.out.println("Build log for \"" + devices.get(0) + "\n"
+						+ err.getMessage());
 				return EXIT_FAILURE;
 			}
 
-			/*** OpenCL-Kernel laden ***/
 			CLKernel kernel = program.createKernel("maxInt");
 
-			/*** Erstellen und Vorbereiten der Daten ***/
-			CLBuffer<IntBuffer> valBuffer = context.createBuffer(
-					CLMem.Usage.InputOutput, IntBuffer.wrap(values), true);
+			// Prepate Data
+			CLBuffer<IntBuffer> vBuffer = context.createBuffer(
+					CLMem.Usage.InputOutput, IntBuffer.wrap(values, 0, size),
+					true);
 
-			/*** Kernel-Argumente setzen ***/
-			kernel.setArg(0, valBuffer);
-			kernel.setArg(1, values.length);
-			// TODO dyn. berechnen
-			kernel.setArg(2, values.length / 64);
-			// FIXME
-			// kernel.setArg(3, WORK_GROUP_SIZE);
-
-			/*** Kernel ausfuehren und auf Abarbeitung warten ***/
-			CLEvent event = kernel.enqueueNDRange(cmdQ,
-					new int[] { values.length }, new int[] { WORK_GROUP_SIZE }, new CLEvent[0]);
-			event.waitFor();
 			cmdQ.finish();
 
-			/*** Daten vom OpenCL-Device holen ***/
-			IntBuffer tmpBuffer = ByteBuffer
+			final long MAX_GROUP_SIZE = devices.get(0).getMaxWorkGroupSize();
+			int globalSize;
+			int localSize;
+
+			do {
+				globalSize = size;
+				localSize = calcWorkGroupSize(globalSize, MAX_GROUP_SIZE);
+				System.out.println("GlobalSize: " + globalSize);
+				System.out.println("LocalSize: " + localSize);
+				if (localSize == 1) {
+					globalSize = (int) (Math.ceil((double) size / WG_FAC) * WG_FAC);
+					localSize = calcWorkGroupSize(globalSize, MAX_GROUP_SIZE);
+					System.out.println("GlobalSize has been extended to "
+							+ globalSize);
+					System.out.println("LocalSize has been changed to "
+							+ localSize);
+				}
+
+				kernel.setArg(0, vBuffer);
+				kernel.setArg(1, new LocalSize(localSize));
+
+				// Run kernel
+				// CLEvent event =
+				kernel.enqueueNDRange(cmdQ, new int[] { globalSize },
+						new int[] { localSize }, new CLEvent[0]);
+
+				cmdQ.finish();
+
+				size = globalSize / localSize;
+			} while (globalSize > localSize && localSize > 1);
+
+			// Get results
+			IntBuffer resBuffer = ByteBuffer
 					.allocateDirect(values.length * Integer.SIZE)
 					.order(context.getByteOrder()).asIntBuffer();
-			valBuffer.read(cmdQ, tmpBuffer, true, new CLEvent[0]);
-			tmpBuffer.clear();
-			tmpBuffer.get(values);
+			vBuffer.read(cmdQ, resBuffer, true, new CLEvent[0]);
+			resBuffer.rewind();
+			resBuffer.get(values);
 
+			return values[0];
 		} catch (CLException err) {
-			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
+			System.out.println("OpenCL error:\n" + err.getMessage() + "():"
 					+ err.getCode());
 			err.printStackTrace();
 			return EXIT_FAILURE;
 		} catch (Exception err) {
-			Logger.logError(CLAZZ, "Error:\n" + err.getMessage() + "()");
+			System.out.println("Error:\n" + err.getMessage() + "()");
 			err.printStackTrace();
 			return EXIT_FAILURE;
 		}
+	}
 
-		return EXIT_SUCCESS;
+	private static int calcWorkGroupSize(int globalSize,
+			final long MAX_GROUP_SIZE) {
+		int localSize = (int) MAX_GROUP_SIZE;
+		if (globalSize < localSize)
+			localSize = globalSize;
+		else
+			while (globalSize % localSize != 0)
+				--localSize;
+		return localSize;
+	}
+
+	private static String readFile(String fName) {
+		StringBuffer sb = new StringBuffer();
+		try {
+			Scanner sc = new Scanner(new File(fName));
+			while (sc.hasNext())
+				sb.append(sc.nextLine());
+
+		} catch (Exception e) {
+			System.out.println("Could not read file: " + fName);
+			e.printStackTrace();
+		}
+		return sb.toString();
 	}
 
 	public static void main(String[] args) {
@@ -136,6 +200,18 @@ public class MaxValue {
 		int[] values = new int[LEN];
 
 		fill(values);
+
+		/*** Kontrollwerte ***/
+		/*
+		 * values[(size_t) (size / 3)] = 2323; values[(size_t) (size / 2)] =
+		 * 4242; values[size - 1] = 7331;
+		 */
+		int max_pos = new Random().nextInt(LEN);
+		// int max_pos = 1201;
+		max_pos = LEN -1;
+		values[max_pos] = 7331;
+		
+		System.out.println("max_pos: " + max_pos + " max_value: " + values[max_pos]);
 
 		/*** Implementierung waehlen ***/
 		switch (TYPE) {
@@ -153,13 +229,40 @@ public class MaxValue {
 		}
 
 		if (success == EXIT_SUCCESS) {
-			for(int i = 0; i < 5; i++)
+			for (int i = 0; i < 5; i++)
 				Logger.logInfo(CLAZZ, "Maximum: " + values[i]);
 			System.exit(EXIT_SUCCESS);
 		} else {
 			Logger.logError(CLAZZ, "Error, no result!");
 			System.exit(EXIT_FAILURE);
 		}
+	}
+
+	private static int maxValue(Type gpu, int[] values) {
+		int[] tmpValues = new int[MAX_VALUES];
+		tmpValues[0] = Integer.MIN_VALUE; // temporary max temp
+		int i = 1;
+
+		// CHANGED
+		Iterator<Integer> it = new IntArrayIterator(values);
+		int tmp;
+		while (it.hasNext()) {
+			// fill array to copy on opencl device, mind max memory of device!
+			if (i < MAX_VALUES) {
+				tmp = it.next().intValue();
+				tmpValues[i++] = tmp;
+				if(tmp == 7331)
+					System.out.println("___FOUND! >> " + tmp);
+			}
+			// if max values or no more values to add, start opencl kernel
+			if (i >= MAX_VALUES || !it.hasNext()) {
+				tmpValues[0] = getMaxIntOCL(tmpValues, i);
+				i = 1;
+				System.out.println("tmp_max: " + tmpValues[0]);
+			}
+		}
+		values[0] = tmpValues[0];
+		return EXIT_SUCCESS;
 	}
 
 	private static int maxValue(int[] values) {
@@ -183,23 +286,41 @@ public class MaxValue {
 		return true;
 	}
 
-	private static String readFile(String fName) {
-		StringBuffer sb = new StringBuffer();
-		try {
-			Scanner sc = new Scanner(new File(fName));
-			while (sc.hasNext())
-				sb.append(sc.nextLine());
-
-		} catch (Exception e) {
-			Logger.logError(CLAZZ, "Could not read file: " + fName);
-			e.printStackTrace();
-		}
-		return sb.toString();
+	private static void fill(int[] vec) {
+		Random r = new Random();
+		for (int i = 0; i < vec.length; i++)
+			vec[i] = r.nextInt(1024);
 	}
 
-	private static void fill(int[] vec) {
-		for (int i = 0; i < vec.length; i++)
-			vec[i] = i % 1000;
+	private static class IntArrayIterator implements Iterator<Integer> {
+
+		private int[] values;
+		private int i = 0;
+
+		public IntArrayIterator(int[] values) {
+			this.values = values;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return i < values.length;
+		}
+
+		@Override
+		public Integer next() {
+			if (this.hasNext()) {
+				int tmp = values[i++];
+				return new Integer(tmp);
+			} else
+				throw new NoSuchElementException();
+		}
+
+		@Override
+		public void remove() {
+			// TODO Auto-generated method stub
+
+		}
+
 	}
 
 }

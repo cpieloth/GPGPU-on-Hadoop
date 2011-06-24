@@ -25,42 +25,29 @@ __kernel void matMulSingle(__global int* matC, const unsigned int mC, const unsi
 	matC[w] = tmp;
 }
 
-__kernel void maxInt(__global int* values, const unsigned int SIZE, const unsigned int CHK_SIZE)
+__kernel void maxInt(__global int* values, __local int* localValues)
 {
-	 __local int localTemp[64];
-	for (uint y = get_group_id(0); y < SIZE; y += get_num_groups(0))
-	{
-		int temp = -273;
-		for (uint x = get_local_id(0); x < CHK_SIZE; x += get_local_size(0))
-			temp = max(temp, values[x]);
+  const unsigned int LSIZE = get_local_size(0);
+  const unsigned int LID = get_local_id(0);
 
-		localTemp[get_local_id(0)] = temp;
+  localValues[LID] = values[get_global_id(0)];
 
-		for (uint stride = get_local_size(0)/2; stride > 0; stride /= 2)
-		{
-			barrier(CLK_LOCAL_MEM_FENCE);
+  barrier(CLK_LOCAL_MEM_FENCE);
 
-			if (get_local_id(0) < stride)
-				localTemp[get_local_id(0)] = max(localTemp[get_local_id(0)], localTemp[get_local_id(0) + stride]);
-		}
+  unsigned int stride = LSIZE;
+  do
+    {
+      stride = convert_uint(ceil(convert_float(stride) / 2));
 
-		if (get_local_id(0) == 0)
-			values[get_group_id(0)] = localTemp[0];
+      if (LID < stride && (LID + stride) < LSIZE)
+        localValues[LID] = max(localValues[LID], localValues[LID + stride]);
 
-		barrier(CLK_LOCAL_MEM_FENCE);
-	}
+      barrier(CLK_LOCAL_MEM_FENCE);
+    }
+  while (stride > 1);
 
-	barrier(CLK_GLOBAL_MEM_FENCE);
-
-	int maxTemp = values[0];
-	if(get_global_id(0) == 0)
-	{
-		for(uint i = 1; i < get_num_groups(0); i++)
-		{
-			maxTemp = max(maxTemp, values[i]);
-		}
-		values[0] = maxTemp;
-	}
+  if (get_local_id(0) == 0)
+    values[get_group_id(0)] = localValues[0];
 
 }
 
