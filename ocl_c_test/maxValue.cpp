@@ -22,8 +22,8 @@
 
 using namespace logging;
 
-size_t size;
-char type;
+size_t _size;
+char _type;
 
 /*** Kommandozeilenargumente ***/
 const char SINGLE = 's';
@@ -33,6 +33,7 @@ const char GPU = 'g';
 const char ALL = 'a';
 const char DEBUG = 'd';
 const char NORMAL = 'n';
+const char INFO = 'i';
 const char ERRORL = 'e';
 const char TIMEL = 't';
 
@@ -161,23 +162,23 @@ maxValueCL(const cl_device_type CL_TYPE, int* values, size_t len)
       initCL(context, CL_TYPE, devices, cmdQ, program, kernel);
 
       /*** Ausgabe von Informationen ueber gewaehltes OpenCL-Device ***/
-      Logger::logInfo(
+      Logger::logDebug(
           METHOD,
           Logger::sStream << "max compute units: " << devices[0].getInfo<
               CL_DEVICE_MAX_COMPUTE_UNITS> ());
-      Logger::logInfo(
+      Logger::logDebug(
           METHOD,
           Logger::sStream << "max work item sizes: " << devices[0].getInfo<
               CL_DEVICE_MAX_WORK_ITEM_SIZES> ()[0]);
-      Logger::logInfo(
+      Logger::logDebug(
           METHOD,
           Logger::sStream << "max work group sizes: " << devices[0].getInfo<
               CL_DEVICE_MAX_WORK_GROUP_SIZE> ());
-      Logger::logInfo(
+      Logger::logDebug(
           METHOD,
           Logger::sStream << "max global mem size (KB): "
               << devices[0].getInfo<CL_DEVICE_GLOBAL_MEM_SIZE> () / 1024);
-      Logger::logInfo(
+      Logger::logDebug(
           METHOD,
           Logger::sStream << "max local mem size (KB): " << devices[0].getInfo<
               CL_DEVICE_LOCAL_MEM_SIZE> () / 1024);
@@ -274,16 +275,6 @@ maxValueCL(const cl_device_type CL_TYPE, int* values, size_t len)
   return timer.getTimeInSeconds();
 }
 
-void
-fillVector(int* vec, const size_t SIZE)
-{
-  srand(time(NULL));
-  for (size_t i = 0; i < SIZE; ++i)
-    {
-      vec[i] = rand() % 1024;
-    }
-}
-
 bool
 checkArguments(int argc, char** argv)
 {
@@ -296,8 +287,8 @@ checkArguments(int argc, char** argv)
     }
 
   char log = *argv[1];
-  type = *argv[2];
-  size = atoi(argv[3]);
+  _type = *argv[2];
+  _size = atoi(argv[3]);
 
   switch (log)
     {
@@ -310,6 +301,9 @@ checkArguments(int argc, char** argv)
   case NORMAL:
     Logger::setLogMask(Level::NORMAL);
     break;
+  case INFO:
+      Logger::setLogMask(Level::INFO);
+      break;
   case TIMEL:
     Logger::setLogMask(TIME);
     break;
@@ -323,6 +317,97 @@ checkArguments(int argc, char** argv)
   return true;
 }
 
+int *
+prepareData(size_t& size)
+{
+  const std::string METHOD("prepareData");
+  /*** Erzeugen der Daten***/
+  if (size % WG_FAC != 0)
+    {
+      size = ceil((double) size / WG_FAC) * WG_FAC;
+      Logger::logWarn(METHOD,
+          Logger::sStream << "Array has been extended to " << size);
+    }
+  Logger::logInfo(METHOD,
+      Logger::sStream << "RAM (KB) > " << (size * sizeof(int)) / 1024);
+  int *values = (int*) (malloc(size * sizeof(int)));
+
+  srand(time(NULL));
+  for (size_t i = 0; i < size; ++i)
+    {
+      values[i] = rand() % (size / 2);
+    }
+
+  return values;
+}
+
+size_t
+setTestValues(int* values, const size_t SIZE)
+{
+  size_t max_pos = rand() % SIZE;
+
+  int max_val = 9;
+  const size_t MAGNITUTE = ceil(log10(SIZE));
+  for (size_t i = 0; i < MAGNITUTE; i++)
+    max_val = max_val * 10 + 9;
+
+  values[max_pos] = max_val;
+  return max_pos;
+}
+
+bool
+test(const char TYPE, const size_t START, const size_t END,
+    const size_t STEP)
+{
+  const std::string METHOD("test");
+  bool success = true;
+  int* values;
+
+  /*** Testwerte setzen ***/
+  size_t max_pos = -1;
+  int max_val = -1;
+  double runtime = -1;
+
+  for (size_t i = START; i < END; i += STEP)
+    {
+      values = prepareData(i);
+      max_pos = setTestValues(values, i);
+      max_val = values[max_pos];
+
+      switch (TYPE)
+        {
+      case SINGLE:
+        runtime = maxValue(values, i);
+        break;
+      case GPU:
+        runtime = maxValueCL(CL_DEVICE_TYPE_GPU, values, i);
+        break;
+      case CPU:
+        runtime = maxValueCL(CL_DEVICE_TYPE_CPU, values, i);
+        break;
+      default:
+        ;
+        Logger::logError(METHOD,
+            Logger::sStream << "Unknown type: \"" << _type << "\"");
+        }
+
+      success = values[0] == max_val;
+
+      Logger::logInfo(
+          METHOD,
+          Logger::sStream << (success ? "PASSED " : "FAILED ")
+              << "size: " << i << "; max_pos: " << max_pos << "; max_val: "
+              << max_val << "; values[0]: " << values[0] << "; runtime: " << runtime);
+
+      free(values);
+
+      if(!success)
+        break;
+    }
+
+  return success;
+}
+
 int
 main(int argc, char** argv)
 {
@@ -332,60 +417,46 @@ main(int argc, char** argv)
   const std::string METHOD("main");
   double runtime = -1.0;
 
-  Logger::logInfo(METHOD, Logger::sStream << "type = " << type);
-  Logger::logInfo(METHOD, Logger::sStream << "size = " << size);
+  Logger::logInfo(METHOD, Logger::sStream << "type = " << _type);
+  Logger::logInfo(METHOD, Logger::sStream << "size = " << _size);
 
-  /*** Erzeugen der Daten***/
-  if (size % WG_FAC != 0)
-    {
-      size = ceil((double) size / WG_FAC) * WG_FAC;
-      Logger::logWarn(METHOD,
-          Logger::sStream << "Array has been extended to " << size);
-    }
+  /*** Test ***/
+#ifdef TEST
+  bool success = test(_type, WG_FAC, _size, (_size / 32) + 1);
+  Logger::logInfo(METHOD, Logger::sStream << "TEST: " << (success ? "PASSED " : "FAILED "));
+  return success ? EXIT_SUCCESS : EXIT_FAILURE;
+#endif
 
-  Logger::logInfo(METHOD,
-      Logger::sStream << "RAM (KB) > " << (size * sizeof(int)) / 1024);
-
-  int* values = (int*) malloc(size * sizeof(int));
-
-  fillVector(values, size);
-
-  /*** Kontrollwerte ***/
-  /*
-  values[(size_t) (size / 3)] = 2323;
-  values[(size_t) (size / 2)] = 4242;
-  values[size - 1] = 7331;
-  */
-  size_t max_pos = rand() % size;
-  values[max_pos] = 7331;
-
+  /**** Array fuellen ***/
+  int *values = prepareData(_size);
+  setTestValues(values, _size);
 
   Logger::logInfo(METHOD,
-      Logger::sStream << getString(values, size > PRT_CNT ? PRT_CNT : size));
+      Logger::sStream << getString(values, _size > PRT_CNT ? PRT_CNT : _size));
 
   /*** Implementierung waehlen ***/
-  switch (type)
+  switch (_type)
     {
   case SINGLE:
-    runtime = maxValue(values, size);
+    runtime = maxValue(values, _size);
     break;
   case GPU:
-    runtime = maxValueCL(CL_DEVICE_TYPE_GPU, values, size);
+    runtime = maxValueCL(CL_DEVICE_TYPE_GPU, values, _size);
     break;
   case CPU:
-    runtime = maxValueCL(CL_DEVICE_TYPE_CPU, values, size);
+    runtime = maxValueCL(CL_DEVICE_TYPE_CPU, values, _size);
     break;
   default:
     ;
     Logger::logError(METHOD,
-        Logger::sStream << "Unknown type: \"" << type << "\"");
+        Logger::sStream << "Unknown type: \"" << _type << "\"");
     }
 
   if (runtime > -1)
     Logger::logInfo(METHOD,
-        Logger::sStream << getString(values, size > PRT_CNT ? PRT_CNT : size));
+        Logger::sStream << getString(values, _size > PRT_CNT ? PRT_CNT : _size));
 
-  Logger::logInfo(METHOD, Logger::sStream << "max_pos: " << max_pos);
+  // Logger::logInfo(METHOD, Logger::sStream << "max_pos: " << max_pos);
   Logger::log(METHOD, TIME, Logger::sStream << "time=" << runtime << ";");
 
   free(values);

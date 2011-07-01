@@ -17,7 +17,7 @@ const Level Level::TRACE("TRACE", 8);
 const Level Level::DEBUG("DEBUG", 16);
 
 const Level Level::ALL("ALL", numeric_limits<unsigned short>::max());
-const Level Level::NORMAL("TRACE", 7);
+const Level Level::NORMAL("NORMAL", 7);
 
 unsigned short Logger::logMask = Level::ALL.VALUE;
 std::stringstream Logger::sStream;
