@@ -68,7 +68,7 @@ public class VecAdd {
 			cl_platform_id[] platforms = new cl_platform_id[3];
 			clGetPlatformIDs(platforms.length, platforms, null);
 
-			/*** Erstelle Context mit dem gewünschten Type z.B. CPU, GPU ***/
+			/*** Erstelle Context mit dem gewuenschten Type z.B. CPU, GPU ***/
 			cl_context_properties contextProperties = new cl_context_properties();
 			for (cl_platform_id pId : platforms) {
 				if (pId != null)
