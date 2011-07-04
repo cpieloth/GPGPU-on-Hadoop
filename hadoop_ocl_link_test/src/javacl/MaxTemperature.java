@@ -29,7 +29,7 @@ public class MaxTemperature {
 
 		job.setJarByClass(CLAZZ);
 
-		job.setMapperClass(MaxTemperatureMapper.class);
+		job.setMapperClass(hadoop.MaxTemperatureMapper.class);
 		job.setReducerClass(MaxTemperatureReducer.class);
 
 		job.setOutputKeyClass(Text.class);
