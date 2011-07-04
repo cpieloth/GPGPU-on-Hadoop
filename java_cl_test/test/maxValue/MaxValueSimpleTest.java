@@ -22,7 +22,7 @@ public class MaxValueSimpleTest {
 	@Before
 	public void initialize() {
 		this.maxVal = new MaxValueSimple();
-		this.maxVal.LEN = 3000000;
+		this.maxVal.LEN = 1000000;
 		this.END = this.maxVal.LEN;
 		this.STEP = this.END / 32;
 	}
