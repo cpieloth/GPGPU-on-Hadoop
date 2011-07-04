@@ -1,9 +1,9 @@
 CXXFLAGS=-O2	-Wall -Werror
 
-all: mapSimple reduceSimple
+all: MaxTemperature_Map MaxTemperature_Reduce
 
 %: %.cpp
 	g++ $(CXXFLAGS) -o $@ $<
 	
 clean:
-	$(RM) *.o mapSimple reduceSimple
+	$(RM) *.o MaxTemperature_Map MaxTemperature_Reduce
