@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
-make clean
-make
+make -f Makefile_simple clean
+make -f Makefile_simple
 
 HADOOP_HOME="/usr/local/hadoop"
 STREAMING="${HADOOP_HOME}/contrib/streaming/hadoop-streaming-*.jar"

@@ -1,9 +1,24 @@
-CXXFLAGS=-O2	-Wall -Werror
+CXXFLAGS=-g -Wall -Wextra
+#DEFINES=-DRUNTIME_MEASUREMENT
+OBJECTS=
+INCLUDES=-I"$(CLSDKINCLUDE)" -I"include"
+# LIBRARIES OS DEPENDENT
+OSTYPE = $(shell uname)
 
-all: MaxTemperature_Map MaxTemperature_Reduce
+ifeq ($(OSTYPE),Linux)
+	LIBRARIES=-L$(CLSDKLIB) -lOpenCL
+endif
+ifeq ($(OSTYPE),Darwin)
+	LIBRARIES=-framework OpenCL
+endif
 
-%: %.cpp
-	g++ $(CXXFLAGS) -o $@ $<
+all: $(OBJECTS) MaxTemperature_Map MaxTemperature_Reduce MaxTemperature_Map.o MaxTemperature_Reduce.o
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(DEFINES) $(INCLUDES) -c $<
 	
+%: %.o
+	$(CXX) $(CXXFLAGS) $< $(OBJECTS) $(LIBRARIES) -o $@
+
 clean:
-	$(RM) *.o MaxTemperature_Map MaxTemperature_Reduce
+	$(RM) *.o *.so *.a MaxTemperature_Map MaxTemperature_Reduce
