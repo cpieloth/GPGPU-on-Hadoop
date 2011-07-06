@@ -3,14 +3,23 @@ make -f Makefile_maxTemp clean
 make -f Makefile_maxTemp
 
 HADOOP_HOME="/opt/hadoop"
-STREAMING="${HADOOP_HOME}/contrib/streaming/hadoop-*-streaming.jar"
-EXEC_HOME="${HOME}/Dokumente/GPGPU-on-Hadoop/github/hadoop_ocl_link_test/src/streaming"
+
 MAPPER="MaxTemperature_Map"
 REDUCER="MaxTemperature_Reduce"
 KERNEL="kernel.cl"
-INPUT="${HOME}/Dokumente/gsod_large/"
-OUTPUT="${HOME}/Dokumente/output_streaming"
-ARGS="stream -input ${INPUT} -file ${EXEC_HOME}/${KERNEL} -file ${EXEC_HOME}/${MAPPER} -mapper ${MAPPER} -file ${EXEC_HOME}/${REDUCER} -reducer ${REDUCER} -output ${OUTPUT}"
+
+EXEC_LOCAL="${HOME}/Documents/GPGPU-on-Hadoop/github/hadoop_ocl_link_test/src/streaming"
+EXEC_DFS="/exec"
+
+INPUT_LOCAL="${HOME}/Documents/gsod_small"
+INPUT_DFS="/input"
+
+OUTPUT_LOCAL="${HOME}/Documents/output_streaming"
+OUTPUT_DFS="/output_pipes"
+
+STREAMING="${HADOOP_HOME}/contrib/streaming/hadoop-*-streaming.jar"
+#ARGS="stream -input ${INPUT_LOCAL} -file ${EXEC_LOCAL}/${KERNEL} -file ${EXEC_LOCAL}/${MAPPER} -mapper ${MAPPER} -file ${EXEC_LOCAL}/${REDUCER} -reducer ${REDUCER} -output ${OUTPUT_LOCAL}"
+ARGS="stream -input ${INPUT_DFS} -file ${EXEC_LOCAL}/${KERNEL} -file ${EXEC_LOCAL}/${MAPPER} -mapper ${MAPPER} -file ${EXEC_LOCAL}/${REDUCER} -reducer ${REDUCER} -output ${OUTPUT_DFS}"
 
 # echo $HADOOP_HOME
 # echo $EXEC_HOME
@@ -18,11 +27,22 @@ ARGS="stream -input ${INPUT} -file ${EXEC_HOME}/${KERNEL} -file ${EXEC_HOME}/${M
 # echo $REDUCER
 # echo $ARGS
 
-cd $EXEC_HOME
+cd $EXEC_LOCAL
 cp ../${KERNEL} $KERNEL
+rm -f -r $OUTPUT_LOCAL
 
 cd $HADOOP_HOME
-rm -f -r $OUTPUT
+
+bin/start-all.sh
+
+bin/hadoop fs -rmr $INPUT_DFS
+bin/hadoop fs -rmr $OUTPUT_DFS
+
+bin/hadoop fs -put $INPUT_LOCAL $INPUT_DFS
+
 bin/hadoop jar $STREAMING $ARGS
 
-rm ${EXEC_HOME}/${KERNEL}
+echo "Output:"
+bin/hadoop dfs -cat ${OUTPUT_DFS}/part*
+
+rm ${EXEC_LOCAL}/${KERNEL}
