@@ -15,7 +15,8 @@ int* buffer;
 int main() {
 	MaxValueSimple maxVal;
 	maxVal = MaxValueSimple();
-	maxVal.initialize(CL_DEVICE_TYPE_GPU);
+	if(!maxVal.initialize(CL_DEVICE_TYPE_GPU))
+		return EXIT_FAILURE;
 
 
 	std::string line;

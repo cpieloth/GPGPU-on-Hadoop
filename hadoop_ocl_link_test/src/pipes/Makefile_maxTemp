@@ -1,0 +1,33 @@
+CXXFLAGS=-O2 -Wall
+
+INCLUDES=-I"$(CLSDKINCLUDE)" 
+LIBRARIES=
+
+HADOOP_HOME=/opt/hadoop
+OSTYPE=$(shell uname)
+PLATFORM=
+ifeq ($(OSTYPE),Linux)
+	ARCH=$(shell uname -m)
+	ifeq ($(ARCH),x86_64)
+		PLATFORM=$(OSTYPE)-amd64-64
+	else
+		PLATFORM=$(OSTYPE)-i386-32
+	endif
+	INCLUDES+=-I$(HADOOP_HOME)/c++/$(PLATFORM)/include
+	LIBRARIES=-L$(CLSDKLIB) -lOpenCL -L$(HADOOP_HOME)/c++/$(PLATFORM)/lib -lhadooppipes -lhadooputils -lpthread -lssl
+endif
+# FOR MAC, SEE HPIPES_ON_MAC.txt
+ifeq ($(OSTYPE),Darwin)
+	INCLUDES+=-I$(HADOOP_HOME)/src/c++/install/include
+	LIBRARIES=-framework OpenCL -L$(HADOOP_HOME)/src/c++/install/lib -lhadooppipes -lhadooputils -lpthread -lssl
+endif
+
+# Hadoop >= 0.20.203.0 requires -lcrypto
+
+all: MaxTemperature
+
+%: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $< $(LIBRARIES) -o $@
+	
+clean:
+	$(RM) *.o MaxTemperature

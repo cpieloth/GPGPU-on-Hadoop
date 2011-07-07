@@ -15,7 +15,7 @@ INPUT_LOCAL="${HOME}/Documents/gsod_small"
 INPUT_DFS="/input"
 
 OUTPUT_LOCAL="${HOME}/Documents/output_streaming"
-OUTPUT_DFS="/output_pipes"
+OUTPUT_DFS="/output_streaming"
 
 STREAMING="${HADOOP_HOME}/contrib/streaming/hadoop-*-streaming.jar"
 #ARGS="stream -input ${INPUT_LOCAL} -file ${EXEC_LOCAL}/${KERNEL} -file ${EXEC_LOCAL}/${MAPPER} -mapper ${MAPPER} -file ${EXEC_LOCAL}/${REDUCER} -reducer ${REDUCER} -output ${OUTPUT_LOCAL}"
