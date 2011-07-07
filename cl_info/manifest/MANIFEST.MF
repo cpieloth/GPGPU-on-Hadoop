@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Class-Path: . CLInfo_lib/javacl-1.0-beta-6-shaded.jar
+Main-Class: javal_cl.CLInfo
