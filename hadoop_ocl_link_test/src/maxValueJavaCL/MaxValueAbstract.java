@@ -40,7 +40,7 @@ public abstract class MaxValueAbstract {
 	public static final int EXIT_SUCCESS = 0;
 	public static final int MAX_FAILURE = Integer.MIN_VALUE;
 
-	protected static final String KERNEL_PATH = "src/kernel.cl";
+	protected static final String KERNEL_PATH = "kernel.cl";
 	protected static final int WG_FAC = 64;
 	protected static final int SIZEOF_CL_INT = 4;
 

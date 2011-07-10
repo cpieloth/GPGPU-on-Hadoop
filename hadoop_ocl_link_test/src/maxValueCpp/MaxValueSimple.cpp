@@ -127,13 +127,13 @@ void MaxValueSimple::finalize() {
 		return;
 
 	/* TODO
-	cmdQ.~CommandQueue();
-	event.~Event();
-	kernel.~Kernel();
-	program.~Program();
-	context.~Context();
-	// TODO platforms
-	*/
+	 cmdQ.~CommandQueue();
+	 event.~Event();
+	 kernel.~Kernel();
+	 program.~Program();
+	 context.~Context();
+	 // TODO platforms
+	 */
 
 }
 
@@ -150,11 +150,6 @@ bool MaxValueSimple::initialize(cl_device_type type) {
 	try {
 		/*** Hole OpenCL-Plattformen z.B. AMD APP, NVIDIA CUDA ***/
 		cl::Platform::get(&platforms);
-		std::cerr << "[DEBUG] MaxValueSimple::initialize(cl_device_type): platforms.size=" << platforms.size() << std::endl;
-		std::cerr << "[DEBUG] OpenCL platform: " << platforms[0].getInfo<
-							CL_PLATFORM_NAME> () << std::endl;
-		std::cerr << "[DEBUG] OpenCL platform version: " << platforms[0].getInfo<
-										CL_PLATFORM_VERSION> () << std::endl;
 
 		/*** Hole OpenCL-Device des geforderten Typs z.B. GPU, CPU ***/
 		std::vector < cl::Device > devTmp;
@@ -165,10 +160,8 @@ bool MaxValueSimple::initialize(cl_device_type type) {
 			devTmp.clear();
 		}
 
-		std::cerr << "[DEBUG] MaxValueSimple::initialize(cl_device_type): devices.size=" << devices.size() << std::endl;
-
 		std::cerr << "[DEBUG] OpenCL device: " << devices[0].getInfo<
-								CL_DEVICE_NAME> () << std::endl;
+				CL_DEVICE_NAME> () << std::endl;
 
 		/*** Erstelle OpenCL-Context und CommandQueue ***/
 		context = cl::Context(devices);
@@ -198,11 +191,13 @@ bool MaxValueSimple::initialize(cl_device_type type) {
 		return true;
 	} catch (cl::Error& err) {
 		// TODO Logger::logError(METHOD, Logger::sStream << err.what());
-		std::cerr << "[ERROR] MaxValueSimple::initialize(cl_device_type): " << err.what() << " ("<< err.err() << ")"<< std::endl;
+		std::cerr << "[ERROR] MaxValueSimple::initialize(cl_device_type): "
+				<< err.what() << " (" << err.err() << ")" << std::endl;
 		return false;
 	} catch (std::exception& err) {
 		// TODO Logger::logError(METHOD, Logger::sStream << err.what());
-		std::cerr << "[ERROR] MaxValueSimple::initialize(cl_device_type): " << err.what() << std::endl;
+		std::cerr << "[ERROR] MaxValueSimple::initialize(cl_device_type): "
+				<< err.what() << std::endl;
 		return false;
 	}
 }
@@ -212,7 +207,9 @@ std::string MaxValueSimple::readFile(std::string fName) {
 	file.open(fName.c_str(), std::ios::in);
 
 	if (!file)
-		std::cerr << "[ERROR] MaxValueSimple::readFile(std::string): Could not open file: " << fName << std::endl;
+		std::cerr
+				<< "[ERROR] MaxValueSimple::readFile(std::string): Could not open file: "
+				<< fName << std::endl;
 
 	char c;
 
@@ -241,7 +238,9 @@ int MaxValueSimple::maxValue(int* values, const size_t LEN) {
 		break;
 	default:
 		// TODO Logger.logError(CLAZZ, "Device type not supported!");
-		std::cerr << "[ERROR] MaxValueSimple::maxValue(int*, const size_t): Device type not supported!" << std::endl;
+		std::cerr
+				<< "[ERROR] MaxValueSimple::maxValue(int*, const size_t): Device type not supported!"
+				<< std::endl;
 		break;
 	}
 
@@ -363,11 +362,13 @@ int MaxValueSimple::maxValueCL(int* values, size_t len) {
 		return values[0];
 	} catch (cl::Error& err) {
 		// TODO Logger::logError(METHOD, Logger::sStream << err.what());
-		std::cerr << "[ERROR] MaxValueSimple::maxValueCL(int*, size_t): " << err.what() << " ("<< err.err() << ")"<< std::endl;
+		std::cerr << "[ERROR] MaxValueSimple::maxValueCL(int*, size_t): "
+				<< err.what() << " (" << err.err() << ")" << std::endl;
 		return MaxValueSimple::MAX_FAILURE;
 	} catch (std::exception& err) {
 		// TODO Logger::logError(METHOD, Logger::sStream << err.what());
-		std::cerr << "[ERROR] MaxValueSimple::maxValueCL(int*, size_t): " << err.what() << std::endl;
+		std::cerr << "[ERROR] MaxValueSimple::maxValueCL(int*, size_t): "
+				<< err.what() << std::endl;
 		return MaxValueSimple::MAX_FAILURE;
 	}
 }
