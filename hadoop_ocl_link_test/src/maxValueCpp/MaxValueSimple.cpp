@@ -346,7 +346,7 @@ int MaxValueSimple::maxValueCL(int* values, size_t len) {
 
 		/*** Daten vom OpenCL-Device holen ***/
 		// TODO nur 1. element auslesen
-		status = cmdQ.enqueueReadBuffer(vBuffer, true, 0, sizeof(cl_int) * len,
+		status = cmdQ.enqueueReadBuffer(vBuffer, true, 0, sizeof(cl_int) * 1,
 				&values[0]);
 		if (status != CL_SUCCESS) {
 			throw cl::Error(status, "CommandQueue.enqueueReadBuffer");
