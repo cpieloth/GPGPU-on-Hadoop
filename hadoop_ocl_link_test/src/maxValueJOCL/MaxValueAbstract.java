@@ -16,7 +16,6 @@ import static org.jocl.CL.clReleaseEvent;
 import static org.jocl.CL.clReleaseKernel;
 import static org.jocl.CL.clReleaseProgram;
 
-import java.io.File;
 import java.util.Random;
 import java.util.Scanner;
 
@@ -56,7 +55,7 @@ public abstract class MaxValueAbstract {
 	public static final int EXIT_SUCCESS = 0;
 	public static final int MAX_FAILURE = Integer.MIN_VALUE;
 
-	protected static final String KERNEL_PATH = "kernel.cl";
+	protected static final String KERNEL_PATH = "/kernel.cl";
 	protected static final int WG_FAC = 64;
 	protected static final int SIZEOF_CL_INT = 4;
 
@@ -220,10 +219,10 @@ public abstract class MaxValueAbstract {
 	protected static String readFile(String fName) {
 		StringBuffer sb = new StringBuffer();
 		try {
-			Scanner sc = new Scanner(new File(fName));
+			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(fName));
 			while (sc.hasNext())
 				sb.append(sc.nextLine());
-
+			sc.close();
 		} catch (Exception e) {
 			Logger.logError(CLAZZ, "Could not read file: " + fName);
 			e.printStackTrace();
