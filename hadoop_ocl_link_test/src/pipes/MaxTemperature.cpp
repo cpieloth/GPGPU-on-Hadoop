@@ -47,32 +47,37 @@ public:
 
 	MaxTemp_Reducer(HadoopPipes::TaskContext& context) {
 		maxVal = MaxValueSimple();
-		if(!maxVal.initialize(CL_DEVICE_TYPE_GPU))
+		if (!maxVal.initialize(CL_DEVICE_TYPE_GPU))
 			throw std::exception();
+
+		buffer = (int*) calloc(MaxTemp_Reducer::MAX_VALUES, sizeof(int));
 	}
 
 	~MaxTemp_Reducer() {
 		maxVal.finalize();
+		free(buffer);
 	}
 
 	void reduce(HadoopPipes::ReduceContext& context) {
-		buffer = new int[MaxTemp_Reducer::MAX_VALUES];
 		buffer[0] = MaxValueSimple::MAX_FAILURE;
 		i = 1;
 
 		while (context.nextValue()) {
-			if(i < MaxTemp_Reducer::MAX_VALUES)
+			if (i < MaxTemp_Reducer::MAX_VALUES)
 				buffer[i++] = atoi(context.getInputValue().c_str());
-			if(i >= MaxTemp_Reducer::MAX_VALUES || !context.nextValue()) {
-				buffer[0] = maxVal.maxValue(buffer, MaxTemp_Reducer::MAX_VALUES);
+			if (i >= MaxTemp_Reducer::MAX_VALUES) {
+				buffer[0]
+						= maxVal.maxValue(buffer, MaxTemp_Reducer::MAX_VALUES);
 				i = 1;
 			}
 		}
+		// work-around for context/iterable.hasNext()
+		if (i > 1)
+			buffer[0] = maxVal.maxValue(buffer, MaxTemp_Reducer::MAX_VALUES);
 
 		valStr.str("");
 		valStr << buffer[0];
 		context.emit(context.getInputKey(), valStr.str());
-		free(buffer);
 	}
 
 private:

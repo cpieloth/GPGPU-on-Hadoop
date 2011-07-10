@@ -11,7 +11,7 @@ KERNEL="kernel.cl"
 EXEC_LOCAL="${HOME}/Documents/GPGPU-on-Hadoop/github/hadoop_ocl_link_test/src/streaming"
 EXEC_DFS="/exec"
 
-INPUT_LOCAL="${HOME}/Documents/gsod_small"
+INPUT_LOCAL="${HOME}/Documents/gsod_large"
 INPUT_DFS="/input"
 
 OUTPUT_LOCAL="${HOME}/Documents/output_streaming"
