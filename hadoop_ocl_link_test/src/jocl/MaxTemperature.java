@@ -39,7 +39,7 @@ public class MaxTemperature {
 		job.setOutputFormatClass(TextOutputFormat.class);
 
 		FileInputFormat.setInputPaths(job, new Path(args[1]));
-		FileOutputFormat.setOutputPath(job, new Path(args[2] + "_" + args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[2]));
 
 		int stat = job.waitForCompletion(true) ? 0 : 1;
 		System.exit(stat);
