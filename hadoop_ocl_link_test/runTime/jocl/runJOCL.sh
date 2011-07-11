@@ -1,11 +1,6 @@
 #!/usr/bin/env sh
-DIR=$(dirname $0)
-if [ "." = "$DIR" ]; then
-	DIR=".."
-else
-	DIR="."
-fi
-source $DIR/utils.sh
+UTIL_HOME="${HOME}/Documents/GPGPU-on-Hadoop/github/hadoop_ocl_link_test/runTime/"
+source $UTIL_HOME/utils.sh
 
 MAPRED="maxTemp.jar"
 KERNEL="kernel.cl"

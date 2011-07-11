@@ -1,11 +1,6 @@
 #!/usr/bin/env sh
-DIR=$(dirname $0)
-if [ "." = "$DIR" ]; then
-	DIR=".."
-else
-	DIR="."
-fi
-source $DIR/utils.sh
+UTIL_HOME="${HOME}/Documents/GPGPU-on-Hadoop/github/hadoop_ocl_link_test/runTime/"
+source $UTIL_HOME/utils.sh
 
 MAPRED="maxTemp.jar"
 KERNEL="kernel.cl"
@@ -18,7 +13,7 @@ LIB1="javacl-1.0-beta-6-shaded.jar"
 LIB2="lightLogger-0.1.jar"
 
 OUTPUT_LOCAL="${HOME}/Documents/output"
-OUTPUT_DFS="/output_javalCL"
+OUTPUT_DFS="/output_javaCL"
 
 ARGS="maxTemp $INPUT_DFS $OUTPUT_DFS"
 
