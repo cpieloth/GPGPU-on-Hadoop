@@ -13,6 +13,14 @@ import java.util.List;
 public interface IKMeansBasic {
 
 	/**
+	 * Returns the dimension. Each Point's dimension must be equal with this
+	 * value.
+	 * 
+	 * @return
+	 */
+	public int getDim();
+	
+	/**
 	 * Computes the distance between two n-dimensional points.
 	 * @param p Point 1
 	 * @param c Point 2

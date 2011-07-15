@@ -2,10 +2,11 @@ package clustering;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+
+import org.apache.log4j.Level;
 
 import lightLogger.Logger;
 import utils.Points;
@@ -19,28 +20,22 @@ import utils.Visualize;
  * @param <T>
  * @param <K>
  */
-public class KMeans implements IKMeans, IKMeansBasic {
+public class KMeans implements IKMeans {
 
 	private static final Class<KMeans> CLAZZ = KMeans.class;
 
 	private static final int MAX_DISTANCE = Integer.MAX_VALUE;
 
 	private int k, dim;
-
-	public KMeans(int k, int dim) {
-		Logger.logTrace(CLAZZ, "KMeans(" + k + ", " + dim + ")");
-		this.k = k;
-		this.dim = dim;
-	}
+	
+	private IKMeansBasic kBasic;
 
 	@Override
-	public int getDim() {
-		return this.dim;
-	}
-
-	@Override
-	public List<IPoint> initialize() {
+	public List<IPoint> initialize(int dim, int k) {
 		Logger.logTrace(CLAZZ, "initialize()");
+		this.dim = dim;
+		this.k = k;
+		
 		List<IPoint> centroids = new ArrayList<IPoint>(this.k);
 		Random r = new Random();
 		Point c;
@@ -64,7 +59,7 @@ public class KMeans implements IKMeans, IKMeansBasic {
 			centroid = null;
 
 			for (IPoint c : centroids) {
-				dist = computeDistance(p, c);
+				dist = this.kBasic.computeDistance(p, c);
 				if (dist < prevDist) {
 					prevDist = dist;
 					centroid = c;
@@ -75,13 +70,7 @@ public class KMeans implements IKMeans, IKMeansBasic {
 		}
 	}
 
-	@Override
-	public double computeDistance(final IPoint p, final IPoint c) {
-		double dist = 0;
-		for (int d = 0; d < p.getDim(); d++)
-			dist += Math.pow(c.get(d) - p.get(d), 2);
-		return Math.sqrt(dist);
-	}
+	
 
 	public List<IPoint> computeCentroids(List<ICPoint> points) {
 		Logger.logTrace(CLAZZ, "computeCentroids(" + points.size() + ")");
@@ -99,37 +88,14 @@ public class KMeans implements IKMeans, IKMeansBasic {
 		IPoint newCentroid = null;
 		List<IPoint> newCentroids = new ArrayList<IPoint>(this.k);
 		for (IPoint centroid : clusters.keySet()) {
-			newCentroid = computeCentroid(clusters.get(centroid));
+			newCentroid = this.kBasic.computeCentroid(clusters.get(centroid));
 			newCentroids.add(newCentroid);
 		}
 
 		return newCentroids;
 	}
 
-	@Override
-	public IPoint computeCentroid(final List<ICPoint> points) {
-		Logger.logTrace(CLAZZ,
-				"computeCentroid() - points.size(): " + points.size());
-		Point c = new Point(this.dim);
-
-		Iterator<ICPoint> it = points.iterator();
-		IPoint p = it.next();
-
-		for (int d = 0; d < this.dim; d++)
-			c.set(d, p.get(d));
-
-		while (it.hasNext()) {
-			p = it.next();
-			for (int d = 0; d < this.dim; d++)
-				c.set(d, c.get(d) + p.get(d));
-		}
-
-		int n = points.size();
-		for (int d = 0; d < this.dim; d++)
-			c.set(d, c.get(d) / n);
-
-		return c;
-	}
+	
 
 	@Override
 	public int getK() {
@@ -137,12 +103,11 @@ public class KMeans implements IKMeans, IKMeansBasic {
 	}
 
 	@Override
-	public void run(IKMeansBasic kmeans, List<ICPoint> points,
+	public void run(IKMeansBasic kBasic, List<ICPoint> points,
 			List<IPoint> centroids, final int ITERATIONS) {
 		Logger.logTrace(CLAZZ, "run() - ITERATIONS: " + ITERATIONS);
 
-		if (centroids == null)
-			centroids = this.initialize();
+		this.kBasic = kBasic;
 
 		for (int i = 0; i < ITERATIONS; i++) {
 			this.computeDistances(points, centroids);
@@ -153,13 +118,12 @@ public class KMeans implements IKMeans, IKMeansBasic {
 	}
 
 	@Override
-	public void run(IKMeansBasic kmeans, List<ICPoint> points,
+	public void run(IKMeansBasic kBasic, List<ICPoint> points,
 			List<IPoint> centroids) {
 		Logger.logTrace(CLAZZ, "run()");
 		Visualize viz = new Visualize();
 
-		if (centroids == null)
-			centroids = this.initialize();
+		this.kBasic = kBasic;
 
 		final int ITERATIONS = 5;
 		int runs = 0;
@@ -209,15 +173,24 @@ public class KMeans implements IKMeans, IKMeansBasic {
 	}
 
 	public static void main(String[] args) {
-		KMeans kmeans = new KMeans(10, 2);
-		List<ICPoint> points = new Points(kmeans.dim).generate(kmeans.getK(),
+		Logger.setLogMask(lightLogger.Level.DEFAULT.TRACE.getLevel().getValue());
+		IKMeansBasic kBasic = new KMeansBasic(2);
+//		KMeansBasicCL kBasic = new KMeansBasicCL(128);
+//		kBasic.initialize(KMeansBasicCL.TYPES.CL_GPU);
+		KMeans kmeans = new KMeans();
+		List<IPoint> centroids = kmeans.initialize(kBasic.getDim(), 4);
+		List<ICPoint> points = new Points(kBasic.getDim()).generate(kmeans.getK(),
 				1000, 1);
 
 		// View input
 		new Visualize().drawCPoints(1, points);
 		waitForView();
 
-		kmeans.run(null, points, kmeans.initialize());
+		long start = System.currentTimeMillis();
+		kmeans.run(kBasic, points, centroids);
+		long end = System.currentTimeMillis();
+		
+		System.out.println("Time: " + (end-start));
 
 		// View clusters with centroid
 		new Visualize().drawCPoints(1, points);

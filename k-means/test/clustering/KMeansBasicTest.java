@@ -7,15 +7,15 @@ import java.util.List;
 
 import org.junit.Test;
 
-public class KMeansTest {
+public class KMeansBasicTest {
 
-	private KMeans kmeans;
+	private KMeansBasic kmeans;
 	private Point c;
 	private CPoint p;
 
 	@Test
 	public void testComputeDistance() {
-		kmeans = new KMeans(1, 2);
+		kmeans = new KMeansBasic(2);
 		p = new CPoint(kmeans.getDim());
 		p.set(0, 0);
 		p.set(1, 0);
@@ -27,7 +27,7 @@ public class KMeansTest {
 		double dist1 = kmeans.computeDistance(p, c);
 		double dist1Exp = Math.sqrt(18);
 
-		kmeans = new KMeans(1, 5);
+		kmeans = new KMeansBasic(5);
 		p = new CPoint(kmeans.getDim());
 		for (int d = 0; d < kmeans.getDim(); d++)
 			p.set(d, 0);
@@ -45,7 +45,7 @@ public class KMeansTest {
 
 	@Test
 	public void testComputeCentroid() {
-		kmeans = new KMeans(1, 2);
+		kmeans = new KMeansBasic(2);
 		List<ICPoint> points = new LinkedList<ICPoint>();
 
 		p = new CPoint(kmeans.getDim());
@@ -70,7 +70,7 @@ public class KMeansTest {
 
 		assertArrayEquals(cExp.getDims(), c.getDims(), 0.0001);
 
-		kmeans = new KMeans(1, 5);
+		kmeans = new KMeansBasic(5);
 		points.clear();
 
 		for (int i = 0; i < 3; i++) {

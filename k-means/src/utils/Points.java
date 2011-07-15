@@ -34,7 +34,7 @@ public class Points {
 		ICPoint p;
 		double val;
 		Random sign = new Random();
-		while (i < COUNT * 0.7) {
+		while (i < COUNT * 0.6) {
 			for (IPoint ref : centroids) {
 				p = new CPoint(this.dim);
 				for (int d = 0; d < this.dim; d++) {

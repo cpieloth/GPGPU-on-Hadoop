@@ -13,14 +13,6 @@ import java.util.List;
 public interface IKMeans {
 
 	/**
-	 * Returns the dimension. Each Point's dimension must be equal with this
-	 * value.
-	 * 
-	 * @return
-	 */
-	public int getDim();
-
-	/**
 	 * Return count of clusters
 	 * 
 	 * @return
@@ -29,10 +21,11 @@ public interface IKMeans {
 
 	/**
 	 * Create random centroids and initialize required data.
-	 * 
+	 * @param dim Dimension of point
+	 * @param k Number of centroids
 	 * @return List of generated centroids.
 	 */
-	public List<IPoint> initialize();
+	public List<IPoint> initialize(int dim, int k);
 
 	/**
 	 * Runs the K-Means implementation with the specified iterations.
@@ -42,7 +35,7 @@ public interface IKMeans {
 	 * @param points
 	 *            Data input.
 	 * @param centroids
-	 *            Initial centroids. If null, centroids must be created.
+	 *            Initial centroids.
 	 * @param iterations
 	 *            Number of iterations.
 	 */
@@ -58,7 +51,7 @@ public interface IKMeans {
 	 * @param points
 	 *            Data input.
 	 * @param centroids
-	 *            Initial centroids. If null, centroids must be created.
+	 *            Initial centroids.
 	 */
 	public void run(IKMeansBasic kmeans, List<ICPoint> points,
 			List<IPoint> centroids);
