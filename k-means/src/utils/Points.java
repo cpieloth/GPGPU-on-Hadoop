@@ -34,7 +34,7 @@ public class Points {
 		ICPoint p;
 		double val;
 		Random sign = new Random();
-		while (i < COUNT * 0.8) {
+		while (i < COUNT * 0.7) {
 			for (IPoint ref : centroids) {
 				p = new CPoint(this.dim);
 				for (int d = 0; d < this.dim; d++) {
@@ -68,10 +68,6 @@ public class Points {
 	public static void print(List<IPoint> points) {
 		for (IPoint p : points)
 			System.out.println(p.toString());
-	}
-
-	public static void main(String[] args) {
-		new Points(2).generate(10, 1000, 1);
 	}
 
 }
