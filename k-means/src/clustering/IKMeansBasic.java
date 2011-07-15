@@ -10,7 +10,7 @@ import java.util.List;
  * @param <T>
  * @param <K>
  */
-public interface IKMeansBasic<T, K> {
+public interface IKMeansBasic {
 
 	/**
 	 * Computes the distance between two n-dimensional points.
@@ -18,12 +18,12 @@ public interface IKMeansBasic<T, K> {
 	 * @param c Point 2
 	 * @return Distance
 	 */
-	public int computeDistances(IPoint<T> p, IPoint<T> c);
+	public double computeDistance(final IPoint p, final IPoint c);
 
 	/**
 	 * Computes the centroid of a cluster of points.
 	 * @param points
 	 * @return Centroid
 	 */
-	public IPoint<T> computeCentroid(List<IPoint<T>> points);
+	public IPoint computeCentroid(final List<ICPoint> points);
 }
