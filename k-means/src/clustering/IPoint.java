@@ -17,7 +17,7 @@ public interface IPoint {
 	 * @param val
 	 *            Value
 	 */
-	public void set(int dim, double val);
+	public void set(int dim, float val);
 
 	/**
 	 * Gets the value of one dimension.
@@ -26,14 +26,14 @@ public interface IPoint {
 	 *            Dimesion
 	 * @return Value
 	 */
-	public double get(int dim);
+	public float get(int dim);
 
 	/**
 	 * Returns all values of the dimensions.
 	 * 
 	 * @return
 	 */
-	public double[] getDims();
+	public float[] getDims();
 
 	/**
 	 * Returns the dimension size.

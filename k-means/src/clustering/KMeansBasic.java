@@ -16,11 +16,11 @@ public class KMeansBasic implements IKMeansBasic {
 	}
 
 	@Override
-	public double computeDistance(final IPoint p, final IPoint c) {
-		double dist = 0;
+	public float computeDistance(final IPoint p, final IPoint c) {
+		float dist = 0;
 		for (int d = 0; d < p.getDim(); d++)
 			dist += Math.pow(c.get(d) - p.get(d), 2);
-		return Math.sqrt(dist);
+		return (float) Math.sqrt(dist);
 	}
 
 	@Override

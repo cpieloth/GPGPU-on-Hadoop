@@ -42,7 +42,7 @@ public class KMeans implements IKMeans {
 		for (int i = 0; i < this.k; i++) {
 			c = new Point(this.dim);
 			for (int d = 0; d < this.dim; d++)
-				c.set(d, r.nextDouble());
+				c.set(d, r.nextFloat());
 			centroids.add(c);
 		}
 		return centroids;
@@ -173,10 +173,10 @@ public class KMeans implements IKMeans {
 	}
 
 	public static void main(String[] args) {
-		Logger.setLogMask(lightLogger.Level.DEFAULT.TRACE.getLevel().getValue());
-		IKMeansBasic kBasic = new KMeansBasic(2);
-//		KMeansBasicCL kBasic = new KMeansBasicCL(128);
-//		kBasic.initialize(KMeansBasicCL.TYPES.CL_GPU);
+		//Logger.setLogMask(lightLogger.Level.DEFAULT.TRACE.getLevel().getValue());
+		//IKMeansBasic kBasic = new KMeansBasic(2);
+		KMeansBasicCL kBasic = new KMeansBasicCL(128);
+		kBasic.initialize(KMeansBasicCL.TYPES.CL_GPU);
 		KMeans kmeans = new KMeans();
 		List<IPoint> centroids = kmeans.initialize(kBasic.getDim(), 4);
 		List<ICPoint> points = new Points(kBasic.getDim()).generate(kmeans.getK(),

@@ -25,23 +25,23 @@ public class Points {
 		for (int i = 0; i < K; i++) {
 			c = new Point(this.dim);
 			for (int d = 0; d < this.dim; d++)
-				c.set(d, r.nextDouble() * MAGNITUDE);
+				c.set(d, r.nextFloat() * MAGNITUDE);
 			centroids.add(c);
 		}
 
 		int i = 0;
 		ArrayList<ICPoint> points = new ArrayList<ICPoint>(COUNT);
 		ICPoint p;
-		double val;
+		float val;
 		Random sign = new Random();
 		while (i < COUNT * 0.6) {
 			for (IPoint ref : centroids) {
 				p = new CPoint(this.dim);
 				for (int d = 0; d < this.dim; d++) {
 					if (sign.nextBoolean())
-						val = ref.get(d) + r.nextDouble() * MAGNITUDE / 10;
+						val = ref.get(d) + r.nextFloat() * MAGNITUDE / 10;
 					else
-						val = ref.get(d) - r.nextDouble() * MAGNITUDE / 10;
+						val = ref.get(d) - r.nextFloat() * MAGNITUDE / 10;
 					if (val < 0)
 						val = 0;
 					if (val > MAGNITUDE)
@@ -57,7 +57,7 @@ public class Points {
 		while (i < COUNT) {
 			p = new CPoint(this.dim);
 			for (int d = 0; d < this.dim; d++)
-				p.set(d, r.nextDouble() * MAGNITUDE);
+				p.set(d, r.nextFloat() * MAGNITUDE);
 			points.add(p);
 			i++;
 		}

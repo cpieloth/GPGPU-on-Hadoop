@@ -2,20 +2,20 @@ package clustering;
 
 public class Point implements IPoint {
 
-	protected double[] values;
+	protected float[] values;
 
 	public Point(int dim) {
-		this.values = new double[dim];
+		this.values = new float[dim];
 
 	}
 
 	@Override
-	public void set(int dim, double val) {
+	public void set(int dim, float val) {
 		this.values[dim] = val;
 	}
 
 	@Override
-	public double get(int dim) {
+	public float get(int dim) {
 		return this.values[dim];
 	}
 
@@ -25,7 +25,7 @@ public class Point implements IPoint {
 	}
 
 	@Override
-	public double[] getDims() {
+	public float[] getDims() {
 		return this.values;
 	}
 

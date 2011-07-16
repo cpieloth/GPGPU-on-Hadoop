@@ -25,11 +25,18 @@ import com.nativelibs4java.opencl.CLProgram;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 
+/**
+ * First OpenCL implementation of IKMeansBasic. No optimization and unfinished kernel.
+ * NOTE: estimation - result is too slow!
+ *  
+ * @author christof
+ *
+ */
 public class KMeansBasicCL implements IKMeansBasic {
 
 	private static final Class<KMeansBasicCL> CLAZZ = KMeansBasicCL.class;
 
-	private static final String KERNEL_PATH = "kernel.cl";
+	private static final String KERNEL_PATH = "../KMeansBasicCL.cl";
 	private static final String SQUARE_SUM = "squareSum";
 	private static final String SUM = "sum";
 	private static final int WG_FAC = 64;
@@ -50,7 +57,7 @@ public class KMeansBasicCL implements IKMeansBasic {
 		CL_CPU, CL_GPU
 	};
 
-	public static final double DISTANCE_ERROR = -1;
+	public static final float DISTANCE_ERROR = -1;
 	public static final IPoint CENTROID_ERROR = null;
 
 	public KMeansBasicCL(int dim) {
@@ -58,32 +65,24 @@ public class KMeansBasicCL implements IKMeansBasic {
 	}
 
 	@Override
-	public double computeDistance(IPoint p, IPoint c) {
+	public float computeDistance(IPoint p, IPoint c) {
 		try {
 			kernel = this.getKernel(SQUARE_SUM);
-			// FIXME cast to float
-			Logger.logWarn(CLAZZ,
-					"computeDistance() - Casting double values to float!");
-			float pValues[] = new float[p.getDim()];
-			float cValues[] = new float[c.getDim()];
-			for (int i = 0; i < pValues.length; i++) {
-				pValues[i] = (float) p.get(i);
-				cValues[i] = (float) c.get(i);
-			}
+
 			// Prepate Data
 			CLBuffer<FloatBuffer> pBuffer = context.createBuffer(
 					CLMem.Usage.Input,
-					FloatBuffer.wrap(pValues, 0, pValues.length), true);
+					FloatBuffer.wrap(p.getDims(), 0, p.getDims().length), true);
 			CLBuffer<FloatBuffer> cBuffer = context.createBuffer(
 					CLMem.Usage.Input,
-					FloatBuffer.wrap(cValues, 0, cValues.length), true);
+					FloatBuffer.wrap(c.getDims(), 0, c.getDims().length), true);
 			CLBuffer<FloatBuffer> resBuffer = context.createBuffer(
 					CLMem.Usage.Output, 1, FloatBuffer.class);
 			
 			cmdQ.finish();
 
-			int globalSize = pValues.length;
-			int localSize = pValues.length;
+			int globalSize = p.getDims().length;
+			int localSize = p.getDims().length;
 
 			kernel.setArg(0, resBuffer);
 			kernel.setArg(1, pBuffer);
@@ -102,7 +101,7 @@ public class KMeansBasicCL implements IKMeansBasic {
 					.order(context.getByteOrder()).asFloatBuffer();
 			resBuffer.read(cmdQ, 0, 1, res, true, new CLEvent[0]);
 			res.rewind();
-			return Math.sqrt(res.get(0));
+			return (float) Math.sqrt(res.get(0));
 		} catch (CLException err) {
 			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
 					+ err.getCode());
@@ -120,9 +119,6 @@ public class KMeansBasicCL implements IKMeansBasic {
 		IPoint centroid = new Point(this.dim);
 		try {
 			kernel = this.getKernel(SUM);
-			// FIXME cast to float
-			Logger.logWarn(CLAZZ,
-					"computeCentroid() - Casting double values to float!");
 			float p1Dim[] = new float[points.size()];
 
 			// Prepate Data
@@ -135,8 +131,7 @@ public class KMeansBasicCL implements IKMeansBasic {
 
 			for (int d = 0; d < this.dim; d++) {
 				for (int i = 0; i < points.size(); i++)
-					p1Dim[i] = (float) points.get(i).get(d); // FIXME cast to
-																// float
+					p1Dim[i] = points.get(i).get(d);
 
 				pBuffer = context.createBuffer(CLMem.Usage.Input,
 						FloatBuffer.wrap(p1Dim, 0, p1Dim.length), true);

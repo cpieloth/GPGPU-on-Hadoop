@@ -26,7 +26,7 @@ public interface IKMeansBasic {
 	 * @param c Point 2
 	 * @return Distance
 	 */
-	public double computeDistance(final IPoint p, final IPoint c);
+	public float computeDistance(final IPoint p, final IPoint c);
 
 	/**
 	 * Computes the centroid of a cluster of points.

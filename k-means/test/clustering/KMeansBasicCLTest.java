@@ -9,6 +9,7 @@ import org.junit.Test;
 
 public class KMeansBasicCLTest {
 
+	private static final float DELTA = 0.0001f;
 	private KMeansBasicCL kmeans;
 	private Point c;
 	private CPoint p;
@@ -26,8 +27,8 @@ public class KMeansBasicCLTest {
 		c.set(0, 3);
 		c.set(1, 3);
 
-		double dist1 = kmeans.computeDistance(p, c);
-		double dist1Exp = Math.sqrt(18);
+		float dist1 = kmeans.computeDistance(p, c);
+		float dist1Exp = (float)Math.sqrt(18);
 
 		kmeans = new KMeansBasicCL(5);
 		kmeans.initialize(KMeansBasicCL.TYPES.CL_GPU);
@@ -40,11 +41,11 @@ public class KMeansBasicCLTest {
 		for (int d = 0; d < kmeans.getDim(); d++)
 			c.set(d, d);
 
-		double dist2 = kmeans.computeDistance(p, c);
-		double dist2Exp = Math.sqrt(30);
+		float dist2 = kmeans.computeDistance(p, c);
+		float dist2Exp = (float)Math.sqrt(30);
 
-		assertArrayEquals(new double[] { dist1Exp, dist2Exp }, new double[] {
-				dist1, dist2 }, 0.0001);
+		assertArrayEquals(new float[] { dist1Exp, dist2Exp }, new float[] {
+				dist1, dist2 }, DELTA);
 	}
 
 	@Test
@@ -74,7 +75,7 @@ public class KMeansBasicCLTest {
 		cExp.set(0, 2);
 		cExp.set(1, 2);
 
-		assertArrayEquals(cExp.getDims(), c.getDims(), 0.0001);
+		assertArrayEquals(cExp.getDims(), c.getDims(), DELTA);
 
 		kmeans = new KMeansBasicCL(5);
 		kmeans.initialize(KMeansBasicCL.TYPES.CL_GPU);
@@ -96,7 +97,7 @@ public class KMeansBasicCLTest {
 		cExp.set(3, 24 / 3);
 		cExp.set(4, 27 / 3);
 
-		assertArrayEquals(cExp.getDims(), c.getDims(), 0.0001);
+		assertArrayEquals(cExp.getDims(), c.getDims(), DELTA);
 	}
 
 }
