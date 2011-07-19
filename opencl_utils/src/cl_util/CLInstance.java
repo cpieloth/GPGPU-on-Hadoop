@@ -66,6 +66,8 @@ public class CLInstance {
 			devTmp[0] = devices.get(0);
 			context = JavaCL.createContext(null, devTmp);
 			cmdQ = context.createDefaultQueue(QueueProperties.ProfilingEnable);
+
+			Logger.logInfo(CLAZZ, "Selected device: " + devTmp[0].getName());
 			return true;
 		} catch (CLException err) {
 			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
