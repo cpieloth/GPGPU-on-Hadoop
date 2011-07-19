@@ -33,6 +33,12 @@ public class CLInstance {
 	public static enum TYPES {
 		CL_CPU, CL_GPU
 	};
+	
+	public CLInstance(TYPES type) {
+		this.initialize(type);
+	}
+	
+	public CLInstance() {}
 
 	public boolean initialize(TYPES type) {
 		if (type == TYPES.CL_CPU)

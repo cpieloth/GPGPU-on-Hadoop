@@ -18,7 +18,7 @@ public class CLFloat {
 
 	private CLInstance clInstance;
 
-	public static final int MAX_BUFFER_ITEMS = 10240;
+	public static final int MAX_BUFFER_ITEMS = 8192;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
@@ -33,43 +33,47 @@ public class CLFloat {
 
 	public CLFloat(CLInstance clInstance) {
 		this.clInstance = clInstance;
-		this.reset();
-		this.initialize();
+		this.resetResult();
+		this.resetBuffer();
 	}
 
-	public void initialize(int bufferItems) {
+	public void resetBuffer(int bufferItems) {
 		BUFFER_ITEMS = this.getOptimalItemCount(bufferItems);
-
+		
 		this.buffer = new float[BUFFER_ITEMS];
+		this.count = 0;
+		
 		this.resultBuffer = this.clInstance.getContext().createFloatBuffer(
 				CLMem.Usage.InputOutput, BUFFER_ITEMS);
 	}
 
-	public void initialize() {
-		this.initialize(MAX_BUFFER_ITEMS);
+	public void resetBuffer() {
+		this.resetBuffer(MAX_BUFFER_ITEMS);
 	}
 
 	private int getOptimalItemCount(int bufferItems) {
 		if (bufferItems <= CLInstance.WAVE_SIZE)
 			return CLInstance.WAVE_SIZE;
-		else if (bufferItems >= MAX_BUFFER_ITEMS)
-			return MAX_BUFFER_ITEMS;
-		else
-			return (int) (Math
-					.ceil((double) bufferItems / CLInstance.WAVE_SIZE) * CLInstance.WAVE_SIZE);
+		else {
+			int dual = CLInstance.WAVE_SIZE;
+			while(dual < bufferItems && dual < MAX_BUFFER_ITEMS)
+				dual *= 2;
+			return dual;
+		}
 	}
 
-	public void reset() {
+	public void resetResult() {
 		this.sum = 0;
 		this.count = 0;
 	}
 
 	public void add(float value) {
-		if (this.count >= BUFFER_ITEMS) {
-			this.doSum(this.count);
-		}
-
-		this.buffer[count++] = value;
+		if (this.count < BUFFER_ITEMS) {
+			this.buffer[count++] = value;
+		} else {
+			this.doSum(count);
+			this.buffer[count++] = value;
+		}		
 	}
 
 	private void doSum(int size) {
@@ -78,6 +82,7 @@ public class CLFloat {
 		// fill offset with 0
 		for (int i = size; i < globalSize; i++)
 			buffer[i] = 0;
+		size = globalSize;
 
 		// get kernel and queue
 		CLQueue cmdQ = this.clInstance.getQueue();
@@ -96,10 +101,11 @@ public class CLFloat {
 			do {
 				globalSize = this.getOptimalItemCount(size);
 				// fill offset with 0 and write on device
-				if(size < globalSize) {
-					for(int i = 0; i < globalSize-size; i++)
+				if (size < globalSize) {
+					for (int i = 0; i < globalSize - size; i++)
 						buffer[i] = 0;
-					resultBuffer.write(cmdQ, size, globalSize-size, FloatBuffer.wrap(buffer), true, new CLEvent[0]);
+					resultBuffer.write(cmdQ, size, globalSize - size,
+							FloatBuffer.wrap(buffer), true, new CLEvent[0]);
 				}
 				localSize = this.clInstance.calcWorkGroupSize(globalSize);
 
@@ -114,14 +120,14 @@ public class CLFloat {
 			} while (globalSize > localSize && localSize > 1);
 
 			cmdQ.finish();
-			
+
 			FloatBuffer resBuffer = ByteBuffer
 					.allocateDirect(1 * SIZEOF_CL_FLOAT)
 					.order(this.clInstance.getContext().getByteOrder())
 					.asFloatBuffer();
 			resultBuffer.read(cmdQ, 0, 1, resBuffer, true, new CLEvent[0]);
 			resBuffer.rewind();
-			
+
 			this.sum += resBuffer.get(0);
 		} catch (CLException err) {
 			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
@@ -136,7 +142,8 @@ public class CLFloat {
 	}
 
 	public float getSum() {
-		if (0 < this.count && this.count < BUFFER_ITEMS)
+		Logger.logTrace(CLAZZ, "getSum()");
+		if (0 < this.count || this.count == BUFFER_ITEMS)
 			this.doSum(this.count);
 		return this.sum;
 	}
