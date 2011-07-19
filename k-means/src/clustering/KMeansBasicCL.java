@@ -26,11 +26,11 @@ import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 
 /**
- * First OpenCL implementation of IKMeansBasic. No optimization and unfinished kernel.
- * NOTE: estimation - result is too slow!
- *  
+ * First OpenCL implementation of IKMeansBasic. No optimization and unfinished
+ * kernel. NOTE: estimation - result is too slow!
+ * 
  * @author christof
- *
+ * 
  */
 public class KMeansBasicCL implements IKMeansBasic {
 
@@ -39,7 +39,6 @@ public class KMeansBasicCL implements IKMeansBasic {
 	private static final String KERNEL_PATH = "../KMeansBasicCL.cl";
 	private static final String SQUARE_SUM = "squareSum";
 	private static final String SUM = "sum";
-	private static final int WG_FAC = 64;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
 	private CLPlatform[] platforms;
@@ -48,7 +47,7 @@ public class KMeansBasicCL implements IKMeansBasic {
 	private CLQueue cmdQ;
 	private CLProgram program;
 	private CLKernel kernel;
-	
+
 	private HashMap<String, CLKernel> kernels = new HashMap<String, CLKernel>();
 
 	private int dim;
@@ -70,15 +69,13 @@ public class KMeansBasicCL implements IKMeansBasic {
 			kernel = this.getKernel(SQUARE_SUM);
 
 			// Prepate Data
-			CLBuffer<FloatBuffer> pBuffer = context.createBuffer(
-					CLMem.Usage.Input,
-					FloatBuffer.wrap(p.getDims(), 0, p.getDims().length), true);
-			CLBuffer<FloatBuffer> cBuffer = context.createBuffer(
-					CLMem.Usage.Input,
-					FloatBuffer.wrap(c.getDims(), 0, c.getDims().length), true);
-			CLBuffer<FloatBuffer> resBuffer = context.createBuffer(
-					CLMem.Usage.Output, 1, FloatBuffer.class);
-			
+			CLBuffer<FloatBuffer> pBuffer = context.createFloatBuffer(
+					CLMem.Usage.Input, FloatBuffer.wrap(p.getDims()), true);
+			CLBuffer<FloatBuffer> cBuffer = context.createFloatBuffer(
+					CLMem.Usage.Input, FloatBuffer.wrap(c.getDims()), true);
+			CLBuffer<FloatBuffer> resBuffer = context.createFloatBuffer(
+					CLMem.Usage.Output, 1);
+
 			cmdQ.finish();
 
 			int globalSize = p.getDims().length;
@@ -122,8 +119,8 @@ public class KMeansBasicCL implements IKMeansBasic {
 			float p1Dim[] = new float[points.size()];
 
 			// Prepate Data
-			CLBuffer<FloatBuffer> resBuffer = context.createBuffer(
-					CLMem.Usage.Output, 1, FloatBuffer.class);
+			CLBuffer<FloatBuffer> resBuffer = context.createFloatBuffer(
+					CLMem.Usage.Output, 1);
 			FloatBuffer res = ByteBuffer.allocateDirect(1 * SIZEOF_CL_FLOAT)
 					.order(context.getByteOrder()).asFloatBuffer();
 
@@ -133,8 +130,8 @@ public class KMeansBasicCL implements IKMeansBasic {
 				for (int i = 0; i < points.size(); i++)
 					p1Dim[i] = points.get(i).get(d);
 
-				pBuffer = context.createBuffer(CLMem.Usage.Input,
-						FloatBuffer.wrap(p1Dim, 0, p1Dim.length), true);
+				pBuffer = context.createFloatBuffer(CLMem.Usage.Input,
+						FloatBuffer.wrap(p1Dim), true);
 
 				cmdQ.finish();
 
@@ -172,7 +169,7 @@ public class KMeansBasicCL implements IKMeansBasic {
 
 	private CLKernel getKernel(String name) throws CLBuildException {
 		CLKernel kernel = this.kernels.get(name);
-		if(kernel == null) {
+		if (kernel == null) {
 			kernel = program.createKernel(name);
 			kernels.put(name, kernel);
 		}

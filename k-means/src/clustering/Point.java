@@ -41,4 +41,28 @@ public class Point implements IPoint {
 		return sb.toString();
 	}
 
+	
+	@Override
+	public int hashCode() {
+		StringBuilder sb = new StringBuilder();
+		for(int d = 0; d < this.getDim(); d++)
+			sb.append(this.values[d]);
+		return sb.toString().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!obj.getClass().equals(this.getClass())) {
+			return false;
+		} else {
+			IPoint p = (IPoint) obj;
+			if (p.getDim() != this.getDim())
+				return false;
+			for (int i = 0; i < this.getDim(); i++)
+				if (this.get(i) != p.get(i))
+					return false;
+			return true;
+		}
+	}
+
 }

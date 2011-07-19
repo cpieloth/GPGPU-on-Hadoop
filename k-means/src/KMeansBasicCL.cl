@@ -26,4 +26,3 @@ __kernel void sum(__global float* sum, const __global float* p, __local float* s
               sum[0] += p[i];
           }
 }
-
