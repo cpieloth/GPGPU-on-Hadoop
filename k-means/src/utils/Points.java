@@ -1,6 +1,7 @@
 package utils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -68,6 +69,26 @@ public class Points {
 	public static void print(List<IPoint> points) {
 		for (IPoint p : points)
 			System.out.println(p.toString());
+	}
+	
+	public List<IPoint> extractCentroids(List<ICPoint> points) {
+		HashSet<IPoint> centroids = new HashSet<IPoint>();
+		for(ICPoint p : points)
+			centroids.add(p.getCentroid());
+		centroids.remove(null);
+		return new ArrayList<IPoint>(centroids);
+	}
+
+	public List<ICPoint> copyPoints(List<ICPoint> points) {
+		List<ICPoint> newPoints = new ArrayList<ICPoint>(points.size());
+		ICPoint newPoint;
+		for(ICPoint p : points) {
+			newPoint = new CPoint(this.dim);
+			for(int d = 0; d < this.dim; d++)
+				newPoint.set(d, p.get(d));
+			newPoints.add(newPoint);
+		}
+		return newPoints;
 	}
 
 }

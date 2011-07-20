@@ -13,16 +13,26 @@ import java.util.List;
 public interface IKMeans {
 
 	/**
-	 * Return count of clusters
+	 * Returns dimension of points.
+	 * 
+	 * @return
+	 */
+	public int getDim();
+
+	/**
+	 * Returns count of clusters.
 	 * 
 	 * @return
 	 */
 	public int getK();
 
 	/**
-	 * Create random centroids and initialize required data.
-	 * @param dim Dimension of point
-	 * @param k Number of centroids
+	 * Creates random centroids and initialize required data.
+	 * 
+	 * @param dim
+	 *            Dimension of point
+	 * @param k
+	 *            Number of centroids
 	 * @return List of generated centroids.
 	 */
 	public List<IPoint> initialize(int dim, int k);
@@ -30,36 +40,44 @@ public interface IKMeans {
 	/**
 	 * Runs the K-Means implementation with the specified iterations.
 	 * 
-	 * @param kmeans
-	 *            Implementation of required basic methods.
 	 * @param points
 	 *            Data input.
 	 * @param centroids
 	 *            Initial centroids.
-	 * @param iterations
+	 * @param ITERATIONS
 	 *            Number of iterations.
 	 */
-	public void run(IKMeansBasic kmeans, List<ICPoint> points,
-			List<IPoint> centroids, final int iterations);
+	public void run(List<ICPoint> points, List<IPoint> centroids,
+			final int ITERATIONS);
 
 	/**
 	 * Runs the K-Means implementation with a break condition e.g. centroids are
 	 * not changing anymore.
 	 * 
-	 * @param kmeans
-	 *            Implementation of required basic methods.
 	 * @param points
 	 *            Data input.
 	 * @param centroids
 	 *            Initial centroids.
 	 */
-	public void run(IKMeansBasic kmeans, List<ICPoint> points,
-			List<IPoint> centroids);
+	public void run(List<ICPoint> points, List<IPoint> centroids);
 
-	// Possible Mapper: public void computeDistances(List<ILabeledPoint<T,K>>
-	// points, List<IPoint<T>> centroids);
+	/**
+	 * Assigns the nearest centroid for each point.
+	 * 
+	 * @param points
+	 *            Points to assign centroids.
+	 * @param centroids
+	 *            Centroids to be assigned.
+	 */
+	public void assignCentroids(List<ICPoint> points, List<IPoint> centroids);
 
-	// Possible Reducer: public List<IPoint<T>>
-	// computeCentroids(List<ILabeledPoint<T,K>> points);
+	/**
+	 * Computes the new centroids of each cluster.
+	 * 
+	 * @param points
+	 *            Points with assigned centroids.
+	 * @return New centroids.
+	 */
+	public List<IPoint> computeCentroids(List<ICPoint> points);
 
 }

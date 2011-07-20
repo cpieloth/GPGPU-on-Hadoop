@@ -1,0 +1,1 @@
+Create a symbolic link "kernel" in binary folder to find *.cl
