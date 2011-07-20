@@ -24,7 +24,7 @@ public class CLFloat {
 
 	private static final String PREFIX = CLAZZ.getSimpleName();
 	private static final String KERNEL_SUM = "sumFloat";
-	private static final String KERNEL_PATH = "CLFloat.cl";
+	private static final String KERNEL_PATH = "/kernel/CLFloat.cl";
 
 	private float buffer[];
 	private int count;
