@@ -1,5 +1,6 @@
 package clustering;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -196,9 +197,16 @@ public class KMeans implements IKMeans {
 		KMeans kmeans = new KMeans();
 		
 		List<IPoint> centroids = kmeans.initialize(2, 5);
-		List<ICPoint> points = new Points(kmeans.getDim()).generate(
-				kmeans.getK(), 1000, 1);
+		List<ICPoint> points; /* = new Points(kmeans.getDim()).generate(
+				kmeans.getK(), 1000, 1);*/
+		
+		centroids = Points.readIPoints(new File("/home/christof/Documents/kmeans-data/centroids"));
+		points = Points.readICPoints(new File("/home/christof/Documents/kmeans-data/part-m-00000"), "\t");
 
+		// View centroids
+		new Visualize().drawPoints(1, centroids);
+		waitForView();
+		
 		// View input
 		new Visualize().drawCPoints(1, points);
 		waitForView();

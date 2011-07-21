@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -16,6 +17,25 @@ import clustering.ICPoint;
 import clustering.IPoint;
 
 public class Visualize extends JFrame {
+
+	private static final int IFILE = 0;
+	private static final int ITYPE = 1;
+	private static final char CPOINT = 'c';
+	private static final char POINT = 'p';
+
+	public static void main(String[] args) {
+		if (args.length < 2) {
+			System.out.println("Arguments: <file> <" + CPOINT + "|" + POINT
+					+ ">");
+			System.exit(1);
+		}
+
+		File file = new File(args[IFILE]);
+		if (args[ITYPE].charAt(0) == CPOINT)
+			new Visualize().drawCPoints(1, Points.readICPoints(file, "\t"));
+		else
+			new Visualize().drawPoints(1, Points.readIPoints(file));
+	}
 
 	/**
 	 * 
@@ -155,7 +175,7 @@ public class Visualize extends JFrame {
 		private int getY(double y) {
 			return (int) ((y / maxXY) * Y_SIZE + Y_OFFSET);
 		}
-		
+
 		private void setAssignedColor(IPoint centroid, Graphics2D g2) {
 			if (centroid == null)
 				return;
