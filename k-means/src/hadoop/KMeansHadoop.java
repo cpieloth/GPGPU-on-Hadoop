@@ -1,7 +1,6 @@
 package hadoop;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,16 +40,17 @@ public class KMeansHadoop extends Configured implements Tool {
 	public static final int IOUTPUT = 2;
 	public static final int ICENTROIDS = 3;
 	public static final int IITERATIONS = 4;
-	
+
 	public static final String CHARSET = "UTF-8";
-	
+
 	public static String OUTPUT;
 
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
 		String[] rArgs = gop.getRemainingArgs();
-		if(rArgs.length < 5) {
-			System.out.println("Arguments: <Jobname> <Input> <Output> <Centroids> <Iterations>");
+		if (rArgs.length < 5) {
+			System.out
+					.println("Arguments: <Jobname> <Input> <Output> <Centroids> <Iterations>");
 			System.exit(FAILURE);
 		}
 		int res;
@@ -62,14 +62,14 @@ public class KMeansHadoop extends Configured implements Tool {
 		// load HDFS handler, only once!
 		FsUrlStreamHandlerFactory factory = new org.apache.hadoop.fs.FsUrlStreamHandlerFactory();
 		java.net.URL.setURLStreamHandlerFactory(factory);
-		
+
 		generateInput(rArgs[IINPUT], rArgs[ICENTROIDS], gop.getConfiguration());
 
 		do {
-			rArgs[IOUTPUT] = centroids + "-" + (i+1);
+			rArgs[IOUTPUT] = centroids + "-" + (i + 1);
 			res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(),
 					rArgs);
-			rArgs[ICENTROIDS] = centroids + "-" + (i+1);
+			rArgs[ICENTROIDS] = centroids + "-" + (i + 1);
 			i++;
 		} while (i < ITERATIONS && res == SUCCESS);
 
@@ -86,44 +86,60 @@ public class KMeansHadoop extends Configured implements Tool {
 		List<IPoint> centroids = kmeans.initialize(2, 10);
 		Points pHelper = new Points(kmeans.getDim());
 		List<ICPoint> points = pHelper.generate(kmeans.getK(), 1000, 1);
-		
+
+		FileSystem fs = null;
+		FSDataOutputStream fos = null;
 		try {
-			FileSystem fs = FileSystem.get(configuration);
-			
-			FSDataOutputStream fos = fs.create(new Path(fPoints + "/points"));
-			for(ICPoint p : points) {
+			fs = FileSystem.get(configuration);
+
+			fos = fs.create(new Path(fPoints + "/points"));
+			for (ICPoint p : points) {
 				fos.write(PointOutputFormat.createString(p).getBytes(CHARSET));
 				fos.write("\n".getBytes(CHARSET));
 			}
 			fos.close();
-			
+
 			fos = fs.create(new Path(fCentroids + "/centroids"));
-			for(IPoint p : centroids) {
+			for (IPoint p : centroids) {
 				fos.write(PointOutputFormat.createString(p).getBytes(CHARSET));
 				fos.write("\n".getBytes(CHARSET));
 			}
 			fos.close();
-			
+
 			fs.close();
 		} catch (IOException e) {
-			Logger.logError(KMeansHadoop.class, "Could not generate input data.");
+			Logger.logError(KMeansHadoop.class,
+					"Could not generate input data.");
 			e.printStackTrace();
+		} finally {
+			if (fs != null)
+				try {
+					fs.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			if (fos != null)
+				try {
+					fos.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 		}
-		
+
 	}
 
 	@Override
 	public int run(String[] args) throws Exception {
 		Job job = new Job(this.getConf());
-		
+
 		job.setJobName(args[INAME]);
-		
+
 		job.setJarByClass(KMeansHadoop.class);
-		
+
 		job.setMapperClass(KMeansHadoop.KMapper.class);
-		if(args[IOUTPUT] != OUTPUT)
+		if (args[IOUTPUT] != OUTPUT)
 			job.setReducerClass(KMeansHadoop.KReducer.class);
-		else 
+		else
 			// Run a mapper only, to get the cluster result
 			job.setNumReduceTasks(0);
 
@@ -154,11 +170,11 @@ public class KMeansHadoop extends Configured implements Tool {
 		@Override
 		protected void setup(KMapper.Context context) {
 			// TODO read max k from conf to use ArrayList
-			this.centroids = new LinkedList<PointWritable>();
-			try {
-				InputStream is;
-				Scanner sc;
 
+			this.centroids = new LinkedList<PointWritable>();
+
+			Scanner sc = null;
+			try {
 				URI[] uris = DistributedCache.getCacheFiles(context
 						.getConfiguration());
 				FileSystem fs = FileSystem.get(context.getConfiguration());
@@ -167,22 +183,26 @@ public class KMeansHadoop extends Configured implements Tool {
 					if (!fst.isDir()) {
 						Logger.logDebug(KMapper.class,
 								"centroids: " + fst.getPath());
-						is = fs.open(fst.getPath());
-						sc = new Scanner(is);
+						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
 							this.centroids.add(PointInputFormat
 									.createPointWritable(sc.next()));
+						sc.close();
 					}
 				}
 			} catch (IOException e) {
 				Logger.logError(KMapper.class,
 						"Could not get local cache files");
 				e.printStackTrace();
+			} finally {
+				if (sc != null)
+					sc.close();
+				// don't close FileSystem!
 			}
 		}
 
 		@Override
-		public void map(NullWritable key, PointWritable value,
+		protected void map(NullWritable key, PointWritable value,
 				KMapper.Context context) throws IOException,
 				InterruptedException {
 
@@ -216,7 +236,7 @@ public class KMeansHadoop extends Configured implements Tool {
 			Reducer<PointWritable, PointWritable, PointWritable, PointWritable> {
 
 		@Override
-		public void reduce(PointWritable key, Iterable<PointWritable> values,
+		protected void reduce(PointWritable key, Iterable<PointWritable> values,
 				Context context) throws IOException, InterruptedException {
 			Logger.logDebug(KReducer.class, "reduce( " + key + " , ... )");
 			int DIM = key.getDim();
