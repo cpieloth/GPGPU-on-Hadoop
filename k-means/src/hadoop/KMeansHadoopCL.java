@@ -35,7 +35,6 @@ import clustering.ICPoint;
 import clustering.IPoint;
 import clustering.KMeans;
 
-// TODO
 public class KMeansHadoopCL extends Configured implements Tool {
 
 	public static final int SUCCESS = 0;
