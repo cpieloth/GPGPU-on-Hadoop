@@ -17,11 +17,11 @@ import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLQueue;
 
-public class CLPointFloat {
+public class CLPointFloat implements ICLPointOperation<Float>{
 
 	private static final Class<CLPointFloat> CLAZZ = CLPointFloat.class;
 
-	public static final int MAX_BUFFER_SIZE = 8192;
+	private static final int MAX_BUFFER_SIZE = 8192;
 	private int BUFFER_SIZE;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
@@ -33,7 +33,7 @@ public class CLPointFloat {
 	private final int DIM;
 	private CLInstance clInstance;
 
-	private ICPoint[] itemBuffer;
+	private ICPoint<Float>[] itemBuffer;
 	private float[] buffer;
 	private int itemCount;
 	private int bufferCount;
@@ -51,10 +51,24 @@ public class CLPointFloat {
 
 		this.resetBuffer();
 	}
+	
+	@Override
+	public int getMaxBufferItems() {
+		return MAX_BUFFER_SIZE / DIM;
+	}
+	
+	@Override
+	public int getCurrentMaxBufferItems() {
+		return BUFFER_ITEMS;
+	}
+	
 
+	@SuppressWarnings("unchecked")
+	@Override
 	public void resetBuffer(int bufferItems) {
+		bufferItems = bufferItems < 1 ? 1 : bufferItems;
 		BUFFER_ITEMS = (bufferItems * DIM) > MAX_BUFFER_SIZE ? (MAX_BUFFER_SIZE / DIM)
-				: bufferItems * DIM;
+				: bufferItems;
 		BUFFER_SIZE = BUFFER_ITEMS * DIM;
 
 		this.itemBuffer = new ICPoint[BUFFER_ITEMS];
@@ -69,16 +83,18 @@ public class CLPointFloat {
 				CLMem.Usage.InputOutput, BUFFER_SIZE);
 	}
 
+	@Override
 	public void resetBuffer() {
 		this.resetBuffer(BUFFER_ITEMS);
 	}
 
-	public void prepareNearestPoints(List<IPoint> centroids) {
+	@Override
+	public void prepareNearestPoints(List<IPoint<Float>> centroids) {
 		COMPARE_ITEMS = centroids.size();
 		float[] centroidsBuffer = new float[COMPARE_ITEMS * DIM];
 
 		int i = 0;
-		for (IPoint c : centroids) {
+		for (IPoint<Float> c : centroids) {
 			for (int d = 0; d < DIM; d++)
 				centroidsBuffer[i++] = c.get(d);
 		}
@@ -101,7 +117,8 @@ public class CLPointFloat {
 		}
 	}
 
-	public void put(ICPoint p) {
+	@Override
+	public void put(ICPoint<Float> p) {
 		if (this.itemCount < BUFFER_ITEMS) {
 			this.itemBuffer[this.itemCount++] = p;
 			
@@ -115,8 +132,8 @@ public class CLPointFloat {
 		}
 	}
 
+	@Override
 	public void setNearestPoints() {
-		Logger.logTrace(CLAZZ, "setNearestPoints()");
 		if (0 < this.itemCount || this.itemCount == BUFFER_ITEMS)
 			this.doNearestPoints(this.itemCount);
 	}
@@ -156,7 +173,7 @@ public class CLPointFloat {
 			cmdQ.finish();
 			res.rewind();
 
-			IPoint centroid;
+			IPoint<Float> centroid;
 			for (int i = 0; i < size; i++) {
 				centroid = new Point(DIM);
 				for (int d = 0; d < DIM; d++) {

@@ -2,6 +2,8 @@ package cl_util;
 
 import java.util.List;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -11,30 +13,30 @@ import clustering.IPoint;
 
 public class CLPointFloatTest {
 	
-	private static final float DELTA = 0;
+	// private static final Float DELTA = 0f;
 
 	@Test
 	public void testSetNearestPoints() {
 		int DIM, COUNT, K;
 		Points pHelper;
-		List<ICPoint> points;
-		List<ICPoint> pointsExpected;
-		List<IPoint> centroids;
+		List<ICPoint<Float>> points;
+		List<ICPoint<Float>> pointsExpected;
+		List<IPoint<Float>> centroids;
 		CLPointFloat clPoint;
 		CLInstance clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
 		
 		DIM = 7;
 		K = 5;
-		COUNT = CLPointFloat.MAX_BUFFER_SIZE / DIM;
 		clPoint = new CLPointFloat(clInstance, DIM);
 		pHelper = new Points(DIM);
+		COUNT = clPoint.getMaxBufferItems();
 				
 		points = pHelper.generate(K, COUNT, 1);
 		centroids = pHelper.extractCentroids(points);
 		pointsExpected = pHelper.copyPoints(points);
 		
 		clPoint.prepareNearestPoints(centroids);
-		for(ICPoint p : points)
+		for(ICPoint<Float> p : points)
 			clPoint.put(p);
 		clPoint.setNearestPoints();
 		
@@ -44,7 +46,7 @@ public class CLPointFloatTest {
 		
 		// resetBuffer
 		clPoint.resetBuffer(points.size());
-		for(ICPoint p : points)
+		for(ICPoint<Float> p : points)
 			clPoint.put(p);
 		clPoint.setNearestPoints();
 		
@@ -54,7 +56,7 @@ public class CLPointFloatTest {
 		
 		// resetBuffer
 		clPoint.resetBuffer(points.size()/2);
-		for(ICPoint p : points)
+		for(ICPoint<Float> p : points)
 			clPoint.put(p);
 		clPoint.setNearestPoints();
 		
@@ -63,24 +65,25 @@ public class CLPointFloatTest {
 		this.checkCentroids(points, pointsExpected);
 	}
 	
-	public void checkCentroids(List<ICPoint> points, List<ICPoint> pointsExpected) {
+	private void checkCentroids(List<ICPoint<Float>> points, List<ICPoint<Float>> pointsExpected) {
 		int size = points.size();
 		if(size != pointsExpected.size())
 			fail("Size of points are not equal.");
 
 		for(int i = 0; i < size; i++)
-			assertArrayEquals(points.get(i).getCentroid().getDims(), pointsExpected.get(i).getCentroid().getDims(), DELTA);
+			assertArrayEquals(points.get(i).getCentroid().getDims(), pointsExpected.get(i).getCentroid().getDims());
+			// assertArrayEquals(points.get(i).getCentroid().getDims(), pointsExpected.get(i).getCentroid().getDims(), DELTA);
 	}
 	
-	public void computeNearestPoints(List<ICPoint> points, List<IPoint> centroids) {
+	private void computeNearestPoints(List<ICPoint<Float>> points, List<IPoint<Float>> centroids) {
 		double prevDist, dist;
-		IPoint centroid;
+		IPoint<Float> centroid;
 
-		for (ICPoint p : points) {
+		for (ICPoint<Float> p : points) {
 			prevDist = Float.MAX_VALUE;
 			centroid = null;
 
-			for (IPoint c : centroids) {
+			for (IPoint<Float> c : centroids) {
 				dist = 0;
 				for (int d = 0; d < p.getDim(); d++)
 					dist += Math.pow(c.get(d) - p.get(d), 2);
@@ -92,6 +95,32 @@ public class CLPointFloatTest {
 
 			p.setCentroid(centroid);
 		}
+	}
+	
+	@Test
+	public void testResetBuffer(){
+		CLInstance clInstance = new CLInstance();
+		clInstance.initialize(CLInstance.TYPES.CL_GPU);
+
+		ICLBufferedOperation<ICPoint<Float>> clBufferedOp = new CLPointFloat(clInstance, 2);
+		clBufferedOp.resetBuffer();
+		assertArrayEquals(new int[]{clBufferedOp.getMaxBufferItems()}, new int[]{clBufferedOp.getCurrentMaxBufferItems()});
+		
+		int items = 2 * clBufferedOp.getMaxBufferItems();
+		clBufferedOp.resetBuffer(items);
+		assertArrayEquals(new int[]{clBufferedOp.getMaxBufferItems()}, new int[]{clBufferedOp.getCurrentMaxBufferItems()});
+		
+		items = clBufferedOp.getMaxBufferItems() / 2;
+		clBufferedOp.resetBuffer(items);
+		int currItems = clBufferedOp.getCurrentMaxBufferItems();
+		if(!(items <= currItems && currItems <= clBufferedOp.getMaxBufferItems()))
+			Assert.fail();
+		
+		items = 0;
+		clBufferedOp.resetBuffer(items);
+		currItems = clBufferedOp.getCurrentMaxBufferItems();
+		if(!(items < currItems && currItems <= clBufferedOp.getMaxBufferItems()))
+			Assert.fail();
 	}
 
 }

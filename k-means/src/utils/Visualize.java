@@ -58,7 +58,7 @@ public class Visualize extends JFrame {
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
-	public void drawCPoints(int maxXY, List<ICPoint> cPoints) {
+	public void drawCPoints(int maxXY, List<ICPoint<Float>> cPoints) {
 		this.c.removeAll();
 		this.panel = this.panel == null ? new PointsPanel(maxXY) : this.panel;
 		panel.setCPoints(cPoints);
@@ -67,7 +67,7 @@ public class Visualize extends JFrame {
 		this.repaint();
 	}
 
-	public void drawPoints(int maxXY, List<IPoint> points) {
+	public void drawPoints(int maxXY, List<IPoint<Float>> points) {
 		this.c.removeAll();
 		this.panel = this.panel == null ? new PointsPanel(maxXY) : this.panel;
 		panel.setPoints(points);
@@ -78,14 +78,14 @@ public class Visualize extends JFrame {
 
 	private static class PointsPanel extends JPanel {
 		private static final long serialVersionUID = -731110979827788751L;
-		private List<ICPoint> cPoints;
-		private List<IPoint> points;
+		private List<ICPoint<Float>> cPoints;
+		private List<IPoint<Float>> points;
 		private final int X_SIZE = 700;
 		private final int X_OFFSET = 5;
 		private final int Y_SIZE = 700;
 		private final int Y_OFFSET = 5;
 		private int maxXY;
-		private HashMap<IPoint, Color> colors = new HashMap<IPoint, Color>();
+		private HashMap<IPoint<?>, Color> colors = new HashMap<IPoint<?>, Color>();
 		private int mode = 0;
 		private final int CPOINT = 1, POINT = 2;
 
@@ -93,30 +93,30 @@ public class Visualize extends JFrame {
 			this.maxXY = maxXY;
 		}
 
-		public void setCPoints(List<ICPoint> cPoints) {
+		public void setCPoints(List<ICPoint<Float>> cPoints) {
 			this.cPoints = cPoints;
 			this.mode = CPOINT;
 		}
 
-		public void setPoints(List<IPoint> points) {
+		public void setPoints(List<IPoint<Float>> points) {
 			this.points = points;
 			this.mode = POINT;
 		}
 
 		private void drawCPoints(Graphics2D g2) {
-			for (ICPoint p : this.cPoints) {
+			for (ICPoint<?> p : this.cPoints) {
 				drawPoint(g2, p);
 				drawCentroid(g2, p.getCentroid());
 			}
 		}
 
 		private void drawPoints(Graphics2D g2) {
-			for (IPoint p : this.points) {
+			for (IPoint<?> p : this.points) {
 				drawPoint(g2, p);
 			}
 		}
 
-		private void drawCentroid(Graphics2D g2, IPoint c) {
+		private void drawCentroid(Graphics2D g2, IPoint<? extends Number> c) {
 			if (c == null)
 				return;
 			int x;
@@ -127,7 +127,7 @@ public class Visualize extends JFrame {
 			g2.fillOval(x, y, 15, 15);
 		}
 
-		private void drawPoint(Graphics2D g2, IPoint p) {
+		private void drawPoint(Graphics2D g2, IPoint<? extends Number> p) {
 			int x;
 			int y;
 			x = this.getX(p.get(0));
@@ -136,7 +136,7 @@ public class Visualize extends JFrame {
 			g2.fillOval(x, y, 5, 5);
 		}
 
-		private void drawPoint(Graphics2D g2, ICPoint p) {
+		private void drawPoint(Graphics2D g2, ICPoint<?> p) {
 			int x;
 			int y;
 			x = this.getX(p.get(0));
@@ -168,15 +168,15 @@ public class Visualize extends JFrame {
 					+ Y_OFFSET);
 		}
 
-		private int getX(double x) {
-			return (int) ((x / maxXY) * X_SIZE + X_OFFSET);
+		private int getX(Number x) {
+			return (int) ((x.doubleValue() / maxXY) * X_SIZE + X_OFFSET);
 		}
 
-		private int getY(double y) {
-			return (int) ((y / maxXY) * Y_SIZE + Y_OFFSET);
+		private int getY(Number y) {
+			return (int) ((y.doubleValue() / maxXY) * Y_SIZE + Y_OFFSET);
 		}
 
-		private void setAssignedColor(IPoint centroid, Graphics2D g2) {
+		private void setAssignedColor(IPoint<?> centroid, Graphics2D g2) {
 			if (centroid == null)
 				return;
 

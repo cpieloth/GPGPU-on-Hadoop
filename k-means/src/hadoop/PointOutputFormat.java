@@ -26,7 +26,7 @@ import clustering.IPoint;
 public class PointOutputFormat extends
 		FileOutputFormat<PointWritable, PointWritable> {
 
-	public static String createString(IPoint value) {
+	public static String createString(IPoint<Float> value) {
 		StringBuilder sb = new StringBuilder();
 		for (int d = 0; d < value.getDim(); d++)
 			sb.append(value.get(d) + ";");

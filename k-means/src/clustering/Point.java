@@ -1,21 +1,23 @@
 package clustering;
 
-public class Point implements IPoint {
 
-	protected float[] values;
+
+public class Point implements IPoint<Float> {
+
+	protected Float[] values;
 
 	public Point(int dim) {
-		this.values = new float[dim];
+		this.values = new Float[dim];
 
 	}
 
 	@Override
-	public void set(int dim, float val) {
+	public void set(int dim, Float val) {
 		this.values[dim] = val;
 	}
 
 	@Override
-	public float get(int dim) {
+	public Float get(int dim) {
 		return this.values[dim];
 	}
 
@@ -25,7 +27,7 @@ public class Point implements IPoint {
 	}
 
 	@Override
-	public float[] getDims() {
+	public Float[] getDims() {
 		return this.values;
 	}
 
@@ -55,13 +57,7 @@ public class Point implements IPoint {
 		if (!obj.getClass().equals(this.getClass())) {
 			return false;
 		} else {
-			IPoint p = (IPoint) obj;
-			if (p.getDim() != this.getDim())
-				return false;
-			for (int i = 0; i < this.getDim(); i++)
-				if (this.get(i) != p.get(i))
-					return false;
-			return true;
+			return this.hashCode() == obj.hashCode();
 		}
 	}
 

@@ -8,14 +8,14 @@ package clustering;
  * @param <T>
  * @param <K>
  */
-public interface ICPoint extends IPoint {
+public interface ICPoint<T extends Number> extends IPoint<T> {
 
 	/**
 	 * Returns the current centroid.
 	 * 
 	 * @return
 	 */
-	public IPoint getCentroid();
+	public IPoint<T> getCentroid();
 
 	/**
 	 * Sets the centroid.
@@ -23,6 +23,6 @@ public interface ICPoint extends IPoint {
 	 * @param centroid
 	 *            Centroid
 	 */
-	public void setCentroid(IPoint centroid);
+	public void setCentroid(IPoint<T> centroid);
 
 }

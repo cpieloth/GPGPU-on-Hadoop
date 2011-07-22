@@ -18,7 +18,7 @@ import clustering.Point;
 
 public class Points {
 	
-	private static final Class<Points> CLAZZ = Points.class;
+	private final static Class<Points> CLAZZ = Points.class;
 
 	private int dim;
 
@@ -26,10 +26,10 @@ public class Points {
 		this.dim = dim;
 	}
 
-	public List<ICPoint> generate(final int K, final int COUNT,
+	public List<ICPoint<Float>> generate(final int K, final int COUNT,
 			final int MAGNITUDE) {
 		Random r = new Random();
-		ArrayList<IPoint> centroids = new ArrayList<IPoint>(K);
+		ArrayList<IPoint<Float>> centroids = new ArrayList<IPoint<Float>>(K);
 		Point c;
 		for (int i = 0; i < K; i++) {
 			c = new Point(this.dim);
@@ -39,12 +39,12 @@ public class Points {
 		}
 
 		int i = 0;
-		ArrayList<ICPoint> points = new ArrayList<ICPoint>(COUNT);
-		ICPoint p;
+		ArrayList<ICPoint<Float>> points = new ArrayList<ICPoint<Float>>(COUNT);
+		ICPoint<Float> p;
 		float val;
 		Random sign = new Random();
 		while (i < COUNT * 0.6) {
-			for (IPoint ref : centroids) {
+			for (IPoint<Float> ref : centroids) {
 				p = new CPoint(this.dim);
 				for (int d = 0; d < this.dim; d++) {
 					if (sign.nextBoolean())
@@ -74,15 +74,15 @@ public class Points {
 		return points;
 	}
 
-	public static List<IPoint> readIPoints(File file) {
-		List<IPoint> points = new LinkedList<IPoint>();
+	public static List<IPoint<Float>> readIPoints(File file) {
+		List<IPoint<Float>> points = new LinkedList<IPoint<Float>>();
 		Scanner sc = null;
 		try {
 			sc = new Scanner(file);
 
 			String line;
 			String[] splits;
-			IPoint point;
+			IPoint<Float> point;
 			while (sc.hasNext()) {
 				line = sc.nextLine();
 				splits = line.split("\t");
@@ -100,25 +100,22 @@ public class Points {
 		return points;
 	}
 
-	public static List<ICPoint> readICPoints(File file, final String separator) {
-		List<ICPoint> points = new LinkedList<ICPoint>();
+	public static List<ICPoint<Float>> readICPoints(File file, final String separator) {
+		List<ICPoint<Float>> points = new LinkedList<ICPoint<Float>>();
 		Scanner sc = null;
 		try {
 			sc = new Scanner(file);
 
 			String line;
 			String[] splits;
-			IPoint centroid, tmp;
-			ICPoint point;
+			IPoint<Float> centroid;
+			ICPoint<Float> point;
 			while (sc.hasNext()) {
 				line = sc.nextLine();
 				splits = line.split(separator);
 				
 				centroid = PointInputFormat.createPointWritable(splits[0]);
-				tmp = PointInputFormat.createPointWritable(splits[1]);
-				point = new CPoint(tmp.getDim());
-				for(int d = 0; d < point.getDim(); d++)
-					point.set(d, tmp.get(d));
+				point = new CPoint(PointInputFormat.createPointWritable(splits[1]));
 				point.setCentroid(centroid);
 				points.add(point);
 			}
@@ -132,23 +129,23 @@ public class Points {
 		return points;
 	}
 
-	public static void print(List<IPoint> points) {
-		for (IPoint p : points)
+	public static void print(List<IPoint<Float>> points) {
+		for (IPoint<Float> p : points)
 			System.out.println(p.toString());
 	}
 
-	public List<IPoint> extractCentroids(List<ICPoint> points) {
-		HashSet<IPoint> centroids = new HashSet<IPoint>();
-		for (ICPoint p : points)
+	public List<IPoint<Float>> extractCentroids(List<ICPoint<Float>> points) {
+		HashSet<IPoint<Float>> centroids = new HashSet<IPoint<Float>>();
+		for (ICPoint<Float> p : points)
 			centroids.add(p.getCentroid());
 		centroids.remove(null);
-		return new ArrayList<IPoint>(centroids);
+		return new ArrayList<IPoint<Float>>(centroids);
 	}
 
-	public List<ICPoint> copyPoints(List<ICPoint> points) {
-		List<ICPoint> newPoints = new ArrayList<ICPoint>(points.size());
-		ICPoint newPoint;
-		for (ICPoint p : points) {
+	public List<ICPoint<Float>> copyPoints(List<ICPoint<Float>> points) {
+		List<ICPoint<Float>> newPoints = new ArrayList<ICPoint<Float>>(points.size());
+		ICPoint<Float> newPoint;
+		for (ICPoint<Float> p : points) {
 			newPoint = new CPoint(this.dim);
 			for (int d = 0; d < this.dim; d++)
 				newPoint.set(d, p.get(d));

@@ -10,40 +10,42 @@ import java.util.Random;
 import lightLogger.Logger;
 import utils.Points;
 import utils.Visualize;
-import cl_util.CLFloat;
 import cl_util.CLInstance;
 import cl_util.CLPointFloat;
+import cl_util.CLSummarizerFloat;
+import cl_util.ICLPointOperation;
+import cl_util.ICLSummarizer;
 
 /**
- * Untested sequential and undistributed K-Means implementation.
- * TODO use CLInstance, CLFLoat, CLPointFloat
+ * Untested sequential and undistributed K-Means implementation. TODO use
+ * CLInstance, CLFLoat, CLPointFloat
  * 
  * @author christof
  * 
  * @param <T>
  * @param <K>
  */
-public class KMeansCL implements IKMeans {
+public class KMeansCL implements IKMeans<Float> {
 
 	private static final Class<KMeansCL> CLAZZ = KMeansCL.class;
 
-	private CLFloat clFloat;
-	private CLPointFloat clPoint;
+	private ICLSummarizer<Float> clFloat;
+	private ICLPointOperation<Float> clPoint;
 
 	private int k, dim;
 
 	@Override
-	public List<IPoint> initialize(int dim, int k) {
+	public List<IPoint<Float>> initialize(int dim, int k) {
 		Logger.logTrace(CLAZZ, "initialize()");
-		
+
 		this.dim = dim;
 		this.k = k;
-		
+
 		CLInstance clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
-		this.clFloat = new CLFloat(clInstance);
+		this.clFloat = new CLSummarizerFloat(clInstance);
 		this.clPoint = new CLPointFloat(clInstance, dim);
-		
-		List<IPoint> centroids = new ArrayList<IPoint>(this.k);
+
+		List<IPoint<Float>> centroids = new ArrayList<IPoint<Float>>(this.k);
 		Random r = new Random();
 		Point c;
 		for (int i = 0; i < this.k; i++) {
@@ -56,37 +58,38 @@ public class KMeansCL implements IKMeans {
 	}
 
 	@Override
-	public void assignCentroids(List<ICPoint> points, List<IPoint> centroids) {
+	public void assignCentroids(List<ICPoint<Float>> points,
+			List<IPoint<Float>> centroids) {
 		Logger.logTrace(CLAZZ, "computeDistances(" + points.size() + ", "
 				+ centroids.size() + ")");
 
 		this.clPoint.prepareNearestPoints(centroids);
 		this.clPoint.resetBuffer(points.size());
-		
-		for(ICPoint p : points) {
+
+		for (ICPoint<Float> p : points) {
 			this.clPoint.put(p);
 		}
-		
+
 		this.clPoint.setNearestPoints();
 	}
 
 	@Override
-	public List<IPoint> computeCentroids(List<ICPoint> points) {
+	public List<IPoint<Float>> computeCentroids(List<ICPoint<Float>> points) {
 		Logger.logTrace(CLAZZ, "computeCentroids(" + points.size() + ")");
 
 		// Collect points per centroid
-		HashMap<IPoint, List<ICPoint>> clusters = new HashMap<IPoint, List<ICPoint>>();
-		for (ICPoint p : points) {
+		HashMap<IPoint<Float>, List<ICPoint<Float>>> clusters = new HashMap<IPoint<Float>, List<ICPoint<Float>>>();
+		for (ICPoint<Float> p : points) {
 			if (!clusters.containsKey(p.getCentroid())) {
-				clusters.put(p.getCentroid(), new LinkedList<ICPoint>());
+				clusters.put(p.getCentroid(), new LinkedList<ICPoint<Float>>());
 			}
 			clusters.get(p.getCentroid()).add(p);
 		}
 
 		// Compute new centroid
-		IPoint newCentroid = null;
-		List<IPoint> newCentroids = new ArrayList<IPoint>(this.k);
-		for (IPoint centroid : clusters.keySet()) {
+		IPoint<Float> newCentroid = null;
+		List<IPoint<Float>> newCentroids = new ArrayList<IPoint<Float>>(this.k);
+		for (IPoint<Float> centroid : clusters.keySet()) {
 			newCentroid = this.computeCentroid(clusters.get(centroid));
 			newCentroids.add(newCentroid);
 		}
@@ -94,18 +97,17 @@ public class KMeansCL implements IKMeans {
 		return newCentroids;
 	}
 
-	private IPoint computeCentroid(List<ICPoint> points) {
+	private IPoint<Float> computeCentroid(List<ICPoint<Float>> points) {
 		int size = points.size();
 		this.clFloat.resetBuffer(size);
 
 		float sum;
-		IPoint centroid = new Point(this.dim);
+		IPoint<Float> centroid = new Point(this.dim);
 
 		for (int d = 0; d < this.dim; d++) {
 			this.clFloat.resetResult();
-
-			for (IPoint p : points)
-				this.clFloat.add(p.get(d));
+			for (ICPoint<Float> p : points)
+				this.clFloat.put(p.get(d));
 
 			sum = this.clFloat.getSum();
 			centroid.set(d, sum / (float) size);
@@ -124,8 +126,8 @@ public class KMeansCL implements IKMeans {
 	}
 
 	@Override
-	public void run(List<ICPoint> points,
-			List<IPoint> centroids, final int ITERATIONS) {
+	public void run(List<ICPoint<Float>> points, List<IPoint<Float>> centroids,
+			final int ITERATIONS) {
 		Logger.logTrace(CLAZZ, "run() - ITERATIONS: " + ITERATIONS);
 
 		for (int i = 0; i < ITERATIONS; i++) {
@@ -137,15 +139,14 @@ public class KMeansCL implements IKMeans {
 	}
 
 	@Override
-	public void run(List<ICPoint> points,
-			List<IPoint> centroids) {
+	public void run(List<ICPoint<Float>> points, List<IPoint<Float>> centroids) {
 		Logger.logTrace(CLAZZ, "run()");
 
 		final int ITERATIONS = 5;
 		int runs = 0;
 
-		List<IPoint> oldCentroids = new ArrayList<IPoint>(this.k);
-		List<IPoint> tmpCentroids = new ArrayList<IPoint>(this.k);
+		List<IPoint<Float>> oldCentroids = new ArrayList<IPoint<Float>>(this.k);
+		List<IPoint<Float>> tmpCentroids = new ArrayList<IPoint<Float>>(this.k);
 		boolean similar;
 		double diff;
 
@@ -163,8 +164,8 @@ public class KMeansCL implements IKMeans {
 			// Look for similar centroids to finish k-means
 			tmpCentroids.clear();
 			tmpCentroids.addAll(centroids);
-			for (IPoint old : oldCentroids) {
-				for (IPoint tmp : tmpCentroids) {
+			for (IPoint<Float> old : oldCentroids) {
+				for (IPoint<Float> tmp : tmpCentroids) {
 					similar = true;
 					for (int d = 0; d < this.dim; d++) {
 						diff = old.get(d) - tmp.get(d);
@@ -188,18 +189,22 @@ public class KMeansCL implements IKMeans {
 
 	public static void main(String[] args) {
 		KMeansCL kmeans = new KMeansCL();
-		
-		List<IPoint> centroids = kmeans.initialize(2, 5);
-		List<ICPoint> points; /* = new Points(kmeans.getDim()).generate(
-				kmeans.getK(), 1000, 1);*/
-		
-		centroids = Points.readIPoints(new File("/home/christof/Documents/kmeans-data/centroids"));
-		points = Points.readICPoints(new File("/home/christof/Documents/kmeans-data/part-m-00000"), "\t");
+
+		List<IPoint<Float>> centroids = kmeans.initialize(2, 5);
+		List<ICPoint<Float>> points; /*
+									 * = new Points(kmeans.getDim()).generate(
+									 * kmeans.getK(), 1000, 1);
+									 */
+
+		centroids = Points.readIPoints(new File(
+				"/home/christof/Documents/kmeans-data/centroids"));
+		points = Points.readICPoints(new File(
+				"/home/christof/Documents/kmeans-data/part-m-00000"), "\t");
 
 		// View centroids
 		new Visualize().drawPoints(1, centroids);
 		waitForView();
-		
+
 		// View input
 		new Visualize().drawCPoints(1, points);
 		waitForView();

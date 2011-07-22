@@ -2,6 +2,7 @@ package hadoop;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -25,11 +26,17 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import utils.Points;
+import cl_util.CLInstance;
+import cl_util.CLPointFloat;
+import cl_util.CLSummarizerFloat;
+import cl_util.ICLSummarizer;
+import clustering.CPoint;
 import clustering.ICPoint;
 import clustering.IPoint;
 import clustering.KMeans;
 
-public class KMeansHadoop extends Configured implements Tool {
+// TODO
+public class KMeansHadoopCL extends Configured implements Tool {
 
 	public static final int SUCCESS = 0;
 	public static final int FAILURE = 1;
@@ -67,7 +74,7 @@ public class KMeansHadoop extends Configured implements Tool {
 		long start = System.currentTimeMillis();
 		do {
 			rArgs[IOUTPUT] = centroids + "-" + (i + 1);
-			res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(),
+			res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoopCL(),
 					rArgs);
 			rArgs[ICENTROIDS] = centroids + "-" + (i + 1);
 			i++;
@@ -75,7 +82,8 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		// collect clusters in a final map
 		rArgs[IOUTPUT] = OUTPUT;
-		res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(), rArgs);
+		res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoopCL(),
+				rArgs);
 		long end = System.currentTimeMillis();
 		System.out.println("Time: " + (end - start));
 
@@ -110,7 +118,7 @@ public class KMeansHadoop extends Configured implements Tool {
 
 			fs.close();
 		} catch (IOException e) {
-			Logger.logError(KMeansHadoop.class,
+			Logger.logError(KMeansHadoopCL.class,
 					"Could not generate input data.");
 			e.printStackTrace();
 		} finally {
@@ -136,11 +144,11 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		job.setJobName(args[INAME]);
 
-		job.setJarByClass(KMeansHadoop.class);
+		job.setJarByClass(KMeansHadoopCL.class);
 
-		job.setMapperClass(KMeansHadoop.KMapper.class);
+		job.setMapperClass(KMeansHadoopCL.KMapper.class);
 		if (args[IOUTPUT] != OUTPUT)
-			job.setReducerClass(KMeansHadoop.KReducer.class);
+			job.setReducerClass(KMeansHadoopCL.KReducer.class);
 		else
 			// Run a mapper only, to get the cluster result
 			job.setNumReduceTasks(0);
@@ -168,11 +176,11 @@ public class KMeansHadoop extends Configured implements Tool {
 			Mapper<NullWritable, PointWritable, PointWritable, PointWritable> {
 
 		private List<PointWritable> centroids;
+		private CLPointFloat clPoint;
 
 		@Override
 		protected void setup(KMapper.Context context) {
 			// TODO read max k from conf to use ArrayList
-
 			this.centroids = new LinkedList<PointWritable>();
 
 			Scanner sc = null;
@@ -183,8 +191,6 @@ public class KMeansHadoop extends Configured implements Tool {
 				for (FileStatus fst : fs
 						.listStatus(new Path(uris[0].toString()))) {
 					if (!fst.isDir()) {
-						Logger.logDebug(KMapper.class,
-								"centroids: " + fst.getPath());
 						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
 							this.centroids.add(PointInputFormat
@@ -201,39 +207,42 @@ public class KMeansHadoop extends Configured implements Tool {
 					sc.close();
 				// don't close FileSystem!
 			}
+
+			this.clPoint = new CLPointFloat(new CLInstance(
+					CLInstance.TYPES.CL_GPU), this.centroids.get(0).getDim());
+			List<IPoint<Float>> tmpCentroids = new ArrayList<IPoint<Float>>(
+					this.centroids.size());
+			tmpCentroids.addAll(this.centroids);
+			this.clPoint.prepareNearestPoints(tmpCentroids);
+			this.clPoint.resetBuffer(1);
 		}
 
 		@Override
 		protected void map(NullWritable key, PointWritable value,
 				KMapper.Context context) throws IOException,
 				InterruptedException {
+			ICPoint<Float> cp = new CPoint(value);
 
-			PointWritable centroid = null;
+			this.clPoint.put(cp);
+			this.clPoint.setNearestPoints();
 
-			float prevDist = Float.MAX_VALUE, dist;
-
-			for (PointWritable c : this.centroids) {
-				dist = this.computeDistance(value, c);
-				if (dist < prevDist) {
-					prevDist = dist;
-					centroid = c;
-				}
-			}
+			PointWritable centroid = new PointWritable(cp.getCentroid());
 
 			context.write(centroid, value);
 		}
 
-		private float computeDistance(final IPoint<Float> p,
-				final IPoint<Float> c) {
-			float dist = 0;
-			for (int d = 0; d < p.getDim(); d++)
-				dist += Math.pow(c.get(d) - p.get(d), 2);
-			return (float) Math.sqrt(dist);
-		}
 	}
 
 	public static class KReducer extends
 			Reducer<PointWritable, PointWritable, PointWritable, PointWritable> {
+
+		private ICLSummarizer<Float>[] clFloat;
+		private CLInstance clInstance;
+
+		@Override
+		protected void setup(KReducer.Context context) {
+			this.clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
+		}
 
 		@Override
 		protected void reduce(PointWritable key,
@@ -241,20 +250,22 @@ public class KMeansHadoop extends Configured implements Tool {
 				throws IOException, InterruptedException {
 			int DIM = key.getDim();
 
-			float[] dimension = new float[DIM];
+			// Each instance of CLFloat is for one sum only.
+			// Hadoop-Iterable can only be use once!
+			this.clFloat = new CLSummarizerFloat[DIM];
 			for (int d = 0; d < DIM; d++)
-				dimension[d] = 0;
+				this.clFloat[d] = new CLSummarizerFloat(this.clInstance);
 
 			int count = 0;
-			for (PointWritable point : values) {
+			for (IPoint<Float> p : values) {
 				for (int d = 0; d < DIM; d++)
-					dimension[d] += point.get(d);
+					this.clFloat[d].put(p.get(d));
 				count++;
 			}
 
 			PointWritable centroid = new PointWritable(DIM);
 			for (int d = 0; d < DIM; d++)
-				centroid.set(d, dimension[d] / count);
+				centroid.set(d, this.clFloat[d].getSum() / count);
 
 			context.write(centroid, null);
 		}

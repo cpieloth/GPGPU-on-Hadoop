@@ -2,6 +2,7 @@ package cl_util;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import lightLogger.Logger;
 
@@ -12,13 +13,13 @@ import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLQueue;
 
-public class CLFloat {
+public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
-	private static final Class<CLFloat> CLAZZ = CLFloat.class;
+	private static final Class<CLSummarizerFloat> CLAZZ = CLSummarizerFloat.class;
 
 	private CLInstance clInstance;
 
-	public static final int MAX_BUFFER_ITEMS = 8192;
+	private static final int MAX_BUFFER_ITEMS = 8192;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
@@ -26,17 +27,28 @@ public class CLFloat {
 	private static final String KERNEL_SUM = "sumFloat";
 	private static final String KERNEL_PATH = "/kernel/CLFloat.cl";
 
-	private float buffer[];
+	private float[] buffer;
 	private int count;
 	private float sum;
 	private CLBuffer<FloatBuffer> resultBuffer;
 
-	public CLFloat(CLInstance clInstance) {
+	public CLSummarizerFloat(CLInstance clInstance) {
 		this.clInstance = clInstance;
 		this.resetResult();
 		this.resetBuffer();
 	}
+	
+	@Override
+	public int getMaxBufferItems() {
+		return MAX_BUFFER_ITEMS;
+	}
+	
+	@Override
+	public int getCurrentMaxBufferItems() {
+		return BUFFER_ITEMS;
+	}
 
+	@Override
 	public void resetBuffer(int bufferItems) {
 		BUFFER_ITEMS = this.getOptimalItemCount(bufferItems);
 		
@@ -47,6 +59,7 @@ public class CLFloat {
 				CLMem.Usage.InputOutput, BUFFER_ITEMS);
 	}
 
+	@Override
 	public void resetBuffer() {
 		this.resetBuffer(MAX_BUFFER_ITEMS);
 	}
@@ -62,12 +75,14 @@ public class CLFloat {
 		}
 	}
 
+	@Override
 	public void resetResult() {
 		this.sum = 0;
 		this.count = 0;
 	}
 
-	public void add(float value) {
+	@Override
+	public void put(Float value) {
 		if (this.count < BUFFER_ITEMS) {
 			this.buffer[count++] = value;
 		} else {
@@ -80,8 +95,8 @@ public class CLFloat {
 		int globalSize, localSize;
 		globalSize = this.getOptimalItemCount(size);
 		// fill offset with 0
-		for (int i = size; i < globalSize; i++)
-			buffer[i] = 0;
+		Arrays.fill(this.buffer,size, globalSize, 0);
+
 		size = globalSize;
 
 		// get kernel and queue
@@ -141,8 +156,7 @@ public class CLFloat {
 		this.count = 0;
 	}
 
-	public float getSum() {
-		Logger.logTrace(CLAZZ, "getSum()");
+	public Float getSum() {
 		if (0 < this.count || this.count == BUFFER_ITEMS)
 			this.doSum(this.count);
 		return this.sum;

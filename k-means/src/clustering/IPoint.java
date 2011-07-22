@@ -7,7 +7,7 @@ package clustering;
  * 
  * @param <T>
  */
-public interface IPoint {
+public interface IPoint<T extends Number> {
 
 	/**
 	 * Sets the value for one dimension.
@@ -17,7 +17,7 @@ public interface IPoint {
 	 * @param val
 	 *            Value
 	 */
-	public void set(int dim, float val);
+	public void set(int dim, T val);
 
 	/**
 	 * Gets the value of one dimension.
@@ -26,14 +26,14 @@ public interface IPoint {
 	 *            Dimesion
 	 * @return Value
 	 */
-	public float get(int dim);
+	public T get(int dim);
 
 	/**
 	 * Returns all values of the dimensions.
 	 * 
 	 * @return
 	 */
-	public float[] getDims();
+	public T[] getDims();
 
 	/**
 	 * Returns the dimension size.

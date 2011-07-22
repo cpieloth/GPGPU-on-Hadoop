@@ -10,7 +10,7 @@ import java.util.List;
  * @param <T>
  * @param <K>
  */
-public interface IKMeans {
+public interface IKMeans<T extends Number> {
 
 	/**
 	 * Returns dimension of points.
@@ -35,7 +35,7 @@ public interface IKMeans {
 	 *            Number of centroids
 	 * @return List of generated centroids.
 	 */
-	public List<IPoint> initialize(int dim, int k);
+	public List<IPoint<T>> initialize(int dim, int k);
 
 	/**
 	 * Runs the K-Means implementation with the specified iterations.
@@ -47,7 +47,7 @@ public interface IKMeans {
 	 * @param ITERATIONS
 	 *            Number of iterations.
 	 */
-	public void run(List<ICPoint> points, List<IPoint> centroids,
+	public void run(List<ICPoint<T>> points, List<IPoint<T>> centroids,
 			final int ITERATIONS);
 
 	/**
@@ -59,7 +59,7 @@ public interface IKMeans {
 	 * @param centroids
 	 *            Initial centroids.
 	 */
-	public void run(List<ICPoint> points, List<IPoint> centroids);
+	public void run(List<ICPoint<T>> points, List<IPoint<T>> centroids);
 
 	/**
 	 * Assigns the nearest centroid for each point.
@@ -69,7 +69,7 @@ public interface IKMeans {
 	 * @param centroids
 	 *            Centroids to be assigned.
 	 */
-	public void assignCentroids(List<ICPoint> points, List<IPoint> centroids);
+	public void assignCentroids(List<ICPoint<T>> points, List<IPoint<T>> centroids);
 
 	/**
 	 * Computes the new centroids of each cluster.
@@ -78,6 +78,6 @@ public interface IKMeans {
 	 *            Points with assigned centroids.
 	 * @return New centroids.
 	 */
-	public List<IPoint> computeCentroids(List<ICPoint> points);
+	public List<IPoint<T>> computeCentroids(List<ICPoint<T>> points);
 
 }
