@@ -1,10 +1,7 @@
 package hadoop;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +9,6 @@ import java.util.regex.Pattern;
 import lightLogger.Logger;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -29,12 +25,22 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
+/**
+ * Same as NLineInputFormat with NullWritable as key and FloatIntervalWritable
+ * as value.
+ * 
+ * @author christof
+ * 
+ */
 public class FloatIntervalInputFormat extends
 		FileInputFormat<NullWritable, FloatIntervalWritable> {
 
 	private static final Pattern pattern = Pattern
 			.compile("\\[(\\d+.\\d+),(\\d+.\\d+)\\]\\s(\\d+)");
 
+	/**
+	 * Defines the lines per mapper/split.
+	 */
 	private static final int LINES_PER_SPLIT = 2;
 
 	/**
@@ -44,66 +50,45 @@ public class FloatIntervalInputFormat extends
 	@Override
 	public List<InputSplit> getSplits(JobContext context) throws IOException {
 		// TODO splits will be compute on nodes which hold the blocks?
-		// long minSize = Math.max(getFormatMinSplitSize(),
-		// getMinSplitSize(context));
-		// long maxSize = getMaxSplitSize(context);
-
-		// generate splits
 		List<InputSplit> splits = new ArrayList<InputSplit>();
-		for (FileStatus file : listStatus(context)) {
-			Path path = file.getPath();
-			FileSystem fs = path.getFileSystem(context.getConfiguration());
 
-			List<Long> startPositions = new LinkedList<Long>();
-			List<Long> lengths = new LinkedList<Long>();
-
-			if (!file.isDir()) {
-				long start = 0, length = 0;
-				String line;
-				BufferedReader br = null;
-				try {
-					br = new BufferedReader(
-							new InputStreamReader(fs.open(path)));
-					while ((line = br.readLine()) != null) {
-						length = line.getBytes("UTF-8").length;
-						startPositions.add(new Long(start));
-						lengths.add(new Long(length));
-						start += length + 1;
-					}
-				} catch (IOException e) {
-					Logger.logError(FloatIntervalInputFormat.class,
-							"Could not read file!");
-				} finally {
-					if (br != null)
-						br.close();
-				}
+		for (FileStatus status : listStatus(context)) {
+			Path path = status.getPath();
+			if (status.isDir()) {
+				throw new IOException("Not a file: " + path);
 			}
+			FileSystem fs = path.getFileSystem(context.getConfiguration());
+			LineReader lr = null;
+			try {
+				lr = new LineReader(fs.open(path), context.getConfiguration());
+				Text line = new Text();
+				long numLines = 0;
+				long begin = 0;
+				long length = 0;
+				int num = -1;
+				while ((num = lr.readLine(line)) > 0) {
+					numLines++;
+					length += num;
+					if (numLines == LINES_PER_SPLIT) {
+						splits.add(new FileSplit(path, begin, length,
+								new String[] {}));
+						begin += length;
+						length = 0;
+						numLines = 0;
+					}
+				}
+				if (numLines != 0) {
+					splits.add(new FileSplit(path, begin, length,
+							new String[] {}));
+				}
 
-			long length = file.getLen();
-
-			BlockLocation[] blkLocations = fs.getFileBlockLocations(file, 0,
-					length);
-
-			int blkLocation;
-			int offset = 0, count = 0;
-			for (int i = 0; i < startPositions.size(); i++) {
-				count++;
-				if (count >= LINES_PER_SPLIT
-						|| i == (startPositions.size() - 1)) {
-					length = 0;
-					for (int o = offset; o < offset + count; o++)
-						length += lengths.get(o);
-
-					blkLocation = getBlockIndex(blkLocations,
-							startPositions.get(offset));
-					splits.add(new FileSplit(path, startPositions.get(offset),
-							length, blkLocations[blkLocation].getHosts()));
-
-					offset += count;
-					count = 0;
+			} finally {
+				if (lr != null) {
+					lr.close();
 				}
 			}
 		}
+
 		Logger.logDebug(FloatIntervalInputFormat.class, "Total # of splits: "
 				+ splits.size());
 		return splits;
