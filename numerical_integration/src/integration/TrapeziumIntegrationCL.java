@@ -15,6 +15,8 @@ import com.nativelibs4java.opencl.CLQueue;
 
 public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 
+	private static final int MAX_ITEMS = 8388608; // Fan-In Summation -> MAX_ITEMS == 2**x
+	
 	private static final Class<TrapeziumIntegrationCL> CLAZZ = TrapeziumIntegrationCL.class;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
@@ -48,11 +50,12 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 				PREFIX, function.getOpenCLFunction());
 
 		try {
-			int globalSize = n + 1;
-			int localSize = -1;
-
+			int globalSize = this.getOptimalItemCount(n + 1);
+			int localSize = this.clInstance.calcWorkGroupSize(globalSize);
+			int workGroups = (globalSize/localSize);
+			
 			CLBuffer<FloatBuffer> resultBuffer = this.clInstance.getContext()
-					.createFloatBuffer(Usage.Output, globalSize);
+					.createFloatBuffer(Usage.Output, workGroups);
 
 			kernel.setArg(0, resultBuffer);
 			kernel.setArg(1, start);
@@ -66,13 +69,13 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 			cmdQ.finish();
 
 			FloatBuffer resBuffer = ByteBuffer
-					.allocateDirect(globalSize * SIZEOF_CL_FLOAT)
+					.allocateDirect(workGroups * SIZEOF_CL_FLOAT)
 					.order(this.clInstance.getContext().getByteOrder())
 					.asFloatBuffer();
 			resultBuffer.read(cmdQ, resBuffer, true, new CLEvent[0]);
 			resBuffer.rewind();
 
-			for (int i = 0; i < globalSize; i++)
+			for (int i = 0; i < workGroups; i++)
 				result += resBuffer.get();
 
 			return result;
@@ -85,6 +88,17 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 			err.printStackTrace();
 		}
 		return 0f;
+	}
+	
+	private int getOptimalItemCount(int items) {
+		if (items <= CLInstance.WAVE_SIZE)
+			return CLInstance.WAVE_SIZE;
+		else {
+			int dual = CLInstance.WAVE_SIZE;
+			while(dual < items && dual < MAX_ITEMS)
+				dual *= 2;
+			return dual;
+		}
 	}
 
 }
