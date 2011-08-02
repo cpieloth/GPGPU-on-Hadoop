@@ -1,23 +1,25 @@
 float f(float x);
 
 __kernel void integrationFloat(__global float* result, const float start,
-		const float offset, const int n, __local float* localValues)
+		const float offset, const int res, __local float* localValues)
 {
 	const unsigned int LSIZE = get_local_size(0);
 	const unsigned int LID = get_local_id(0);
 	const unsigned int GID = get_global_id(0);
+	const unsigned int GSIZE = get_global_size(0);
+	const unsigned int N = convert_uint(res);
 
-	const float h = offset / n;
+	const float h = offset / N;
 
-	float div = 1;
+	localValues[LID] = 0;
 
-	if (GID == 0 || GID == n)
-		div = 2;
-
-	if (GID <= n)
-		localValues[LID] = h * (f(start + h * GID) / div);
-	else
-		localValues[LID] = 0;
+	for (unsigned int i = GID; i <= N; i += GSIZE)
+	{
+		if (i == 0 || i == N)
+			localValues[LID] += h * (f(start + h * i) / 2);
+		else
+			localValues[LID] += h * f(start + h * i);
+	}
 
 	barrier(CLK_LOCAL_MEM_FENCE);
 
