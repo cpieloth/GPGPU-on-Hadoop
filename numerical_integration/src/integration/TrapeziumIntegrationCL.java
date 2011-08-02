@@ -49,6 +49,7 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 
 		try {
 			int globalSize = n + 1;
+			int localSize = -1;
 
 			CLBuffer<FloatBuffer> resultBuffer = this.clInstance.getContext()
 					.createFloatBuffer(Usage.Output, globalSize);
@@ -57,8 +58,9 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 			kernel.setArg(1, start);
 			kernel.setArg(2, offset);
 			kernel.setArg(3, n);
+			kernel.setLocalArg(4, localSize * SIZEOF_CL_FLOAT);
 
-			kernel.enqueueNDRange(cmdQ, new int[] { globalSize },
+			kernel.enqueueNDRange(cmdQ, new int[] { globalSize }, new int[] { localSize },
 					new CLEvent[0]);
 
 			cmdQ.finish();

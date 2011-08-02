@@ -41,7 +41,7 @@ public class FloatIntervalInputFormat extends
 	/**
 	 * Defines the lines per mapper/split.
 	 */
-	private static final int LINES_PER_SPLIT = 2;
+	private static final int LINES_PER_SPLIT = 5;
 
 	/**
 	 * Creates splits with LINES_PER_SPLIT lines (intervals). One small file

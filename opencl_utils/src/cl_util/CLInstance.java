@@ -25,7 +25,7 @@ public class CLInstance {
 	private ArrayList<CLDevice> devices;
 	private CLContext context;
 	private CLQueue cmdQ;
-	
+
 	public static final int WAVE_SIZE = 64;
 
 	private HashMap<String, CLKernel> kernels = new HashMap<String, CLKernel>();
@@ -33,12 +33,13 @@ public class CLInstance {
 	public static enum TYPES {
 		CL_CPU, CL_GPU
 	};
-	
+
 	public CLInstance(TYPES type) {
 		this.initialize(type);
 	}
-	
-	public CLInstance() {}
+
+	public CLInstance() {
+	}
 
 	public boolean initialize(TYPES type) {
 		if (type == TYPES.CL_CPU)
@@ -55,7 +56,7 @@ public class CLInstance {
 			platforms = JavaCL.listPlatforms();
 			EnumSet<CLDevice.Type> types = EnumSet.of(type);
 			devices = new ArrayList<CLDevice>();
-			
+
 			CLDevice[] devTmp;
 			for (CLPlatform platform : platforms) {
 				devTmp = platform.listDevices(types, true);
@@ -80,16 +81,17 @@ public class CLInstance {
 			return false;
 		}
 	}
-	
+
 	public CLContext getContext() {
 		return this.context;
 	}
-	
+
 	public CLQueue getQueue() {
 		return this.cmdQ;
 	}
-	
-	public CLKernel loadKernel(String file, String kernelName, String prefix) {
+
+	public CLKernel loadKernel(String file, String kernelName, String prefix,
+			String extendSource) {
 		StringBuffer sb = new StringBuffer();
 		try {
 			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(file));
@@ -101,19 +103,22 @@ public class CLInstance {
 			e.printStackTrace();
 			return null;
 		}
-		
+
 		try {
 			CLProgram program = context.createProgram(sb.toString());
+			if (!"".equals(extendSource) && extendSource != null)
+				program.addSource(extendSource);
 
 			try {
 				program.build();
 			} catch (Exception err) {
-				Logger.logError(CLAZZ, "Build log for \"" + context.getDevices()[0]
-						+ "\n" + err.getMessage());
+				Logger.logError(CLAZZ,
+						"Build log for \"" + context.getDevices()[0] + "\n"
+								+ err.getMessage());
 				err.printStackTrace();
 				return null;
 			}
-			
+
 			CLKernel kernel = program.createKernel(kernelName);
 			this.kernels.put(prefix + kernelName, kernel);
 
@@ -129,14 +134,19 @@ public class CLInstance {
 			return null;
 		}
 	}
-	
+
+	public CLKernel loadKernel(String file, String kernelName, String prefix) {
+		return this.loadKernel(file, kernelName, prefix, "");
+	}
+
 	public CLKernel getKernel(String prefix, String kernelName) {
 		return this.kernels.get(prefix + kernelName);
 	}
 
 	public int calcWorkGroupSize(int globalSize) {
-		final long MAX_GROUP_SIZE = this.context.getDevices()[0].getMaxWorkGroupSize();
-		
+		final long MAX_GROUP_SIZE = this.context.getDevices()[0]
+				.getMaxWorkGroupSize();
+
 		int localSize = (int) MAX_GROUP_SIZE;
 		if (globalSize < localSize)
 			localSize = globalSize;
