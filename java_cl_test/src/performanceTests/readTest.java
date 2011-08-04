@@ -20,8 +20,7 @@ public class readTest {
 		CLPlatform[] platforms = JavaCL.listGPUPoweredPlatforms();
 		CLDevice device = platforms[0].getBestDevice();
 		CLContext context = JavaCL.createContext(null, device);
-		CLQueue cmdQ = context.createDefaultQueue(CLDevice.QueueProperties
-				.values());
+		CLQueue cmdQ = context.createDefaultQueue(new CLDevice.QueueProperties[0]);
 
 		final int MAX_COUNT = (int) (device.getGlobalMemSize() / 16);
 		System.out.println("Device: " + device.getName());
