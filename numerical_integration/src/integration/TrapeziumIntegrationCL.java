@@ -15,9 +15,8 @@ import com.nativelibs4java.opencl.CLQueue;
 
 public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 
-	private static final int MAX_ITEMS = 2048; // Fan-In Summation -> MAX_ITEMS == 2**x
-	
 	private static final Class<TrapeziumIntegrationCL> CLAZZ = TrapeziumIntegrationCL.class;
+	private static final int MAX_ITEMS = 8388608; // Fan-In Summation -> MAX_ITEMS == 2**x
 	private static final int SIZEOF_CL_FLOAT = 4;
 
 	private static final String PREFIX = CLAZZ.getSimpleName();
