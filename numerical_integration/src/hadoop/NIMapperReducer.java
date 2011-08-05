@@ -52,12 +52,12 @@ public class NIMapperReducer  {
 		}
 		
 		@Override
-		protected void cleanup(NIMapper.Context context) {
-			swPhase.stop();
-			Logger.log(NumericalIntegration.TIME_LEVEL, NIMapper.class, swPhase.getTimeString());
-			
+		protected void cleanup(NIMapper.Context context) {	
 			swMethod.stop();
 			Logger.log(NumericalIntegration.TIME_LEVEL, NIMapper.class, swMethod.getTimeString());
+			
+			swPhase.stop();
+			Logger.log(NumericalIntegration.TIME_LEVEL, NIMapper.class, swPhase.getTimeString());
 		}
 
 	}
@@ -95,11 +95,11 @@ public class NIMapperReducer  {
 		
 		@Override
 		protected void cleanup(NIReducer.Context context) {
-			swPhase.stop();
-			Logger.log(NumericalIntegration.TIME_LEVEL, NIReducer.class, swPhase.getTimeString());
-			
 			swMethod.stop();
 			Logger.log(NumericalIntegration.TIME_LEVEL, NIReducer.class, swMethod.getTimeString());
+			
+			swPhase.stop();
+			Logger.log(NumericalIntegration.TIME_LEVEL, NIReducer.class, swPhase.getTimeString());
 		}
 
 	}

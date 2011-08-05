@@ -18,7 +18,7 @@ import stopwatch.StopWatch;
 public class NumericalIntegration extends Configured implements Tool {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");
-	
+
 	public static final String PRE_MAPPHASE = "mapPhaseTime=";
 	public static final String PRE_MAPMETHOD = "mapMethodTime=";
 	public static final String PRE_REDUCEPHASE = "reducePhaseTime=";
@@ -45,8 +45,14 @@ public class NumericalIntegration extends Configured implements Tool {
 			System.exit(FAILURE);
 		}
 
+		StopWatch sw = new StopWatch("totalTime=", ";");
+		sw.start();
+
 		int res = ToolRunner.run(gop.getConfiguration(),
 				new NumericalIntegration(), rArgs);
+
+		sw.stop();
+		Logger.log(TIME_LEVEL, NumericalIntegration.class, sw.getTimeString());
 
 		System.exit(res);
 	}
@@ -67,7 +73,7 @@ public class NumericalIntegration extends Configured implements Tool {
 			job.setReducerClass(NIMapperReducerCL.NIReducer.class);
 		} else
 			return FAILURE;
-		
+
 		job.setMapOutputKeyClass(NullWritable.class);
 		job.setMapOutputValueClass(FloatWritable.class);
 
@@ -80,12 +86,7 @@ public class NumericalIntegration extends Configured implements Tool {
 		FloatIntervalInputFormat.setInputPaths(job, new Path(args[IINPUT]));
 		FloatIntervalOutputFormat.setOutputPath(job, new Path(args[IOUTPUT]));
 
-		StopWatch sw = new StopWatch("totalTime=", ";");
-
-		sw.start();
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
-		sw.stop();
-		Logger.log(TIME_LEVEL, NumericalIntegration.class, sw.getTimeString());
 
 		return stat;
 	}
