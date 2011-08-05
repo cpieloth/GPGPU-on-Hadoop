@@ -1,12 +1,6 @@
 package hadoop;
 
-import integration.FloatPowerFunction;
-import integration.IMathFunction;
-import integration.INumeriacalIntegration;
-import integration.TrapeziumIntegration;
-
-import java.io.IOException;
-
+import lightLogger.Level;
 import lightLogger.Logger;
 
 import org.apache.hadoop.conf.Configured;
@@ -14,14 +8,22 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import stopwatch.StopWatch;
+
 public class NumericalIntegration extends Configured implements Tool {
+
+	public static final Level TIME_LEVEL = new Level(128, "TIME");
+	
+	public static final String PRE_MAPPHASE = "mapPhaseTime=";
+	public static final String PRE_MAPMETHOD = "mapMethodTime=";
+	public static final String PRE_REDUCEPHASE = "reducePhaseTime=";
+	public static final String PRE_REDUCEMETHOD = "reduceMethodTime=";
+	public static final String SUFFIX = StopWatch.SUFFIX;
 
 	public static final int SUCCESS = 0;
 	public static final int FAILURE = 1;
@@ -29,18 +31,23 @@ public class NumericalIntegration extends Configured implements Tool {
 	public static final int INAME = 0;
 	public static final int IINPUT = 1;
 	public static final int IOUTPUT = 2;
+	public static final int IIMPL = 3;
+
+	public static final String OCL = "ocl";
+	public static final String CPU = "cpu";
 
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
 		String[] rArgs = gop.getRemainingArgs();
-		if (rArgs.length < 3) {
-			System.out.println("Arguments: <Jobname> <Input> <Output>");
+		if (rArgs.length < 4) {
+			System.out
+					.println("Arguments: <Jobname> <Input> <Output> <ocl | cpu>");
 			System.exit(FAILURE);
 		}
 
 		int res = ToolRunner.run(gop.getConfiguration(),
 				new NumericalIntegration(), rArgs);
-		
+
 		System.exit(res);
 	}
 
@@ -52,9 +59,15 @@ public class NumericalIntegration extends Configured implements Tool {
 
 		job.setJarByClass(NumericalIntegration.class);
 
-		job.setMapperClass(NumericalIntegration.NIMapper.class);
-		job.setReducerClass(NumericalIntegration.NIReducer.class);
-
+		if (CPU.equals(args[IIMPL])) {
+			job.setMapperClass(NIMapperReducer.NIMapper.class);
+			job.setReducerClass(NIMapperReducer.NIReducer.class);
+		} else if (OCL.equals(args[IIMPL])) {
+			job.setMapperClass(NIMapperReducerCL.NIMapper.class);
+			job.setReducerClass(NIMapperReducerCL.NIReducer.class);
+		} else
+			return FAILURE;
+		
 		job.setMapOutputKeyClass(NullWritable.class);
 		job.setMapOutputValueClass(FloatWritable.class);
 
@@ -67,49 +80,14 @@ public class NumericalIntegration extends Configured implements Tool {
 		FloatIntervalInputFormat.setInputPaths(job, new Path(args[IINPUT]));
 		FloatIntervalOutputFormat.setOutputPath(job, new Path(args[IOUTPUT]));
 
-		long tStart = System.currentTimeMillis();
+		StopWatch sw = new StopWatch("totalTime=", ";");
+
+		sw.start();
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
-		Logger.logInfo(NumericalIntegration.class, "Time (ms): " + (System.currentTimeMillis() - tStart));
-		
+		sw.stop();
+		Logger.log(TIME_LEVEL, NumericalIntegration.class, sw.getTimeString());
+
 		return stat;
 	}
 
-	public static class NIMapper
-			extends
-			Mapper<NullWritable, FloatIntervalWritable, NullWritable, FloatWritable> {
-
-		private INumeriacalIntegration<Float> integration = new TrapeziumIntegration();
-		private IMathFunction<Float> function = new FloatPowerFunction(3f);
-		
-		@Override
-		protected void map(NullWritable key, FloatIntervalWritable value,
-				NIMapper.Context context) throws IOException,
-				InterruptedException {
-			Logger.logDebug(NIMapper.class, value.toString());
-			
-			integration.setFunction(this.function);
-			Float result = integration.getIntegral(value);
-			context.write(key, new FloatWritable(result));
-		}
-
-	}
-
-	public static class NIReducer
-			extends
-			Reducer<NullWritable, FloatWritable, NullWritable, FloatWritable> {
-
-		@Override
-		protected void reduce(NullWritable key,
-				Iterable<FloatWritable> values,
-				NIReducer.Context context) throws IOException,
-				InterruptedException {
-			float result = 0;
-			for (FloatWritable value : values) {
-				Logger.logDebug(NIMapper.class, value.toString());
-				result += value.get();
-			}
-			context.write(key, new FloatWritable(result));
-		}
-
-	}
 }
