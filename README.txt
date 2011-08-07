@@ -1,9 +1,10 @@
-Projektname:	GPGPU on Hadoop
-Beschreibung:	Einsatzmöglichkeiten von GPGPU in einem Hadoop-Cluster
+Projectname:	GPGPU on Hadoop
+Description:	Master's thesis "GPU-based acceleration of MapReduce by taking the example of OpenCL and Hadoop"
 
-Benötigte Bibliotheken:
+Required libraries:
 * JavaCL - http://code.google.com/p/javacl/
 * JOCL - http://www.jocl.org/
 * AMD Aparapi - http://developer.amd.com/zones/java/aparapi/
-* hadoop-core-*.jar - http://hadoop.apache.org/
-* LightLogger
+* Hadoop - http://hadoop.apache.org/
+* LightLogger - https://github.com/executor85/JavaUtils
+* StopWatch - https://github.com/executor85/JavaUtils
