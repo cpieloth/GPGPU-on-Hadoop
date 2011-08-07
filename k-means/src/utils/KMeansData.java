@@ -60,9 +60,9 @@ public class KMeansData {
 		}
 
 		final String output = args[Argument.OUTPUT.index];
-		final int size = Integer.valueOf(args[Argument.SIZE.index]);
-		final int dim = Integer.valueOf(args[Argument.DIM.index]);
-		final int k = Integer.valueOf(args[Argument.CLUSTER.index]);
+		final int size = Integer.parseInt(args[Argument.SIZE.index]);
+		final int dim = Integer.parseInt(args[Argument.DIM.index]);
+		final int k = Integer.parseInt(args[Argument.CLUSTER.index]);
 		final String fs = args[Argument.FS.index];
 
 		Points pHelper = new Points(dim);
