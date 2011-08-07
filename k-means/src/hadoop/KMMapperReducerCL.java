@@ -114,12 +114,10 @@ public class KMMapperReducerCL {
 		@Override
 		protected void cleanup(KMMapper.Context context) {
 			swMethod.stop();
-			Logger.log(KMeansHadoop.TIME_LEVEL, KMMapper.class,
-					swMethod.getTimeString());
+			Logger.log(KMeansHadoop.TIME_LEVEL, CLAZZ, swMethod.getTimeString());
 
 			swPhase.stop();
-			Logger.log(KMeansHadoop.TIME_LEVEL, KMMapper.class,
-					swPhase.getTimeString());
+			Logger.log(KMeansHadoop.TIME_LEVEL, CLAZZ, swPhase.getTimeString());
 		}
 
 	}
@@ -188,12 +186,10 @@ public class KMMapperReducerCL {
 		@Override
 		protected void cleanup(KMReducer.Context context) {
 			swMethod.stop();
-			Logger.log(KMeansHadoop.TIME_LEVEL, KMReducer.class,
-					swMethod.getTimeString());
+			Logger.log(KMeansHadoop.TIME_LEVEL, CLAZZ, swMethod.getTimeString());
 
 			swPhase.stop();
-			Logger.log(KMeansHadoop.TIME_LEVEL, KMReducer.class,
-					swPhase.getTimeString());
+			Logger.log(KMeansHadoop.TIME_LEVEL, CLAZZ, swPhase.getTimeString());
 		}
 
 	}
