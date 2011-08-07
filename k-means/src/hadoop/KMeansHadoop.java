@@ -40,11 +40,20 @@ public class KMeansHadoop extends Configured implements Tool {
 
 	}
 
-	public static final String PRE_MAPPHASE = "mapPhaseTime=";
-	public static final String PRE_MAPMETHOD = "mapMethodTime=";
-	public static final String PRE_REDUCEPHASE = "reducePhaseTime=";
-	public static final String PRE_REDUCEMETHOD = "reduceMethodTime=";
-	public static final String SUFFIX = StopWatch.SUFFIX;
+	public enum Timer {
+		MAPPHASE("mapPhaseTime=", StopWatch.SUFFIX), MAPMETHOD(
+				"mapMethodTime=", StopWatch.SUFFIX), REDUCEPHASE(
+				"reducePhaseTime=", StopWatch.SUFFIX), REDUCEMETHOD(
+				"reduceMethodTime=", StopWatch.SUFFIX);
+
+		public final String prefix;
+		public final String suffix;
+
+		Timer(String prefix, String suffix) {
+			this.prefix = prefix;
+			this.suffix = suffix;
+		}
+	}
 
 	public static final int SUCCESS = 0;
 	public static final int FAILURE = 1;
@@ -64,13 +73,12 @@ public class KMeansHadoop extends Configured implements Tool {
 			System.out.println(sb.toString());
 			System.exit(FAILURE);
 		}
-		
+
 		int res;
 		OUTPUT = rArgs[Argument.OUTPUT.index];
 		final int iterations = Integer
 				.parseInt(rArgs[Argument.ITERATIONS.index]);
 		String centroids = rArgs[Argument.CENTROIDS.index];
-		
 
 		// load HDFS handler, only once!
 		try {
@@ -84,7 +92,7 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		StopWatch sw = new StopWatch("totalTime=", ";");
 		sw.start();
-		
+
 		int i = 0;
 		do {
 			rArgs[Argument.OUTPUT.index] = centroids + "-" + (i + 1);
@@ -94,19 +102,19 @@ public class KMeansHadoop extends Configured implements Tool {
 			i++;
 		} while (i < iterations && res == SUCCESS);
 
-		if(res != SUCCESS) {
+		if (res != SUCCESS) {
 			Logger.logError(CLAZZ, "Error during job execution!");
 			System.exit(FAILURE);
 		}
-		
+
 		// collect clusters in a final map
 		rArgs[Argument.OUTPUT.index] = OUTPUT;
 		res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(), rArgs);
 
 		sw.stop();
 		Logger.log(TIME_LEVEL, CLAZZ, sw.getTimeString());
-		
-		if(res != SUCCESS)
+
+		if (res != SUCCESS)
 			Logger.logError(CLAZZ, "Error during job execution!");
 
 		System.exit(res);
@@ -148,8 +156,10 @@ public class KMeansHadoop extends Configured implements Tool {
 		job.setInputFormatClass(PointInputFormat.class);
 		job.setOutputFormatClass(PointOutputFormat.class);
 
-		PointInputFormat.setInputPaths(job, new Path(args[Argument.INPUT.index]));
-		PointOutputFormat.setOutputPath(job, new Path(args[Argument.OUTPUT.index]));
+		PointInputFormat.setInputPaths(job,
+				new Path(args[Argument.INPUT.index]));
+		PointOutputFormat.setOutputPath(job, new Path(
+				args[Argument.OUTPUT.index]));
 
 		DistributedCache.addCacheFile(new URI(args[Argument.CENTROIDS.index]),
 				job.getConfiguration());

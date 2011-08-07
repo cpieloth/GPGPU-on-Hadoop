@@ -29,10 +29,12 @@ public class KMMapperReducer {
 
 		private List<PointWritable> centroids;
 
-		private StopWatch swPhase = new StopWatch(KMeansHadoop.PRE_MAPPHASE,
-				KMeansHadoop.SUFFIX);
-		private StopWatch swMethod = new StopWatch(KMeansHadoop.PRE_MAPMETHOD,
-				KMeansHadoop.SUFFIX);
+		private StopWatch swPhase = new StopWatch(
+				KMeansHadoop.Timer.MAPPHASE.prefix,
+				KMeansHadoop.Timer.MAPPHASE.suffix);
+		private StopWatch swMethod = new StopWatch(
+				KMeansHadoop.Timer.MAPMETHOD.prefix,
+				KMeansHadoop.Timer.MAPMETHOD.suffix);
 
 		@Override
 		protected void setup(KMMapper.Context context) {
@@ -125,10 +127,12 @@ public class KMMapperReducer {
 
 		private static final Class<KMReducer> CLAZZ = KMReducer.class;
 
-		private StopWatch swPhase = new StopWatch(KMeansHadoop.PRE_REDUCEPHASE,
-				KMeansHadoop.SUFFIX);
+		private StopWatch swPhase = new StopWatch(
+				KMeansHadoop.Timer.REDUCEPHASE.prefix,
+				KMeansHadoop.Timer.REDUCEPHASE.suffix);
 		private StopWatch swMethod = new StopWatch(
-				KMeansHadoop.PRE_REDUCEMETHOD, KMeansHadoop.SUFFIX);
+				KMeansHadoop.Timer.REDUCEMETHOD.prefix,
+				KMeansHadoop.Timer.REDUCEMETHOD.suffix);
 
 		@Override
 		protected void setup(KMReducer.Context context) {
