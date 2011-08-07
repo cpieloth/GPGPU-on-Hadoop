@@ -1,5 +1,6 @@
 Projectname:	GPGPU on Hadoop
 Description:	Master's thesis "GPU-based acceleration of MapReduce by taking the example of OpenCL and Hadoop"
+Website:	http://executor.kfzpieloth.de/blog/masterarbeit
 
 Required libraries:
 * JavaCL - http://code.google.com/p/javacl/
