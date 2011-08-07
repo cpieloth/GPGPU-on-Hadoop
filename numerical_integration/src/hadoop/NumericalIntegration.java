@@ -19,31 +19,55 @@ public class NumericalIntegration extends Configured implements Tool {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");
 
-	public static final String PRE_MAPPHASE = "mapPhaseTime=";
-	public static final String PRE_MAPMETHOD = "mapMethodTime=";
-	public static final String PRE_REDUCEPHASE = "reducePhaseTime=";
-	public static final String PRE_REDUCEMETHOD = "reduceMethodTime=";
-	public static final String SUFFIX = StopWatch.SUFFIX;
+	public enum Argument {
+		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), INTERVALS(
+				"intervals", 3), TYPE(Argument.CPU + "|" + Argument.OCL, 4), ;
+
+		public final String name;
+		public final int index;
+
+		private Argument(String name, int index) {
+			this.name = name;
+			this.index = index;
+		}
+
+		public static final String CPU = "cpu";
+		public static final String OCL = "ocl";
+
+	}
+
+	public enum Timer {
+		MAPPHASE("mapPhaseTime=", StopWatch.SUFFIX), MAPMETHOD(
+				"mapMethodTime=", StopWatch.SUFFIX), REDUCEPHASE(
+				"reducePhaseTime=", StopWatch.SUFFIX), REDUCEMETHOD(
+				"reduceMethodTime=", StopWatch.SUFFIX);
+
+		public final String prefix;
+		public final String suffix;
+
+		Timer(String prefix, String suffix) {
+			this.prefix = prefix;
+			this.suffix = suffix;
+		}
+	}
 
 	public static final int SUCCESS = 0;
 	public static final int FAILURE = 1;
-
-	public static final int INAME = 0;
-	public static final int IINPUT = 1;
-	public static final int IOUTPUT = 2;
-	public static final int IIMPL = 3;
-
-	public static final String OCL = "ocl";
-	public static final String CPU = "cpu";
 
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
 		String[] rArgs = gop.getRemainingArgs();
 		if (rArgs.length < 4) {
-			System.out
-					.println("Arguments: <Jobname> <Input> <Output> <ocl | cpu>");
+			StringBuilder sb = new StringBuilder();
+			sb.append("Arguments:");
+			for (Argument arg : Argument.values())
+				sb.append(" <" + arg.name + ">");
+			System.out.println(sb.toString());
 			System.exit(FAILURE);
 		}
+
+		final int intervals = Integer.parseInt(rArgs[Argument.INTERVALS.index]);
+		FloatIntervalInputFormat.LINES_PER_SPLIT = intervals;
 
 		StopWatch sw = new StopWatch("totalTime=", ";");
 		sw.start();
@@ -61,14 +85,14 @@ public class NumericalIntegration extends Configured implements Tool {
 	public int run(String[] args) throws Exception {
 		Job job = new Job(this.getConf());
 
-		job.setJobName(args[INAME]);
+		job.setJobName(args[Argument.JOBNAME.index]);
 
 		job.setJarByClass(NumericalIntegration.class);
 
-		if (CPU.equals(args[IIMPL])) {
+		if (Argument.CPU.equals(args[Argument.TYPE.index])) {
 			job.setMapperClass(NIMapperReducer.NIMapper.class);
 			job.setReducerClass(NIMapperReducer.NIReducer.class);
-		} else if (OCL.equals(args[IIMPL])) {
+		} else if (Argument.OCL.equals(args[Argument.TYPE.index])) {
 			job.setMapperClass(NIMapperReducerCL.NIMapper.class);
 			job.setReducerClass(NIMapperReducerCL.NIReducer.class);
 		} else
@@ -83,8 +107,10 @@ public class NumericalIntegration extends Configured implements Tool {
 		job.setInputFormatClass(FloatIntervalInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
-		FloatIntervalInputFormat.setInputPaths(job, new Path(args[IINPUT]));
-		FloatIntervalOutputFormat.setOutputPath(job, new Path(args[IOUTPUT]));
+		FloatIntervalInputFormat.setInputPaths(job, new Path(
+				args[Argument.INPUT.index]));
+		FloatIntervalOutputFormat.setOutputPath(job, new Path(
+				args[Argument.OUTPUT.index]));
 
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
 
