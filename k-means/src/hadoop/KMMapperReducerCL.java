@@ -1,6 +1,7 @@
 package hadoop;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -31,6 +32,8 @@ public class KMMapperReducerCL {
 	public static class KMMapper extends
 			Mapper<NullWritable, PointWritable, PointWritable, PointWritable> {
 
+		private static final Class<KMMapper> CLAZZ = KMMapper.class;
+
 		private List<PointWritable> centroids;
 		private CLPointFloat clPoint;
 
@@ -44,6 +47,15 @@ public class KMMapperReducerCL {
 			swPhase.start();
 			swMethod.start();
 			swMethod.pause();
+
+			Logger.logDebug(CLAZZ,
+					"TaskAttemptID: " + context.getTaskAttemptID());
+			try {
+				Logger.logDebug(CLAZZ, "Hostname: "
+						+ InetAddress.getLocalHost().getHostName());
+			} catch (Exception e) {
+				Logger.logDebug(CLAZZ, "Hostname: unknown");
+			}
 
 			// TODO read max k from conf to use ArrayList
 			this.centroids = new LinkedList<PointWritable>();
@@ -64,8 +76,7 @@ public class KMMapperReducerCL {
 					}
 				}
 			} catch (IOException e) {
-				Logger.logError(KMMapper.class,
-						"Could not get local cache files");
+				Logger.logError(CLAZZ, "Could not get local cache files");
 				e.printStackTrace();
 			} finally {
 				if (sc != null)
@@ -116,6 +127,8 @@ public class KMMapperReducerCL {
 	public static class KMReducer extends
 			Reducer<PointWritable, PointWritable, PointWritable, PointWritable> {
 
+		private static final Class<KMReducer> CLAZZ = KMReducer.class;
+
 		private StopWatch swPhase = new StopWatch(KMeansHadoop.PRE_REDUCEPHASE,
 				KMeansHadoop.SUFFIX);
 		private StopWatch swMethod = new StopWatch(
@@ -129,6 +142,15 @@ public class KMMapperReducerCL {
 			swPhase.start();
 			swMethod.start();
 			swMethod.pause();
+
+			Logger.logDebug(CLAZZ,
+					"TaskAttemptID: " + context.getTaskAttemptID());
+			try {
+				Logger.logDebug(CLAZZ, "Hostname: "
+						+ InetAddress.getLocalHost().getHostName());
+			} catch (Exception e) {
+				Logger.logDebug(CLAZZ, "Hostname: unknown");
+			}
 
 			this.clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
 		}

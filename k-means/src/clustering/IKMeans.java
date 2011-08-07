@@ -33,9 +33,12 @@ public interface IKMeans<T extends Number> {
 	 *            Dimension of point
 	 * @param k
 	 *            Number of centroids
-	 * @return List of generated centroids.
+	 * @param generate
+	 *            If true, centroids will be generated.
+	 * 
+	 * @return List of generated centroids or null
 	 */
-	public List<IPoint<T>> initialize(int dim, int k);
+	public List<IPoint<T>> initialize(int dim, int k, boolean generate);
 
 	/**
 	 * Runs the K-Means implementation with the specified iterations.
@@ -69,7 +72,8 @@ public interface IKMeans<T extends Number> {
 	 * @param centroids
 	 *            Centroids to be assigned.
 	 */
-	public void assignCentroids(List<ICPoint<T>> points, List<IPoint<T>> centroids);
+	public void assignCentroids(List<ICPoint<T>> points,
+			List<IPoint<T>> centroids);
 
 	/**
 	 * Computes the new centroids of each cluster.

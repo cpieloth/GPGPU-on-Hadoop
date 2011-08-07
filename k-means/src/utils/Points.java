@@ -1,24 +1,16 @@
 package utils;
 
-import hadoop.PointInputFormat;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 
-import lightLogger.Logger;
 import clustering.CPoint;
 import clustering.ICPoint;
 import clustering.IPoint;
 import clustering.Point;
 
 public class Points {
-	
-	private final static Class<Points> CLAZZ = Points.class;
 
 	private int dim;
 
@@ -43,7 +35,7 @@ public class Points {
 		ICPoint<Float> p;
 		float val;
 		Random sign = new Random();
-		while (i < COUNT * 0.6) {
+		while (i < COUNT * 0.6 && centroids.size() > 0) {
 			for (IPoint<Float> ref : centroids) {
 				p = new CPoint(this.dim);
 				for (int d = 0; d < this.dim; d++) {
@@ -74,61 +66,6 @@ public class Points {
 		return points;
 	}
 
-	public static List<IPoint<Float>> readIPoints(File file) {
-		List<IPoint<Float>> points = new LinkedList<IPoint<Float>>();
-		Scanner sc = null;
-		try {
-			sc = new Scanner(file);
-
-			String line;
-			String[] splits;
-			IPoint<Float> point;
-			while (sc.hasNext()) {
-				line = sc.nextLine();
-				splits = line.split("\t");
-				
-				point = PointInputFormat.createPointWritable(splits[0]);
-				points.add(point);
-			}
-		} catch (Exception e) {
-			Logger.logError(CLAZZ, "Could not open/read file.");
-			e.printStackTrace();
-		} finally {
-			if(sc != null)
-				sc.close();
-		}
-		return points;
-	}
-
-	public static List<ICPoint<Float>> readICPoints(File file, final String separator) {
-		List<ICPoint<Float>> points = new LinkedList<ICPoint<Float>>();
-		Scanner sc = null;
-		try {
-			sc = new Scanner(file);
-
-			String line;
-			String[] splits;
-			IPoint<Float> centroid;
-			ICPoint<Float> point;
-			while (sc.hasNext()) {
-				line = sc.nextLine();
-				splits = line.split(separator);
-				
-				centroid = PointInputFormat.createPointWritable(splits[0]);
-				point = new CPoint(PointInputFormat.createPointWritable(splits[1]));
-				point.setCentroid(centroid);
-				points.add(point);
-			}
-		} catch (Exception e) {
-			Logger.logError(CLAZZ, "Could not open/read file.");
-			e.printStackTrace();
-		} finally {
-			if(sc != null)
-				sc.close();
-		}
-		return points;
-	}
-
 	public static void print(List<IPoint<Float>> points) {
 		for (IPoint<Float> p : points)
 			System.out.println(p.toString());
@@ -143,7 +80,8 @@ public class Points {
 	}
 
 	public List<ICPoint<Float>> copyPoints(List<ICPoint<Float>> points) {
-		List<ICPoint<Float>> newPoints = new ArrayList<ICPoint<Float>>(points.size());
+		List<ICPoint<Float>> newPoints = new ArrayList<ICPoint<Float>>(
+				points.size());
 		ICPoint<Float> newPoint;
 		for (ICPoint<Float> p : points) {
 			newPoint = new CPoint(this.dim);

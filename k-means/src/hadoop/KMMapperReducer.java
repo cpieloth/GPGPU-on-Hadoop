@@ -1,9 +1,7 @@
 package hadoop;
 
-import hadoop.KMMapperReducerCL.KMMapper;
-import hadoop.KMMapperReducerCL.KMReducer;
-
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,8 +22,10 @@ import clustering.IPoint;
 
 public class KMMapperReducer {
 
-	public static class KMapper extends
+	public static class KMMapper extends
 			Mapper<NullWritable, PointWritable, PointWritable, PointWritable> {
+
+		private static final Class<KMMapper> CLAZZ = KMMapper.class;
 
 		private List<PointWritable> centroids;
 
@@ -35,10 +35,19 @@ public class KMMapperReducer {
 				KMeansHadoop.SUFFIX);
 
 		@Override
-		protected void setup(KMapper.Context context) {
+		protected void setup(KMMapper.Context context) {
 			swPhase.start();
 			swMethod.start();
 			swMethod.pause();
+
+			Logger.logDebug(CLAZZ,
+					"TaskAttemptID: " + context.getTaskAttemptID());
+			try {
+				Logger.logDebug(CLAZZ, "Hostname: "
+						+ InetAddress.getLocalHost().getHostName());
+			} catch (Exception e) {
+				Logger.logDebug(CLAZZ, "Hostname: unknown");
+			}
 
 			// TODO read max k from conf to use ArrayList
 			this.centroids = new LinkedList<PointWritable>();
@@ -51,7 +60,7 @@ public class KMMapperReducer {
 				for (FileStatus fst : fs
 						.listStatus(new Path(uris[0].toString()))) {
 					if (!fst.isDir()) {
-						Logger.logDebug(KMapper.class,
+						Logger.logDebug(KMMapper.class,
 								"centroids: " + fst.getPath());
 						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
@@ -61,8 +70,7 @@ public class KMMapperReducer {
 					}
 				}
 			} catch (IOException e) {
-				Logger.logError(KMapper.class,
-						"Could not get local cache files");
+				Logger.logError(CLAZZ, "Could not get local cache files");
 				e.printStackTrace();
 			} finally {
 				if (sc != null)
@@ -73,7 +81,7 @@ public class KMMapperReducer {
 
 		@Override
 		protected void map(NullWritable key, PointWritable value,
-				KMapper.Context context) throws IOException,
+				KMMapper.Context context) throws IOException,
 				InterruptedException {
 			swMethod.resume();
 
@@ -114,8 +122,10 @@ public class KMMapperReducer {
 		}
 	}
 
-	public static class KReducer extends
+	public static class KMReducer extends
 			Reducer<PointWritable, PointWritable, PointWritable, PointWritable> {
+
+		private static final Class<KMReducer> CLAZZ = KMReducer.class;
 
 		private StopWatch swPhase = new StopWatch(KMeansHadoop.PRE_REDUCEPHASE,
 				KMeansHadoop.SUFFIX);
@@ -127,11 +137,20 @@ public class KMMapperReducer {
 			swPhase.start();
 			swMethod.start();
 			swMethod.pause();
+
+			Logger.logDebug(CLAZZ,
+					"TaskAttemptID: " + context.getTaskAttemptID());
+			try {
+				Logger.logDebug(CLAZZ, "Hostname: "
+						+ InetAddress.getLocalHost().getHostName());
+			} catch (Exception e) {
+				Logger.logDebug(CLAZZ, "Hostname: unknown");
+			}
 		}
 
 		@Override
 		protected void reduce(PointWritable key,
-				Iterable<PointWritable> values, Context context)
+				Iterable<PointWritable> values, KMReducer.Context context)
 				throws IOException, InterruptedException {
 			swMethod.resume();
 

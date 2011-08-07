@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Random;
 
 import lightLogger.Logger;
-import utils.Points;
-import utils.Visualize;
 import cl_util.CLInstance;
 
 import com.nativelibs4java.opencl.CLBuffer;
@@ -44,21 +42,24 @@ public class KMeansCLSimple implements IKMeans<Float> {
 	private int k = 0, dim = 0;
 
 	@Override
-	public List<IPoint<Float>> initialize(int dim, int k) {
+	public List<IPoint<Float>> initialize(int dim, int k, boolean generate) {
 		Logger.logTrace(CLAZZ, "initialize()");
 		this.dim = dim;
 		this.k = k;
 
 		this.clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
 
-		List<IPoint<Float>> centroids = new ArrayList<IPoint<Float>>(this.k);
-		Random r = new Random();
-		Point c;
-		for (int i = 0; i < this.k; i++) {
-			c = new Point(this.dim);
-			for (int d = 0; d < this.dim; d++)
-				c.set(d, r.nextFloat());
-			centroids.add(c);
+		List<IPoint<Float>> centroids = null;
+		if (generate) {
+			centroids = new ArrayList<IPoint<Float>>(this.k);
+			Random r = new Random();
+			Point c;
+			for (int i = 0; i < this.k; i++) {
+				c = new Point(this.dim);
+				for (int d = 0; d < this.dim; d++)
+					c.set(d, r.nextFloat());
+				centroids.add(c);
+			}
 		}
 		return centroids;
 	}
@@ -305,32 +306,4 @@ public class KMeansCLSimple implements IKMeans<Float> {
 				+ ITERATIONS + " iterations.");
 	}
 
-	public static void main(String[] args) {
-		KMeansCLSimple kmeans = new KMeansCLSimple();
-
-		List<IPoint<Float>> centroids = kmeans.initialize(2, 5);
-		List<ICPoint<Float>> points = new Points(kmeans.getDim()).generate(
-				kmeans.getK(), 1000, 1);
-
-		// View input
-		new Visualize().drawCPoints(1, points);
-		waitForView();
-
-		long start = System.currentTimeMillis();
-		kmeans.run(points, centroids);
-		long end = System.currentTimeMillis();
-
-		System.out.println("Time: " + (end - start));
-
-		// View clusters with centroid
-		new Visualize().drawCPoints(1, points);
-	}
-
-	private static void waitForView() {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
 }
