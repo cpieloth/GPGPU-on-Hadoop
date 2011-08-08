@@ -36,7 +36,7 @@ public class KMeansStarter {
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 3) {
+		if (args.length < 4) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Arguments:");
 			for (Argument arg : Argument.values())
