@@ -36,7 +36,7 @@ public class FloatIntervalInputFormat extends
 		FileInputFormat<NullWritable, FloatIntervalWritable> {
 
 	private static final Pattern pattern = Pattern
-			.compile("\\[(\\d+.\\d+),(\\d+.\\d+)\\]\\s(\\d+)");
+			.compile("\\[(\\d+.\\d+),(\\d+.\\d+)\\]\\s+(\\d+)");
 
 	/**
 	 * Defines the lines per mapper/split.

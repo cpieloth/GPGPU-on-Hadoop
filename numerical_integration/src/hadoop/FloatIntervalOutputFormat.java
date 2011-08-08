@@ -90,7 +90,7 @@ public class FloatIntervalOutputFormat extends
 //			if (key != null && value != null)
 //				out.write(keyValueSeparator);
 			if (value != null) {
-				s = createString(value);
+				s = createString(value, "\t");
 				out.write(s.getBytes(utf8));
 			}
 			out.write(newline);
@@ -102,13 +102,13 @@ public class FloatIntervalOutputFormat extends
 		}
 	}
 
-	public static String createString(IInterval<Float> value) {
+	public static String createString(IInterval<Float> value, final String whitespace) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		sb.append(value.getBegin().toString());
 		sb.append(",");
 		sb.append(value.getEnd().toString());
-		sb.append("] ");
+		sb.append("]" + whitespace);
 		sb.append(value.getResolution());
 		return sb.toString();
 	}
