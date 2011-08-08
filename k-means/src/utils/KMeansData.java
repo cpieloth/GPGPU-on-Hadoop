@@ -35,7 +35,7 @@ public class KMeansData {
 
 	public enum Argument {
 		OUTPUT("output", 0), SIZE("size", 1), DIM("dimension", 2), CLUSTER(
-				"<clusters", 3), FS(Argument.DFS + "|" + Argument.LFS, 4);
+				"clusters", 3), FS(Argument.DFS + "|" + Argument.LFS, 4);
 
 		public final String name;
 		public final int index;
