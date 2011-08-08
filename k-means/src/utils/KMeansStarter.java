@@ -53,16 +53,6 @@ public class KMeansStarter {
 		List<ICPoint<Float>> points = KMeansData.readICPoints(new File(iFile));
 		List<IPoint<Float>> centroids = KMeansData.readIPoints(new File(cFile));
 
-		IKMeans<Float> kmeans = null;
-		if (Argument.CPU.equals(type))
-			kmeans = new KMeans();
-		else if (Argument.OCL.equals(type))
-			kmeans = new KMeansCL();
-		else {
-			Logger.logError(CLAZZ, "Unknows type");
-			System.exit(1);
-		}
-
 		if (points.isEmpty() || centroids.isEmpty()) {
 			Logger.logError(CLAZZ, "Empty points or centroids!");
 			System.exit(1);
@@ -77,12 +67,27 @@ public class KMeansStarter {
 		StopWatch sw = new StopWatch("time" + type + "=", ";");
 		sw.start();
 
+		IKMeans<Float> kmeans = null;
+		if (Argument.CPU.equals(type))
+			kmeans = new KMeans();
+		else if (Argument.OCL.equals(type))
+			kmeans = new KMeansCL();
+		else {
+			Logger.logError(CLAZZ, "Unknown type");
+			System.exit(1);
+		}
 		kmeans.initialize(dim, centroids.size(), false);
+		
+		StopWatch swCompute = new StopWatch("timeCompute" + type + "=", ";");
+		swCompute.start();
+		
 		kmeans.run(points, centroids);
 
+		swCompute.stop();
 		sw.stop();
+		Logger.log(TIME_LEVEL, CLAZZ, swCompute.getTimeString());
 		Logger.log(TIME_LEVEL, CLAZZ, sw.getTimeString());
-		
+
 		KMeansData.writeToLFS(points, oFile);
 	}
 }
