@@ -1,11 +1,13 @@
 package cl_util;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.fail;
+
 import java.util.List;
 
 import junit.framework.Assert;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import utils.Points;
 import clustering.ICPoint;
