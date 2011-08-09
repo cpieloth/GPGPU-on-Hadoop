@@ -19,41 +19,41 @@ import clustering.ICPoint;
 import clustering.IPoint;
 
 public class Visualize extends JFrame {
-	
+
 	private static final Class<Visualize> CLAZZ = Visualize.class;
 
 	public enum Argument {
 		INPUT("input", 0), TYPE(Argument.CPOINT + "|" + Argument.POINT, 1);
-		
+
 		public final String name;
 		public final int index;
-		
+
 		Argument(String name, int index) {
 			this.name = name;
 			this.index = index;
 		}
-		
+
 		public static final String CPOINT = "cp";
 		public static final String POINT = "p";
 	}
-	
+
 	public static void main(String[] args) {
 		if (args.length < 2) {
-			System.out.println("Arguments: <file> <" + Argument.INPUT.name + "|" + Argument.TYPE.name
-					+ ">");
+			System.out.println("Arguments: <" + Argument.INPUT.name + "> <"
+					+ Argument.TYPE.name + ">");
 			System.exit(1);
 		}
 
 		File file = new File(args[Argument.INPUT.index]);
-		if(!file.exists()) {
+		if (!file.exists()) {
 			Logger.logError(CLAZZ, "File does not exist!");
 			System.exit(1);
 		}
-		if(file.isDirectory()) {
+		if (file.isDirectory()) {
 			Logger.logError(CLAZZ, "File is a directory!!");
 			System.exit(1);
 		}
-		
+
 		if (Argument.CPOINT.equals(args[Argument.TYPE.index]))
 			new Visualize().drawCPoints(1, KMeansData.readICPoints(file, "\t"));
 		else if (Argument.POINT.equals(args[Argument.TYPE.index]))
