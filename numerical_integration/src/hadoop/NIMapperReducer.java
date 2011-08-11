@@ -1,6 +1,6 @@
 package hadoop;
 
-import integration.FloatPowerFunction;
+import integration.FloatPolynomialFunction;
 import integration.IMathFunction;
 import integration.INumeriacalIntegration;
 import integration.TrapeziumIntegration;
@@ -49,7 +49,7 @@ public class NIMapperReducer {
 			}
 
 			integration = new TrapeziumIntegration();
-			function = new FloatPowerFunction(3f);
+			function = new FloatPolynomialFunction(5);
 		}
 
 		@Override

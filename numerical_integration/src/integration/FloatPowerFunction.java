@@ -26,7 +26,7 @@ public class FloatPowerFunction implements IMathFunction<Float> {
 
 	@Override
 	public String getOpenCLFunction() {
-		return "float " + FUNCTION_NAME + "(float x) { return pow(x, " + exponent.floatValue() + "); }";
+		return "float " + FUNCTION_NAME + "(float x) { return pow(x, " + exponent.floatValue() + "f); }";
 	}
 
 }
