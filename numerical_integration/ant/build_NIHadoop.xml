@@ -3,43 +3,24 @@
 	<!--this file was created by Eclipse Runnable JAR Export Wizard-->
 	<!--ANT 1.7 is required                                        -->
 	<target name="create_run_jar">
-
+		
 		<property name="DEST_PATH" value="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/NumericalIntegration" />
-		<property name="HADOOP_HOME" value="/opt/hadoop" />
-		<property name="USER_LIB" value="user_lib" />
-
-		<fileset dir="${HADOOP_HOME}/lib" id="hadoop.libs">
-			<include name="*.jar" />
-		</fileset>
-
-		<pathconvert pathsep=" " property="lib.list" refid="hadoop.libs">
-			<!-- <map from="${HADOOP_HOME}/lib" to="hadoop_lib" /> -->
-		</pathconvert>
-
-		<fileset dir="${HADOOP_HOME}" id="hadoop.jars">
-			<include name="*.jar" />
-		</fileset>
-
-		<pathconvert pathsep=" " property="jars.list" refid="hadoop.jars">
-			<!-- <map from="${HADOOP_HOME}" to="hadoop" /> -->
-		</pathconvert>
-
+		<property name="PROJECT_PATH" value="/Users/christof/Documents/GPGPU-on-Hadoop" />
+		<property name="LIB_PATH" value="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries" />
 
 		<jar destfile="${DEST_PATH}/NIHadoop.jar">
 			<manifest>
 				<attribute name="Main-Class" value="hadoop.NumericalIntegration" />
-				<attribute name="Class-Path" value=". ${USER_LIB}/javacl-1.0-beta-6-shaded.jar ${USER_LIB}/lightLogger-0.1.jar ${USER_LIB}/stopWatch-0.1.jar ${lib.list} ${jars.list}" />
+				<attribute name="Class-Path" value="." />
 			</manifest>
-			<fileset dir="/Users/christof/Documents/GPGPU-on-Hadoop/numerical_integration/bin" />
-			<fileset dir="/Users/christof/Documents/GPGPU-on-Hadoop/opencl_utils/bin" />
+			
+			<fileset dir="${PROJECT_PATH}/numerical_integration/bin" />
+			<fileset dir="${PROJECT_PATH}/opencl_utils/bin" />
+			
+			<zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/lightLogger-0.1.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/javacl-1.0-beta-6-shaded.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/stopWatch-0.1.jar"/>
 		</jar>
 		
-		<!--
-        <delete dir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <mkdir dir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <copy file="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries/javacl-1.0-beta-6-shaded.jar" todir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <copy file="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries/lightLogger-0.1.jar" todir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <copy file="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries/stopWatch-0.1.jar" todir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-		-->
 	</target>
 </project>
