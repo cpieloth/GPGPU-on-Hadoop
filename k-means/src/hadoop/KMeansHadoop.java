@@ -64,6 +64,7 @@ public class KMeansHadoop extends Configured implements Tool {
 
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
+		
 		String[] rArgs = gop.getRemainingArgs();
 		if (rArgs.length < 6) {
 			StringBuilder sb = new StringBuilder();
@@ -106,7 +107,7 @@ public class KMeansHadoop extends Configured implements Tool {
 			Logger.logError(CLAZZ, "Error during job execution!");
 			System.exit(FAILURE);
 		}
-
+		
 		// collect clusters in a final map
 		rArgs[Argument.OUTPUT.index] = OUTPUT;
 		res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(), rArgs);
@@ -163,7 +164,7 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		DistributedCache.addCacheFile(new URI(args[Argument.CENTROIDS.index]),
 				job.getConfiguration());
-
+		
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
 		return stat;
 	}

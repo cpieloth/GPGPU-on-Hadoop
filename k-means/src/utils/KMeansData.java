@@ -69,9 +69,9 @@ public class KMeansData {
 		List<ICPoint<Float>> points = pHelper.generate(k, size, 1);
 
 		if (Argument.DFS.equals(fs))
-			writeToDFS(points, output, SEPARATOR);
+			writeToDFS(points, output, null);
 		else if (Argument.LFS.equals(fs))
-			writeToLFS(points, output, SEPARATOR);
+			writeToLFS(points, output, null);
 		else
 			Logger.logError(CLAZZ, "Unknown file system!");
 
@@ -155,7 +155,7 @@ public class KMeansData {
 			final String separator) throws UnsupportedEncodingException,
 			IOException {
 		for (ICPoint<Float> p : points) {
-			if (p.getCentroid() != null) {
+			if (p.getCentroid() != null && separator != null) {
 				os.write(PointOutputFormat.createString(p.getCentroid())
 						.getBytes(CHARSET));
 				os.write(separator.getBytes(CHARSET));
