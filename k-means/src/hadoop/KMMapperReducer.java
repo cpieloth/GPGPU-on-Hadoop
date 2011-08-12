@@ -62,8 +62,7 @@ public class KMMapperReducer {
 				for (FileStatus fst : fs
 						.listStatus(new Path(uris[0].toString()))) {
 					if (!fst.isDir()) {
-						Logger.logDebug(KMMapper.class,
-								"centroids: " + fst.getPath());
+						Logger.logDebug(CLAZZ, "centroids: " + fst.getPath());
 						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
 							this.centroids.add(PointInputFormat
@@ -79,6 +78,8 @@ public class KMMapperReducer {
 					sc.close();
 				// don't close FileSystem!
 			}
+
+			Logger.logDebug(CLAZZ, "Centroid size: " + this.centroids.size());
 		}
 
 		@Override

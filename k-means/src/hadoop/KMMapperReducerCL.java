@@ -70,6 +70,7 @@ public class KMMapperReducerCL {
 				for (FileStatus fst : fs
 						.listStatus(new Path(uris[0].toString()))) {
 					if (!fst.isDir()) {
+						Logger.logDebug(CLAZZ, "centroids: " + fst.getPath());
 						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
 							this.centroids.add(PointInputFormat
@@ -91,6 +92,7 @@ public class KMMapperReducerCL {
 			List<IPoint<Float>> tmpCentroids = new ArrayList<IPoint<Float>>(
 					this.centroids.size());
 			tmpCentroids.addAll(this.centroids);
+			Logger.logDebug(CLAZZ, "Centroid size: " + tmpCentroids.size());
 			this.clPoint.prepareNearestPoints(tmpCentroids);
 			this.clPoint.resetBuffer(1);
 		}

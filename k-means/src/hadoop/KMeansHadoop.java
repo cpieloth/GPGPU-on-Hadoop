@@ -1,6 +1,8 @@
 package hadoop;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import lightLogger.Level;
 import lightLogger.Logger;
@@ -21,6 +23,8 @@ public class KMeansHadoop extends Configured implements Tool {
 	private static final Class<KMeansHadoop> CLAZZ = KMeansHadoop.class;
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");
+
+	public static List<String> jobURLs = null;
 
 	public enum Argument {
 		JOBNAME("jobname", 0), INPUT("input", 1), CENTROIDS("centroids", 2), OUTPUT(
@@ -64,7 +68,7 @@ public class KMeansHadoop extends Configured implements Tool {
 
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
-		
+
 		String[] rArgs = gop.getRemainingArgs();
 		if (rArgs.length < 6) {
 			StringBuilder sb = new StringBuilder();
@@ -80,6 +84,9 @@ public class KMeansHadoop extends Configured implements Tool {
 		final int iterations = Integer
 				.parseInt(rArgs[Argument.ITERATIONS.index]);
 		String centroids = rArgs[Argument.CENTROIDS.index];
+		final String jobName = rArgs[Argument.JOBNAME.index];
+
+		jobURLs = new ArrayList<String>(iterations);
 
 		// load HDFS handler, only once!
 		try {
@@ -94,8 +101,11 @@ public class KMeansHadoop extends Configured implements Tool {
 		StopWatch sw = new StopWatch("totalTime=", ";");
 		sw.start();
 
+		// FIXME iteration final map
 		int i = 0;
 		do {
+			rArgs[Argument.JOBNAME.index] = jobName + "_" + i + "_of_"
+					+ iterations;
 			rArgs[Argument.OUTPUT.index] = centroids + "-" + (i + 1);
 			res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(),
 					rArgs);
@@ -107,13 +117,24 @@ public class KMeansHadoop extends Configured implements Tool {
 			Logger.logError(CLAZZ, "Error during job execution!");
 			System.exit(FAILURE);
 		}
-		
+
 		// collect clusters in a final map
 		rArgs[Argument.OUTPUT.index] = OUTPUT;
+		rArgs[Argument.JOBNAME.index] = jobName + "_" + i + "_of_"
+		+ iterations;
 		res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(), rArgs);
 
 		sw.stop();
 		Logger.log(TIME_LEVEL, CLAZZ, sw.getTimeString());
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("JobIDs:");
+		for(String url : jobURLs) {
+			// TODO parse id form url
+			sb.append(" ");
+			sb.append(url);
+		}
+		Logger.logDebug(CLAZZ, sb.toString());
 
 		if (res != SUCCESS)
 			Logger.logError(CLAZZ, "Error during job execution!");
@@ -164,8 +185,10 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		DistributedCache.addCacheFile(new URI(args[Argument.CENTROIDS.index]),
 				job.getConfiguration());
-		
+
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
+		jobURLs.add(job.getTrackingURL());
+		
 		return stat;
 	}
 
