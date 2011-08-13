@@ -3,6 +3,8 @@ package hadoop;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lightLogger.Level;
 import lightLogger.Logger;
@@ -101,7 +103,6 @@ public class KMeansHadoop extends Configured implements Tool {
 		StopWatch sw = new StopWatch("totalTime=", ";");
 		sw.start();
 
-		// FIXME iteration final map
 		int i = 0;
 		do {
 			rArgs[Argument.JOBNAME.index] = jobName + "_" + i + "_of_"
@@ -120,19 +121,17 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		// collect clusters in a final map
 		rArgs[Argument.OUTPUT.index] = OUTPUT;
-		rArgs[Argument.JOBNAME.index] = jobName + "_" + i + "_of_"
-		+ iterations;
+		rArgs[Argument.JOBNAME.index] = jobName + "_" + i + "_of_" + iterations;
 		res = ToolRunner.run(gop.getConfiguration(), new KMeansHadoop(), rArgs);
 
 		sw.stop();
 		Logger.log(TIME_LEVEL, CLAZZ, sw.getTimeString());
-		
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("JobIDs:");
-		for(String url : jobURLs) {
-			// TODO parse id form url
+		for (String url : jobURLs) {
 			sb.append(" ");
-			sb.append(url);
+			sb.append(getJobID(url));
 		}
 		Logger.logDebug(CLAZZ, sb.toString());
 
@@ -140,6 +139,15 @@ public class KMeansHadoop extends Configured implements Tool {
 			Logger.logError(CLAZZ, "Error during job execution!");
 
 		System.exit(res);
+	}
+
+	private static String getJobID(String url) {
+		final Pattern p = Pattern.compile(".*jobid=job_(\\d+_\\d+)");
+		Matcher m = p.matcher(url);
+		if (m.matches() && m.groupCount() > 0)
+			return m.group(1);
+		else
+			return null;
 	}
 
 	@Override
@@ -188,7 +196,7 @@ public class KMeansHadoop extends Configured implements Tool {
 
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
 		jobURLs.add(job.getTrackingURL());
-		
+
 		return stat;
 	}
 
