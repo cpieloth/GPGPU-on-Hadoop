@@ -195,7 +195,8 @@ public class KMeansHadoop extends Configured implements Tool {
 				job.getConfiguration());
 
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
-		jobURLs.add(job.getTrackingURL());
+		if (args[Argument.OUTPUT.index] != OUTPUT) // log complete m/r jobs only
+			jobURLs.add(job.getTrackingURL());
 
 		return stat;
 	}

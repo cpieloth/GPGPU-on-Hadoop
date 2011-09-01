@@ -19,7 +19,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	private CLInstance clInstance;
 
-	private static final int MAX_BUFFER_ITEMS = 8192;
+	private int MAX_BUFFER_ITEMS;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
@@ -34,6 +34,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	public CLSummarizerFloat(CLInstance clInstance) {
 		this.clInstance = clInstance;
+		MAX_BUFFER_ITEMS = (int) ((clInstance.getMaxGlobalMemSize() / SIZEOF_CL_FLOAT) * 0.5);
 		this.resetResult();
 		this.resetBuffer();
 	}

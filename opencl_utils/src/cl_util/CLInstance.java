@@ -81,6 +81,17 @@ public class CLInstance {
 			return false;
 		}
 	}
+	
+	public long getMaxGlobalMemSize() {
+		long size = Long.MAX_VALUE;
+		long tmp;
+		for(CLDevice dev : this.context.getDevices()) {
+			tmp = dev.getGlobalMemSize();
+			if(tmp < size)
+				size = tmp;
+		}
+		return size;
+	}
 
 	public CLContext getContext() {
 		return this.context;

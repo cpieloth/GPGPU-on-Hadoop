@@ -21,8 +21,7 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 
 	private static final Class<CLPointFloat> CLAZZ = CLPointFloat.class;
 
-	private static final int MAX_BUFFER_SIZE = 8192;
-	private int BUFFER_SIZE;
+	private int MAX_BUFFER_SIZE;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
@@ -31,6 +30,7 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 	private static final String KERNEL_PATH = "/kernel/CLPointFloat.cl";
 
 	private final int DIM;
+	private final int ITEM_SIZE;
 	private CLInstance clInstance;
 
 	private ICPoint<Float>[] itemBuffer;
@@ -45,16 +45,17 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 	public CLPointFloat(CLInstance clInstance, int dim) {
 		this.clInstance = clInstance;
 		this.DIM = dim;
+		this.ITEM_SIZE = dim * SIZEOF_CL_FLOAT;
 
-		BUFFER_ITEMS = MAX_BUFFER_SIZE / DIM;
-		BUFFER_SIZE = BUFFER_ITEMS * DIM;
-
+		MAX_BUFFER_SIZE = (int) (clInstance.getMaxGlobalMemSize() * 0.25);
+		BUFFER_ITEMS = getMaxBufferItems();
+		
 		this.resetBuffer();
 	}
 	
 	@Override
 	public int getMaxBufferItems() {
-		return MAX_BUFFER_SIZE / DIM;
+		return MAX_BUFFER_SIZE / ITEM_SIZE;
 	}
 	
 	@Override
@@ -67,20 +68,18 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 	@Override
 	public void resetBuffer(int bufferItems) {
 		bufferItems = bufferItems < 1 ? 1 : bufferItems;
-		BUFFER_ITEMS = (bufferItems * DIM) > MAX_BUFFER_SIZE ? (MAX_BUFFER_SIZE / DIM)
+		BUFFER_ITEMS = (bufferItems * ITEM_SIZE) > MAX_BUFFER_SIZE ? (MAX_BUFFER_SIZE / ITEM_SIZE)
 				: bufferItems;
-		BUFFER_SIZE = BUFFER_ITEMS * DIM;
+		// BUFFER_SIZE = BUFFER_ITEMS * ITEM_SIZE;
 
 		this.itemBuffer = new ICPoint[BUFFER_ITEMS];
-		this.buffer = new float[BUFFER_SIZE];
+		this.buffer = new float[BUFFER_ITEMS * DIM];
 		this.itemCount = 0;
 		this.bufferCount = 0;
 		this.pointBuffer = this.clInstance.getContext().createFloatBuffer(
-				CLMem.Usage.Input,
-
-				BUFFER_SIZE);
+				CLMem.Usage.Input, BUFFER_ITEMS * DIM);
 		this.resultBuffer = this.clInstance.getContext().createFloatBuffer(
-				CLMem.Usage.InputOutput, BUFFER_SIZE);
+				CLMem.Usage.InputOutput, BUFFER_ITEMS * DIM);
 	}
 
 	@Override
@@ -90,6 +89,7 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 
 	@Override
 	public void prepareNearestPoints(List<IPoint<Float>> centroids) {
+		// TODO if there are to many centroids, they have to be split like points
 		COMPARE_ITEMS = centroids.size();
 		float[] centroidsBuffer = new float[COMPARE_ITEMS * DIM];
 
@@ -151,7 +151,8 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 			this.pointBuffer.write(cmdQ, 0, bufferCount,
 					FloatBuffer.wrap(this.buffer), true, new CLEvent[0]);
 
-			int globalSize = bufferCount;
+			//int globalSize = bufferCount;
+			int globalSize = size;
 
 			kernel.setArg(0, this.resultBuffer);
 			kernel.setArg(1, this.pointBuffer);
