@@ -97,7 +97,7 @@ public class readTest {
 		}
 
 		// fix data, variable buffer size
-		System.out.println("One single big write on different buffer size");
+		System.out.println("One single big read on different buffer size");
 		int bufferSize = MAX_COUNT / 4;
 		for (int f = 1; f < 5; f++) {
 			time = 0;

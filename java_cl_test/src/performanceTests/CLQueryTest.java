@@ -16,7 +16,7 @@ public class CLQueryTest {
 
 	private static final int ROUNDS = 5;
 
-	private static final String KERNEL_PATH = "/kernel/CLQueryTest.cl";
+	private static final String KERNEL_PATH = "/kernel.cl";
 	private static final String KENREL_NAME = "maxInt";
 
 	@SuppressWarnings("unused")
@@ -24,7 +24,7 @@ public class CLQueryTest {
 		long tStart, tEnd, time;
 
 		CLPlatform[] platforms = null;
-		CLDevice device = null;
+		CLDevice[] devices = null;
 		CLContext context = null;
 		CLQueue cmdQ = null;
 		CLProgram program = null;
@@ -41,40 +41,48 @@ public class CLQueryTest {
 
 			tEnd = System.currentTimeMillis();
 			time += tEnd - tStart;
+			for(CLPlatform p : platforms)
+				p.release();
 		}
 		System.out.println("\ttime=" + (time / ROUNDS) + ";");
 		System.out.println();
 
 		/* TEST */
-		System.out.println("OpenCL query time for device:");
+		System.out.println("OpenCL query time for devices:");
+		platforms = JavaCL.listGPUPoweredPlatforms();
 		time = 0;
 		for (int r = 0; r < ROUNDS; r++) {
 			tStart = System.currentTimeMillis();
 
-			device = platforms[0].getBestDevice();
+			devices = platforms[0].listGPUDevices(true);
 
 			tEnd = System.currentTimeMillis();
 			time += tEnd - tStart;
+			for(CLDevice d : devices)
+				d.release();
 		}
 		System.out.println("\ttime=" + (time / ROUNDS) + ";");
 		System.out.println();
 
 		/* TEST */
 		System.out.println("Context creation time:");
+		devices = platforms[0].listGPUDevices(true);
 		time = 0;
 		for (int r = 0; r < ROUNDS; r++) {
 			tStart = System.currentTimeMillis();
 
-			context = JavaCL.createContext(null, device);
+			context = JavaCL.createContext(null, devices);
 
 			tEnd = System.currentTimeMillis();
 			time += tEnd - tStart;
+			context.release();
 		}
 		System.out.println("\ttime=" + (time / ROUNDS) + ";");
 		System.out.println();
 
 		/* TEST */
 		System.out.println("CommandQueue creation time:");
+		context = JavaCL.createContext(null, devices);
 		time = 0;
 		for (int r = 0; r < ROUNDS; r++) {
 			tStart = System.currentTimeMillis();
@@ -83,6 +91,7 @@ public class CLQueryTest {
 
 			tEnd = System.currentTimeMillis();
 			time += tEnd - tStart;
+			cmdQ.release();
 		}
 		System.out.println("\ttime=" + (time / ROUNDS) + ";");
 		System.out.println();
