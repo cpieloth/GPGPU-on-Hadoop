@@ -23,7 +23,7 @@ def copyHdfs(data, dim):
     args = shlex.split(command)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     p.wait()
-    command = HADOOP_CMD + " fs -put " + DATA_PATH + "/" + "points_" + data + "mb_" + dim + "d " + HDFS_INPUT + "/points"
+    command = HADOOP_CMD + " fs -put " + DATA_PATH + "/" + "points_" + data + "mb_" + dim + "d" + " " + HDFS_INPUT + "/points"
     args = shlex.split(command)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     p.wait()
@@ -31,7 +31,8 @@ def copyHdfs(data, dim):
     args = shlex.split(command)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     p.wait()
-    command = HADOOP_CMD + " fs -put " + DATA_PATH + "/" + "center_" + dim + "d" + " " + HDFS_CENTROIDS + "/center"
+    # TODO
+    command = HADOOP_CMD + " fs -put " + DATA_PATH + "/" + "center_" + data + "mb_" + dim + "d" + " " + HDFS_CENTROIDS + "/center"
     args = shlex.split(command)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     p.wait()
