@@ -47,7 +47,7 @@ public class CLPointFloat implements ICLPointOperation<Float>{
 		this.DIM = dim;
 		this.ITEM_SIZE = dim * SIZEOF_CL_FLOAT;
 
-		MAX_BUFFER_SIZE = (int) (clInstance.getMaxGlobalMemSize() * 0.25);
+		MAX_BUFFER_SIZE = 32 * 1024 * 1024;/*(int) (clInstance.getMaxGlobalMemSize() * 0.01);/*(int) (clInstance.getMaxGlobalMemSize() * 0.25);*/
 		BUFFER_ITEMS = getMaxBufferItems();
 		
 		this.resetBuffer();
