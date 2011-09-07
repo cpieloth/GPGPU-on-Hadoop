@@ -34,35 +34,68 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	public CLSummarizerFloat(CLInstance clInstance) {
 		this.clInstance = clInstance;
-		MAX_BUFFER_ITEMS = (int) ((clInstance.getMaxGlobalMemSize() / SIZEOF_CL_FLOAT) * 0.5);
+		MAX_BUFFER_ITEMS = (int) ((clInstance.getMaxGlobalMemSize() / SIZEOF_CL_FLOAT));
+		if ((MAX_BUFFER_ITEMS & (MAX_BUFFER_ITEMS - 1)) != 0)
+			MAX_BUFFER_ITEMS = (int) Math.pow(2,
+					Math.floor(Math.log(MAX_BUFFER_ITEMS) / Math.log(2)));
+		Logger.logDebug(CLAZZ, "MAX_BUFFER_ITEMS = " + MAX_BUFFER_ITEMS + "; "
+				+ (MAX_BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
+		BUFFER_ITEMS = MAX_BUFFER_ITEMS / 4;
 		this.resetResult();
-		this.resetBuffer();
+		this.resetBuffer(BUFFER_ITEMS);
 	}
-	
+
 	@Override
 	public int getMaxBufferItems() {
 		return MAX_BUFFER_ITEMS;
 	}
-	
+
 	@Override
 	public int getCurrentMaxBufferItems() {
 		return BUFFER_ITEMS;
 	}
 
 	@Override
-	public void resetBuffer(int bufferItems) {
-		BUFFER_ITEMS = this.getOptimalItemCount(bufferItems);
-		
-		this.buffer = new float[BUFFER_ITEMS];
-		this.count = 0;
-		
-		this.resultBuffer = this.clInstance.getContext().createFloatBuffer(
-				CLMem.Usage.InputOutput, BUFFER_ITEMS);
+	public int resetBuffer(int bufferItems) {
+		boolean error;
+		do {
+			error = false;
+			try {
+				BUFFER_ITEMS = this.getOptimalItemCount(bufferItems);
+
+				Logger.logDebug(CLAZZ, "resetBuffer.BUFFER_ITEMS = "
+						+ BUFFER_ITEMS + "; "
+						+ (BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
+
+				if (this.buffer == null || BUFFER_ITEMS > this.buffer.length)
+					this.buffer = new float[BUFFER_ITEMS];
+				this.count = 0;
+
+				this.resultBuffer = this.clInstance.getContext()
+						.createFloatBuffer(CLMem.Usage.InputOutput,
+								BUFFER_ITEMS);
+
+			} catch (CLException.InvalidBufferSize e) {
+				Logger.logError(CLAZZ,
+						"Could not create CLBuffer! Resize buffer item.");
+				MAX_BUFFER_ITEMS = BUFFER_ITEMS / 2;
+				bufferItems /= 2;
+				error = true;
+				this.buffer = null;
+			} catch (OutOfMemoryError e) {
+				Logger.logError(CLAZZ, "Could not create float array! Resize.");
+				MAX_BUFFER_ITEMS = BUFFER_ITEMS / 2;
+				bufferItems /= 2;
+				error = true;
+				this.buffer = null;
+			}
+		} while (error);
+		return BUFFER_ITEMS;
 	}
 
 	@Override
-	public void resetBuffer() {
-		this.resetBuffer(MAX_BUFFER_ITEMS);
+	public int resetBuffer() {
+		return this.resetBuffer(MAX_BUFFER_ITEMS);
 	}
 
 	private int getOptimalItemCount(int bufferItems) {
@@ -70,7 +103,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 			return CLInstance.WAVE_SIZE;
 		else {
 			int dual = CLInstance.WAVE_SIZE;
-			while(dual < bufferItems && dual < MAX_BUFFER_ITEMS)
+			while (dual < bufferItems && dual < MAX_BUFFER_ITEMS)
 				dual *= 2;
 			return dual;
 		}
@@ -89,14 +122,14 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		} else {
 			this.doSum(count);
 			this.buffer[count++] = value;
-		}		
+		}
 	}
 
 	private void doSum(int size) {
 		int globalSize, localSize;
 		globalSize = this.getOptimalItemCount(size);
 		// fill offset with 0
-		Arrays.fill(this.buffer,size, globalSize, 0);
+		Arrays.fill(this.buffer, size, globalSize, 0);
 
 		size = globalSize;
 
@@ -110,7 +143,8 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 		try {
 			// write buffer on device
-			this.resultBuffer.write(cmdQ, FloatBuffer.wrap(this.buffer), true,
+			this.resultBuffer.write(cmdQ, 0, BUFFER_ITEMS,
+					FloatBuffer.wrap(this.buffer, 0, BUFFER_ITEMS), true,
 					new CLEvent[0]);
 
 			// multiple rounds to sum each work group
@@ -121,10 +155,10 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 					for (int i = 0; i < globalSize - size; i++)
 						buffer[i] = 0;
 					resultBuffer.write(cmdQ, size, globalSize - size,
-							FloatBuffer.wrap(buffer), true, new CLEvent[0]);
+							FloatBuffer.wrap(this.buffer, 0, BUFFER_ITEMS),
+							true, new CLEvent[0]);
 				}
 				localSize = this.clInstance.calcWorkGroupSize(globalSize);
-
 				kernel.setArg(0, resultBuffer);
 				kernel.setLocalArg(1, localSize * SIZEOF_CL_FLOAT);
 

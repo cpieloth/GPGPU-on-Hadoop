@@ -35,12 +35,12 @@ public interface ICLBufferedOperation<T> {
 	 * @param bufferItems
 	 *            Minimum buffer size.
 	 */
-	public void resetBuffer(int bufferItems);
+	public int resetBuffer(int bufferItems);
 
 	/**
 	 * Resets the buffer to its maximum.
 	 */
-	public void resetBuffer();
+	public int resetBuffer();
 
 	/**
 	 * Appends a object to the buffer. If the buffer is full, a intermediate

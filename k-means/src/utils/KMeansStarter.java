@@ -50,7 +50,9 @@ public class KMeansStarter {
 		final String oFile = args[Argument.OUTPUT.index];
 		final String type = args[Argument.TYPE.index];
 
+		Logger.logInfo(CLAZZ, "Read input file ...");
 		List<ICPoint<Float>> points = KMeansData.readICPoints(new File(iFile));
+		Logger.logInfo(CLAZZ, "Read center file ...");
 		List<IPoint<Float>> centroids = KMeansData.readIPoints(new File(cFile));
 
 		if (points.isEmpty() || centroids.isEmpty()) {

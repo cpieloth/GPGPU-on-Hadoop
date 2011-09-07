@@ -31,7 +31,7 @@ public class CLPointFloatTest {
 		K = 5;
 		clPoint = new CLPointFloat(clInstance, DIM);
 		pHelper = new Points(DIM);
-		COUNT = clPoint.getMaxBufferItems();
+		COUNT = (int) (clPoint.getMaxBufferItems() / 4);
 				
 		points = pHelper.generate(K, COUNT, 1);
 		centroids = pHelper.extractCentroids(points);

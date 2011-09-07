@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class CLSummarizerFloatTest {
 
-	private static final float DELTA = 0;
+	private static final float DELTA = 0.001f;
 
 	@Test
 	public void testGetSum() {
@@ -53,7 +53,8 @@ public class CLSummarizerFloatTest {
 
 		// buffer overflow test
 		COUNT = 2 * clFloat.getMaxBufferItems() + 13;
-		VALUE = (float) Math.PI;
+		//VALUE = (float) Math.PI;
+		VALUE = (float) 0.001;
 		sum = COUNT * VALUE;
 		for (int i = 0; i < COUNT; i++) {
 			clFloat.put(VALUE);
@@ -73,7 +74,8 @@ public class CLSummarizerFloatTest {
 
 		// less buffer items test
 		COUNT = clFloat.getMaxBufferItems() - 13;
-		VALUE = (float) Math.E;
+		//VALUE = (float) Math.E;
+		VALUE = (float) 0.001;
 		sum = COUNT * VALUE;
 		for (int i = 0; i < COUNT; i++) {
 			clFloat.put(VALUE);
