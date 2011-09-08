@@ -48,7 +48,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		this.ITEM_SIZE = dim * SIZEOF_CL_FLOAT;
 
 		MAX_BUFFER_SIZE = (int) (clInstance.getMaxGlobalMemSize());
-		BUFFER_ITEMS = getMaxBufferItems() / 4;
+		BUFFER_ITEMS = getMaxBufferItems() / 16;
 
 		this.resetBuffer(BUFFER_ITEMS);
 	}
@@ -66,6 +66,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public int resetBuffer(int bufferItems) {
+		Logger.logTrace(CLAZZ, "resetBuffer(" + bufferItems + ")");
 		boolean error;
 		do {
 			error = false;
@@ -76,16 +77,12 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 						: bufferItems;
 				// BUFFER_SIZE = BUFFER_ITEMS * ITEM_SIZE;
 
-				Logger.logDebug(CLAZZ, "resetBuffer.BUFFER_ITEMS = "
-						+ BUFFER_ITEMS + "; " + (BUFFER_ITEMS * ITEM_SIZE)
-						/ 1024 / 1024 + "MB");
-
-				 if (this.itemBuffer == null
-				 || BUFFER_ITEMS > this.itemBuffer.length)
-				this.itemBuffer = new ICPoint[BUFFER_ITEMS];
+				if (this.itemBuffer == null
+						|| BUFFER_ITEMS > this.itemBuffer.length)
+					this.itemBuffer = new ICPoint[BUFFER_ITEMS];
 				if (this.buffer == null
 						|| (BUFFER_ITEMS * DIM) > this.buffer.length)
-				this.buffer = new float[BUFFER_ITEMS * DIM];
+					this.buffer = new float[BUFFER_ITEMS * DIM];
 				this.itemCount = 0;
 				this.bufferCount = 0;
 				this.pointBuffer = this.clInstance.getContext()
@@ -112,6 +109,8 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 				this.itemBuffer = null;
 			}
 		} while (error);
+		Logger.logDebug(CLAZZ, "resetBuffer() - BUFFER_ITEMS = " + BUFFER_ITEMS
+				+ " ~" + (BUFFER_ITEMS * ITEM_SIZE) / 1024 / 1024 + "MB");
 		return BUFFER_ITEMS;
 	}
 
@@ -125,6 +124,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		// TODO if there are to many centroids, they have to be split like
 		// points
 		COMPARE_ITEMS = centroids.size();
+		Logger.logTrace(CLAZZ, "prepareNearestPoints(" + COMPARE_ITEMS + ")");
 		float[] centroidsBuffer = new float[COMPARE_ITEMS * DIM];
 
 		int i = 0;
@@ -173,6 +173,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	}
 
 	private void doNearestPoints(int size) {
+		Logger.logTrace(CLAZZ, "doNearestPoints(" + size + ")");
 		try {
 			CLContext context = this.clInstance.getContext();
 			CLQueue cmdQ = this.clInstance.getQueue();

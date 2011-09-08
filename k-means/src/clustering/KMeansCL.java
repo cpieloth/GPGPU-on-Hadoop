@@ -61,7 +61,7 @@ public class KMeansCL implements IKMeans<Float> {
 	@Override
 	public void assignCentroids(List<ICPoint<Float>> points,
 			List<IPoint<Float>> centroids) {
-		Logger.logTrace(CLAZZ, "computeDistances(" + points.size() + ", "
+		Logger.logTrace(CLAZZ, "assignCentroids(" + points.size() + ", "
 				+ centroids.size() + ")");
 
 		this.clPoint.prepareNearestPoints(centroids);
@@ -99,6 +99,8 @@ public class KMeansCL implements IKMeans<Float> {
 	}
 
 	private IPoint<Float> computeCentroid(List<ICPoint<Float>> points) {
+		Logger.logTrace(CLAZZ,
+				"computeCentroid() - points.size(): " + points.size());
 		int size = points.size();
 		this.clFloat.resetBuffer(size);
 

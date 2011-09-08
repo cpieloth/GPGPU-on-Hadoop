@@ -83,7 +83,7 @@ public class KMeansStarter {
 		StopWatch swCompute = new StopWatch("timeCompute" + type + "=", ";");
 		swCompute.start();
 		
-		kmeans.run(points, centroids);
+		kmeans.run(points, centroids, 1);
 
 		swCompute.stop();
 		sw.stop();

@@ -46,7 +46,7 @@ public class KMeans implements IKMeans<Float> {
 	@Override
 	public void assignCentroids(List<ICPoint<Float>> points,
 			List<IPoint<Float>> centroids) {
-		Logger.logTrace(CLAZZ, "computeDistances(" + points.size() + ", "
+		Logger.logTrace(CLAZZ, "assignCentroids(" + points.size() + ", "
 				+ centroids.size() + ")");
 		float prevDist, dist;
 		IPoint<Float> centroid;

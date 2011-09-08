@@ -40,7 +40,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 					Math.floor(Math.log(MAX_BUFFER_ITEMS) / Math.log(2)));
 		Logger.logDebug(CLAZZ, "MAX_BUFFER_ITEMS = " + MAX_BUFFER_ITEMS + "; "
 				+ (MAX_BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
-		BUFFER_ITEMS = MAX_BUFFER_ITEMS / 4;
+		BUFFER_ITEMS = MAX_BUFFER_ITEMS / 16;
 		this.resetResult();
 		this.resetBuffer(BUFFER_ITEMS);
 	}
@@ -57,15 +57,12 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	@Override
 	public int resetBuffer(int bufferItems) {
+		Logger.logTrace(CLAZZ, "resetBuffer(" + bufferItems + ")");
 		boolean error;
 		do {
 			error = false;
 			try {
 				BUFFER_ITEMS = this.getOptimalItemCount(bufferItems);
-
-				Logger.logDebug(CLAZZ, "resetBuffer.BUFFER_ITEMS = "
-						+ BUFFER_ITEMS + "; "
-						+ (BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
 
 				if (this.buffer == null || BUFFER_ITEMS > this.buffer.length)
 					this.buffer = new float[BUFFER_ITEMS];
@@ -90,6 +87,8 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 				this.buffer = null;
 			}
 		} while (error);
+		Logger.logDebug(CLAZZ, "resetBuffer() - BUFFER_ITEMS = " + BUFFER_ITEMS
+				+ " ~" + (BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
 		return BUFFER_ITEMS;
 	}
 
@@ -126,6 +125,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	}
 
 	private void doSum(int size) {
+		Logger.logTrace(CLAZZ, "doSum(" + size + ")");
 		int globalSize, localSize;
 		globalSize = this.getOptimalItemCount(size);
 		// fill offset with 0
