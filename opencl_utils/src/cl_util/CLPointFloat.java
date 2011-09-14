@@ -38,9 +38,9 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private float[] buffer;
 	private int itemCount;
 	private int bufferCount;
-	private CLBuffer<IntBuffer> resultBuffer;
-	private CLBuffer<FloatBuffer> pointBuffer;
-	private CLBuffer<FloatBuffer> compareBuffer;
+	private CLBuffer<Integer> resultBuffer;
+	private CLBuffer<Float> pointBuffer;
+	private CLBuffer<Float> compareBuffer;
 	private int COMPARE_ITEMS;
 	private List<IPoint<Float>> centroids;
 

@@ -30,7 +30,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	private float[] buffer;
 	private int count;
 	private float sum;
-	private CLBuffer<FloatBuffer> resultBuffer;
+	private CLBuffer<Float> resultBuffer;
 
 	public CLSummarizerFloat(CLInstance clInstance) {
 		this.clInstance = clInstance;

@@ -4,9 +4,7 @@ __kernel void distFloat(__global int* result, const __global float* points,
 {
 	const unsigned int GID = get_global_id(0);
 
-	float point[7];
-	for(int d = 0; d < DIM; ++d)
-		point[d] = points[GID * DIM + d];
+	__global float* point = &points[GID*DIM];
 
 	if (GID >= PSIZE)
 		return;

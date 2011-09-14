@@ -105,14 +105,14 @@ public class KMeansCLSimple implements IKMeans<Float> {
 			tmp = new float[p.getDim()];
 			for (int d = 0; d < p.getDim(); d++)
 				tmp[d] = p.get(d);
-			CLBuffer<FloatBuffer> pBuffer = context.createFloatBuffer(
+			CLBuffer<Float> pBuffer = context.createFloatBuffer(
 					CLMem.Usage.Input, FloatBuffer.wrap(tmp), true);
 			tmp = new float[c.getDim()];
 			for (int d = 0; d < c.getDim(); d++)
 				tmp[d] = c.get(d);
-			CLBuffer<FloatBuffer> cBuffer = context.createFloatBuffer(
+			CLBuffer<Float> cBuffer = context.createFloatBuffer(
 					CLMem.Usage.Input, FloatBuffer.wrap(tmp), true);
-			CLBuffer<FloatBuffer> resBuffer = context.createFloatBuffer(
+			CLBuffer<Float> resBuffer = context.createFloatBuffer(
 					CLMem.Usage.Output, 1);
 
 			cmdQ.finish();
@@ -187,12 +187,12 @@ public class KMeansCLSimple implements IKMeans<Float> {
 			float p1Dim[] = new float[points.size()];
 
 			// Prepate Data
-			CLBuffer<FloatBuffer> resBuffer = context.createFloatBuffer(
+			CLBuffer<Float> resBuffer = context.createFloatBuffer(
 					CLMem.Usage.Output, 1);
 			FloatBuffer res = ByteBuffer.allocateDirect(1 * SIZEOF_CL_FLOAT)
 					.order(context.getByteOrder()).asFloatBuffer();
 
-			CLBuffer<FloatBuffer> pBuffer;
+			CLBuffer<Float> pBuffer;
 
 			for (int d = 0; d < this.dim; d++) {
 				for (int i = 0; i < points.size(); i++)
