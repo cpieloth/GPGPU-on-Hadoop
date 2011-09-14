@@ -5,6 +5,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 
+import kernel.PointFloatKernel;
+
 import lightLogger.Logger;
 import clustering.ICPoint;
 import clustering.IPoint;
@@ -26,9 +28,9 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private static final int SIZEOF_CL_FLOAT = 4;
 	private static final int SIZEOF_CL_INT = 4;
 
-	private static final String PREFIX = CLAZZ.getSimpleName();
-	private static final String KERNEL_DIST = "distFloat";
-	private static final String KERNEL_PATH = "/kernel/CLPointFloat.cl";
+//	private static final String PREFIX = CLAZZ.getSimpleName();
+//	private static final String KERNEL_DIST = "distFloat";
+//	private static final String KERNEL_PATH = "/kernel/CLPointFloat.cl";
 
 	private final int DIM;
 	private final int ITEM_SIZE;
@@ -179,13 +181,16 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		Logger.logTrace(CLAZZ, "doNearestPoints(" + size + ")");
 		try {
 			CLContext context = this.clInstance.getContext();
+			PointFloatKernel kernel = new PointFloatKernel(context, DIM);
+			// TODO cmdQ
 			CLQueue cmdQ = this.clInstance.getQueue();
-			CLKernel kernel = this.clInstance.getKernel(PREFIX, KERNEL_DIST);
-			if (kernel == null)
-				kernel = this.clInstance.loadKernel(KERNEL_PATH, KERNEL_DIST,
-						PREFIX);
+//			CLKernel kernel = this.clInstance.getKernel(PREFIX, KERNEL_DIST);
+//			if (kernel == null)
+//				kernel = this.clInstance.loadKernel(KERNEL_PATH, KERNEL_DIST,
+//						PREFIX);
 
 			// copy buffer to device
+			// TODO cmdQ
 			this.pointBuffer.write(cmdQ, 0, bufferCount,
 					FloatBuffer.wrap(this.buffer, 0, bufferCount), true,
 					new CLEvent[0]);
@@ -194,25 +199,27 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 			int globalSize = size;
 
 			// TODO DIM in kernel dynamisch setzen!!!
-			kernel.setArg(0, this.resultBuffer);
-			kernel.setArg(1, this.pointBuffer);
-			kernel.setArg(2, size);
-			kernel.setArg(3, this.compareBuffer);
-			kernel.setArg(4, COMPARE_ITEMS);
-			kernel.setArg(5, DIM);
+//			kernel.setArg(0, this.resultBuffer);
+//			kernel.setArg(1, this.pointBuffer);
+//			kernel.setArg(2, size);
+//			kernel.setArg(3, this.compareBuffer);
+//			kernel.setArg(4, COMPARE_ITEMS);
+//			kernel.setArg(5, DIM);
+//
+//			kernel.enqueueNDRange(cmdQ, new int[] { globalSize },
+//					new CLEvent[0]);
+//			cmdQ.finish();
+//
+//			IntBuffer res = ByteBuffer
+//					.allocateDirect(itemCount * SIZEOF_CL_INT)
+//					.order(context.getByteOrder()).asIntBuffer();
+			
+			IntBuffer res = kernel.run(resultBuffer, pointBuffer, size, compareBuffer, COMPARE_ITEMS);
 
-			kernel.enqueueNDRange(cmdQ, new int[] { globalSize },
-					new CLEvent[0]);
-			cmdQ.finish();
+			//resultBuffer.read(cmdQ, 0, itemCount, res, true, new CLEvent[0]);
 
-			IntBuffer res = ByteBuffer
-					.allocateDirect(itemCount * SIZEOF_CL_INT)
-					.order(context.getByteOrder()).asIntBuffer();
-
-			resultBuffer.read(cmdQ, 0, itemCount, res, true, new CLEvent[0]);
-
-			cmdQ.finish();
-			res.rewind();
+			//cmdQ.finish();
+			//res.rewind();
 
 			for (int i = 0; i < itemCount; i++) {
 				itemBuffer[i].setCentroid(this.centroids.get(res.get()));

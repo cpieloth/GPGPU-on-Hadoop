@@ -1,13 +1,15 @@
-__kernel void distFloat(__global int* result, const __global float* points,
+__kernel void nearestIndex(__global int* result, const __global float* points,
 		const int PSIZE, const __global float* centroids, const int CSIZE,
 		const int DIM)
 {
 	const unsigned int GID = get_global_id(0);
 
-	__global float* point = &points[GID*DIM];
-
 	if (GID >= PSIZE)
 		return;
+
+	float point[DEF_DIM];
+	for(int d = 0; d < DIM; ++d)
+		point[d] = points[GID * DIM + d];
 
 	float prevDist = 3.4e38;
 	float dist;
@@ -34,15 +36,18 @@ __kernel void distFloat(__global int* result, const __global float* points,
 	result[GID] = iCentroid;
 }
 
-__kernel void distFloatOld(__global float* result,
+__kernel void nearestPoint(__global float* result,
 		const __global float* points, const int PSIZE,
 		const __global float* centroids, const int CSIZE, const int DIM)
 {
 	const unsigned int GID = get_global_id(0);
-	__global float* point = &points[GID * DIM];
 
 	if (GID >= PSIZE)
 		return;
+
+	float point[DEF_DIM];
+	for(int d = 0; d < DIM; ++d)
+		point[d] = points[GID * DIM + d];
 
 	float prevDist = 3.4e38;
 	float dist;
