@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import stopwatch.StopWatch;
+import utils.Points;
 import clustering.IPoint;
 
 public class KMMapperReducer {
@@ -65,8 +66,8 @@ public class KMMapperReducer {
 						Logger.logDebug(CLAZZ, "centroids: " + fst.getPath());
 						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
-							this.centroids.add(PointInputFormat
-									.createPointWritable(sc.next()));
+							this.centroids.add(new PointWritable(Points
+									.createPoint(sc.next())));
 						sc.close();
 					}
 				}

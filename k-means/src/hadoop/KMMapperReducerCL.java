@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import stopwatch.StopWatch;
+import utils.Points;
 import cl_util.CLInstance;
 import cl_util.CLPointFloat;
 import cl_util.CLSummarizerFloat;
@@ -73,8 +74,8 @@ public class KMMapperReducerCL {
 						Logger.logDebug(CLAZZ, "centroids: " + fst.getPath());
 						sc = new Scanner(fs.open(fst.getPath()));
 						while (sc.hasNext())
-							this.centroids.add(PointInputFormat
-									.createPointWritable(sc.next()));
+							this.centroids.add(new PointWritable(Points
+									.createPoint(sc.next())));
 						sc.close();
 					}
 				}

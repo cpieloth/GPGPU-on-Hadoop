@@ -1,8 +1,5 @@
 package utils;
 
-import hadoop.PointInputFormat;
-import hadoop.PointOutputFormat;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -156,11 +153,10 @@ public class KMeansData {
 			IOException {
 		for (ICPoint<Float> p : points) {
 			if (p.getCentroid() != null && separator != null) {
-				os.write(PointOutputFormat.createString(p.getCentroid())
-						.getBytes(CHARSET));
+				os.write(Points.createString(p.getCentroid()).getBytes(CHARSET));
 				os.write(separator.getBytes(CHARSET));
 			}
-			os.write(PointOutputFormat.createString(p).getBytes(CHARSET));
+			os.write(Points.createString(p).getBytes(CHARSET));
 			os.write("\n".getBytes(CHARSET));
 		}
 	}
@@ -183,7 +179,7 @@ public class KMeansData {
 				line = sc.nextLine();
 				splits = line.split(separator);
 
-				point = PointInputFormat.createPointWritable(splits[0]);
+				point = Points.createPoint(splits[0]);
 				points.add(point);
 			}
 		} catch (Exception e) {
@@ -215,13 +211,11 @@ public class KMeansData {
 				line = sc.nextLine();
 				splits = line.split(separator);
 				if (splits.length == 1) {
-					point = new CPoint(
-							PointInputFormat.createPointWritable(splits[0]));
+					point = new CPoint(Points.createPoint(splits[0]));
 					centroid = new Point(point.getDim());
 				} else if (splits.length == 2) {
-					point = new CPoint(
-							PointInputFormat.createPointWritable(splits[1]));
-					centroid = PointInputFormat.createPointWritable(splits[0]);
+					point = new CPoint(Points.createPoint(splits[1]));
+					centroid = Points.createPoint(splits[0]);
 				}
 
 				point.setCentroid(centroid);

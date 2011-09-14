@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import lightLogger.Logger;
+import stopwatch.StopWatch;
 
 /**
  * Untested sequential and undistributed K-Means implementation.
@@ -48,6 +49,9 @@ public class KMeans implements IKMeans<Float> {
 			List<IPoint<Float>> centroids) {
 		Logger.logTrace(CLAZZ, "assignCentroids(" + points.size() + ", "
 				+ centroids.size() + ")");
+		StopWatch sw = new StopWatch("timeAssignCentroids=", ";");
+		sw.start();
+		
 		float prevDist, dist;
 		IPoint<Float> centroid;
 
@@ -62,9 +66,12 @@ public class KMeans implements IKMeans<Float> {
 					centroid = c;
 				}
 			}
-
 			p.setCentroid(centroid);
+			// äquivalent zu CLPointFloat, siehe KMeansCL: p.setCentroid(Points.copyPoint(centroid));
 		}
+		
+		sw.stop();
+		Logger.logDebug(CLAZZ, sw.getTimeString());
 	}
 
 	private float computeDistance(final IPoint<Float> p, final IPoint<Float> c) {
@@ -77,6 +84,9 @@ public class KMeans implements IKMeans<Float> {
 	@Override
 	public List<IPoint<Float>> computeCentroids(List<ICPoint<Float>> points) {
 		Logger.logTrace(CLAZZ, "computeCentroids(" + points.size() + ")");
+		
+		StopWatch sw = new StopWatch("timeComputeCentroids=", ";");
+		sw.start();
 
 		// Collect points per centroid
 		HashMap<IPoint<Float>, List<ICPoint<Float>>> clusters = new HashMap<IPoint<Float>, List<ICPoint<Float>>>();
@@ -95,6 +105,9 @@ public class KMeans implements IKMeans<Float> {
 			newCentroids.add(newCentroid);
 		}
 
+		sw.stop();
+		Logger.logDebug(CLAZZ, sw.getTimeString());
+		
 		return newCentroids;
 	}
 

@@ -2,9 +2,12 @@ package clustering;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+
+import stopwatch.StopWatch;
 
 import lightLogger.Logger;
 import cl_util.CLInstance;
@@ -26,7 +29,7 @@ public class KMeansCL implements IKMeans<Float> {
 
 	private static final Class<KMeansCL> CLAZZ = KMeansCL.class;
 
-	private ICLSummarizer<Float> clFloat;
+	// private ICLSummarizer<Float> clFloat;
 	private ICLPointOperation<Float> clPoint;
 
 	private int k, dim;
@@ -39,7 +42,7 @@ public class KMeansCL implements IKMeans<Float> {
 		this.k = k;
 
 		CLInstance clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
-		this.clFloat = new CLSummarizerFloat(clInstance);
+		// this.clFloat = new CLSummarizerFloat(clInstance);
 		this.clPoint = new CLPointFloat(clInstance, dim);
 
 		List<IPoint<Float>> centroids = null;
@@ -64,6 +67,9 @@ public class KMeansCL implements IKMeans<Float> {
 		Logger.logTrace(CLAZZ, "assignCentroids(" + points.size() + ", "
 				+ centroids.size() + ")");
 
+		StopWatch sw = new StopWatch("timeAssignCentroids=", ";");
+		sw.start();
+
 		this.clPoint.prepareNearestPoints(centroids);
 		this.clPoint.resetBuffer(points.size());
 
@@ -72,11 +78,25 @@ public class KMeansCL implements IKMeans<Float> {
 		}
 
 		this.clPoint.setNearestPoints();
+
+		sw.stop();
+		Logger.logDebug(CLAZZ, sw.getTimeString());
 	}
 
+	// TODO ist langsamer als Methode aus KMeans.java
+	// In assignCentroids wird für jeden Punkt ein neuer Centroid erstellt.
+	// Dadurch wird in HashMap.clusters für jedes containsKey() ein equals
+	// aufgrufen,
+	// welches in KMeans nicht aufgerufen wird, weil inhaltlich gleiche Objekte
+	// auch die gleichen Adressen haben.
+	// Aufgrund der "new Point()" in CLPointFloat, hat jeder Centroid der Punkte
+	// andere Adressen.
 	@Override
 	public List<IPoint<Float>> computeCentroids(List<ICPoint<Float>> points) {
 		Logger.logTrace(CLAZZ, "computeCentroids(" + points.size() + ")");
+
+		StopWatch sw = new StopWatch("timeComputeCentroids=", ";");
+		sw.start();
 
 		// Collect points per centroid
 		HashMap<IPoint<Float>, List<ICPoint<Float>>> clusters = new HashMap<IPoint<Float>, List<ICPoint<Float>>>();
@@ -95,28 +115,56 @@ public class KMeansCL implements IKMeans<Float> {
 			newCentroids.add(newCentroid);
 		}
 
+		sw.stop();
+		Logger.logDebug(CLAZZ, sw.getTimeString());
+
 		return newCentroids;
 	}
 
-	private IPoint<Float> computeCentroid(List<ICPoint<Float>> points) {
+	private IPoint<Float> computeCentroid(final List<ICPoint<Float>> points) {
 		Logger.logTrace(CLAZZ,
 				"computeCentroid() - points.size(): " + points.size());
-		int size = points.size();
-		this.clFloat.resetBuffer(size);
+		Point c = new Point(this.dim);
 
-		float sum;
-		IPoint<Float> centroid = new Point(this.dim);
+		Iterator<ICPoint<Float>> it = points.iterator();
+		IPoint<Float> p = it.next();
 
-		for (int d = 0; d < this.dim; d++) {
-			this.clFloat.resetResult();
-			for (ICPoint<Float> p : points)
-				this.clFloat.put(p.get(d));
+		for (int d = 0; d < this.dim; d++)
+			c.set(d, p.get(d));
 
-			sum = this.clFloat.getSum();
-			centroid.set(d, sum / (float) size);
+		while (it.hasNext()) {
+			p = it.next();
+			for (int d = 0; d < this.dim; d++)
+				c.set(d, c.get(d) + p.get(d));
 		}
-		return centroid;
+
+		int n = points.size();
+		for (int d = 0; d < this.dim; d++)
+			c.set(d, c.get(d) / n);
+
+		return c;
 	}
+
+	// Copy time > computation time, look at profiler
+	// private IPoint<Float> computeCentroid(List<ICPoint<Float>> points) {
+	// Logger.logTrace(CLAZZ,
+	// "computeCentroid() - points.size(): " + points.size());
+	// int size = points.size();
+	// this.clFloat.resetBuffer(size);
+	//
+	// float sum;
+	// IPoint<Float> centroid = new Point(this.dim);
+	//
+	// for (int d = 0; d < this.dim; d++) {
+	// this.clFloat.resetResult();
+	// for (ICPoint<Float> p : points)
+	// this.clFloat.put(p.get(d));
+	//
+	// sum = this.clFloat.getSum();
+	// centroid.set(d, sum / (float) size);
+	// }
+	// return centroid;
+	// }
 
 	@Override
 	public int getK() {

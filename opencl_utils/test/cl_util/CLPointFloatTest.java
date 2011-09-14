@@ -15,7 +15,7 @@ import clustering.IPoint;
 
 public class CLPointFloatTest {
 	
-	// private static final Float DELTA = 0f;
+	// private static final float DELTA = 0.001f;
 
 	@Test
 	public void testSetNearestPoints() {
@@ -67,7 +67,7 @@ public class CLPointFloatTest {
 		this.checkCentroids(points, pointsExpected);
 	}
 	
-	private void checkCentroids(List<ICPoint<Float>> points, List<ICPoint<Float>> pointsExpected) {
+	private void checkCentroids(final List<ICPoint<Float>> points, final List<ICPoint<Float>> pointsExpected) {
 		int size = points.size();
 		if(size != pointsExpected.size())
 			fail("Size of points are not equal.");
@@ -77,7 +77,7 @@ public class CLPointFloatTest {
 			// assertArrayEquals(points.get(i).getCentroid().getDims(), pointsExpected.get(i).getCentroid().getDims(), DELTA);
 	}
 	
-	private void computeNearestPoints(List<ICPoint<Float>> points, List<IPoint<Float>> centroids) {
+	private void computeNearestPoints(final List<ICPoint<Float>> points, final List<IPoint<Float>> centroids) {
 		double prevDist, dist;
 		IPoint<Float> centroid;
 

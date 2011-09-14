@@ -70,6 +70,22 @@ public class Points {
 		for (IPoint<Float> p : points)
 			System.out.println(p.toString());
 	}
+	
+	public static String createString(IPoint<Float> value) {
+		StringBuilder sb = new StringBuilder();
+		for (int d = 0; d < value.getDim(); d++)
+			sb.append(value.get(d) + ";");
+		sb.deleteCharAt(sb.length() - 1);
+		return sb.toString();
+	}
+	
+	public static IPoint<Float> createPoint(String line) {
+		String[] splits = line.split(";");
+		Point value = new Point(splits.length);
+		for (int d = 0; d < splits.length; d++)
+			value.set(d, Float.parseFloat(splits[d]));
+		return value;
+	}
 
 	public List<IPoint<Float>> extractCentroids(List<ICPoint<Float>> points) {
 		HashSet<IPoint<Float>> centroids = new HashSet<IPoint<Float>>();
@@ -90,6 +106,13 @@ public class Points {
 			newPoints.add(newPoint);
 		}
 		return newPoints;
+	}
+	
+	public static IPoint<Float> copyPoint(IPoint<Float> point) {
+		IPoint<Float> p = new Point(point.getDim());
+		for(int i = 0; i < point.getDim(); ++i)
+			p.set(i, point.get(i));
+		return p;
 	}
 
 }

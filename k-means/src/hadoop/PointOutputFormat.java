@@ -15,7 +15,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
 
-import clustering.IPoint;
+import utils.Points;
 
 /**
  * Writes PointWritable in a human readable format to a file.
@@ -26,13 +26,13 @@ import clustering.IPoint;
 public class PointOutputFormat extends
 		FileOutputFormat<PointWritable, PointWritable> {
 
-	public static String createString(IPoint<Float> value) {
-		StringBuilder sb = new StringBuilder();
-		for (int d = 0; d < value.getDim(); d++)
-			sb.append(value.get(d) + ";");
-		sb.deleteCharAt(sb.length() - 1);
-		return sb.toString();
-	}
+//	public static String createString(IPoint<Float> value) {
+//		StringBuilder sb = new StringBuilder();
+//		for (int d = 0; d < value.getDim(); d++)
+//			sb.append(value.get(d) + ";");
+//		sb.deleteCharAt(sb.length() - 1);
+//		return sb.toString();
+//	}
 
 	public RecordWriter<PointWritable, PointWritable> getRecordWriter(
 			TaskAttemptContext job) throws IOException, InterruptedException {
@@ -96,13 +96,13 @@ public class PointOutputFormat extends
 
 			String s;
 			if (key != null) {
-				s = createString(key);
+				s = Points.createString(key);
 				out.write(s.getBytes(utf8));
 			}
 			if (key != null && value != null)
 				out.write(keyValueSeparator);
 			if (value != null) {
-				s = createString(value);
+				s = Points.createString(key);
 				out.write(s.getBytes(utf8));
 			}
 			out.write(newline);

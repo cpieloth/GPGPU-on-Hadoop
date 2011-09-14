@@ -19,6 +19,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
+import utils.Points;
+
 /**
  * Reads and deserializes the output of PointOutputFormat.
  * 
@@ -33,14 +35,6 @@ public class PointInputFormat extends
 			InputSplit arg0, TaskAttemptContext arg1) throws IOException,
 			InterruptedException {
 		return new PointRecordReader();
-	}
-	
-	public static PointWritable createPointWritable(String line) {
-		String[] splits = line.split(";");
-		PointWritable value = new PointWritable(splits.length);
-		for (int d = 0; d < splits.length; d++)
-			value.set(d, Float.valueOf(splits[d]).floatValue());
-		return value;
 	}
 
 	protected static class PointRecordReader extends
@@ -130,7 +124,7 @@ public class PointInputFormat extends
 
 		@Override
 		public PointWritable getCurrentValue() {
-			this.value = PointInputFormat.createPointWritable(this.line.toString());
+			this.value = new PointWritable(Points.createPoint(this.line.toString()));
 			return this.value;
 		}
 

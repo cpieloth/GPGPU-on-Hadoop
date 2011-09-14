@@ -2,12 +2,12 @@ package cl_util;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.List;
 
 import lightLogger.Logger;
 import clustering.ICPoint;
 import clustering.IPoint;
-import clustering.Point;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLContext;
@@ -24,6 +24,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private int MAX_BUFFER_SIZE;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
+	private static final int SIZEOF_CL_INT = 4;
 
 	private static final String PREFIX = CLAZZ.getSimpleName();
 	private static final String KERNEL_DIST = "distFloat";
@@ -37,10 +38,11 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private float[] buffer;
 	private int itemCount;
 	private int bufferCount;
-	private CLBuffer<FloatBuffer> resultBuffer;
+	private CLBuffer<IntBuffer> resultBuffer;
 	private CLBuffer<FloatBuffer> pointBuffer;
 	private CLBuffer<FloatBuffer> compareBuffer;
 	private int COMPARE_ITEMS;
+	private List<IPoint<Float>> centroids;
 
 	public CLPointFloat(CLInstance clInstance, int dim) {
 		this.clInstance = clInstance;
@@ -89,8 +91,8 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 						.createFloatBuffer(CLMem.Usage.Input,
 								BUFFER_ITEMS * DIM);
 				this.resultBuffer = this.clInstance.getContext()
-						.createFloatBuffer(CLMem.Usage.InputOutput,
-								BUFFER_ITEMS * DIM);
+				.createIntBuffer(CLMem.Usage.Output,
+						BUFFER_ITEMS);
 			} catch (CLException.InvalidBufferSize e) {
 				Logger.logError(CLAZZ,
 						"Could not create CLBuffer! Resize buffer item.");
@@ -126,6 +128,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		COMPARE_ITEMS = centroids.size();
 		Logger.logTrace(CLAZZ, "prepareNearestPoints(" + COMPARE_ITEMS + ")");
 		float[] centroidsBuffer = new float[COMPARE_ITEMS * DIM];
+		this.centroids = centroids;
 
 		int i = 0;
 		for (IPoint<Float> c : centroids) {
@@ -190,6 +193,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 			// int globalSize = bufferCount;
 			int globalSize = size;
 
+			// TODO DIM in kernel dynamisch setzen!!!
 			kernel.setArg(0, this.resultBuffer);
 			kernel.setArg(1, this.pointBuffer);
 			kernel.setArg(2, size);
@@ -201,22 +205,17 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 					new CLEvent[0]);
 			cmdQ.finish();
 
-			FloatBuffer res = ByteBuffer
-					.allocateDirect(bufferCount * SIZEOF_CL_FLOAT)
-					.order(context.getByteOrder()).asFloatBuffer();
+			IntBuffer res = ByteBuffer
+					.allocateDirect(itemCount * SIZEOF_CL_INT)
+					.order(context.getByteOrder()).asIntBuffer();
 
-			resultBuffer.read(cmdQ, 0, bufferCount, res, true, new CLEvent[0]);
+			resultBuffer.read(cmdQ, 0, itemCount, res, true, new CLEvent[0]);
 
 			cmdQ.finish();
 			res.rewind();
 
-			IPoint<Float> centroid;
-			for (int i = 0; i < size; i++) {
-				centroid = new Point(DIM);
-				for (int d = 0; d < DIM; d++) {
-					centroid.set(d, res.get());
-				}
-				itemBuffer[i].setCentroid(centroid);
+			for (int i = 0; i < itemCount; i++) {
+				itemBuffer[i].setCentroid(this.centroids.get(res.get()));
 			}
 		} catch (CLException err) {
 			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
