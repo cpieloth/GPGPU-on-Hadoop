@@ -1,4 +1,4 @@
-package kernel;
+package cl_kernel;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -8,19 +8,19 @@ import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLQueue;
 
-public class PointFloatKernel extends AbstractKernel {
+public class PointFloatNearestIndex extends AbstractKernel {
 
-	private static final String KERNEL_DIST = "nearestIndex";
-	private static final String KERNEL_PATH = "/kernel/CLPointFloat.cl";
+	public static final String KERNEL_NAME = "nearestIndex";
+	private static final String KERNEL_PATH = "/cl_kernel/CLPointFloat.cl";
 
 	private static final int SIZEOF_CL_INT = 4;
 	
 	private final int dim;
 
-	public PointFloatKernel(CLContext context, int dim) {
-		super(context,KERNEL_DIST, KERNEL_PATH);
+	public PointFloatNearestIndex(CLContext context, int dim) {
+		super(context,KERNEL_NAME, KERNEL_PATH);
 		this.defines.put("DEF_DIM", new Integer(dim));
-		this.defines.put("TYPE_T", "float");
+		// this.defines.put("TYPE_T", "float");
 		this.dim = dim;
 	}
 

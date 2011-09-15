@@ -1,4 +1,4 @@
-package kernel;
+package cl_kernel;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -24,6 +24,7 @@ public abstract class AbstractKernel implements ICLKernel {
 
 	protected List<String> buildOptions = new LinkedList<String>();
 	protected List<String> includes = new LinkedList<String>();
+	protected List<String> extendedSource = new LinkedList<String>();
 
 	protected Map<String, Object> defines = new HashMap<String, Object>();
 
@@ -64,6 +65,8 @@ public abstract class AbstractKernel implements ICLKernel {
 				program.addBuildOption(bo);
 			for (String i : includes)
 				program.addInclude(i);
+			for (String s : extendedSource)
+				program.addSource(s);
 			program.defineMacros(defines);
 
 			try {
@@ -125,6 +128,11 @@ public abstract class AbstractKernel implements ICLKernel {
 	@Override
 	public List<String> getIncludes() {
 		return this.includes;
+	}
+	
+	@Override
+	public List<String> getExtendedSource() {
+		return this.extendedSource;
 	}
 
 }

@@ -1,4 +1,4 @@
-package kernel;
+package cl_kernel;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,8 @@ public interface ICLKernel {
 	public Map<String, Object> getDefines();
 
 	public List<String> getIncludes();
+	
+	public List<String> getExtendedSource();
 
 	/* public Buffer run(Object... args ); */
 }

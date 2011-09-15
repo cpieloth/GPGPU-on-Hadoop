@@ -6,10 +6,12 @@ import java.util.Arrays;
 
 import lightLogger.Logger;
 
+import cl_kernel.FloatGroupSum;
+
 import com.nativelibs4java.opencl.CLBuffer;
+import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLException;
-import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLQueue;
 
@@ -23,10 +25,6 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
 
-	private static final String PREFIX = CLAZZ.getSimpleName();
-	private static final String KERNEL_SUM = "sumFloat";
-	private static final String KERNEL_PATH = "/kernel/CLFloat.cl";
-
 	private float[] buffer;
 	private int count;
 	private float sum;
@@ -34,7 +32,8 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	public CLSummarizerFloat(CLInstance clInstance) {
 		this.clInstance = clInstance;
-		MAX_BUFFER_ITEMS = (int) ((clInstance.getMaxGlobalMemSize() / SIZEOF_CL_FLOAT));
+		MAX_BUFFER_ITEMS = (int) ((clInstance.getMaxMemAllocSize()
+				/ SIZEOF_CL_FLOAT));
 		if ((MAX_BUFFER_ITEMS & (MAX_BUFFER_ITEMS - 1)) != 0)
 			MAX_BUFFER_ITEMS = (int) Math.pow(2,
 					Math.floor(Math.log(MAX_BUFFER_ITEMS) / Math.log(2)));
@@ -134,11 +133,14 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		size = globalSize;
 
 		// get kernel and queue
+		CLContext context = this.clInstance.getContext();
 		CLQueue cmdQ = this.clInstance.getQueue();
-		CLKernel kernel = this.clInstance.getKernel(PREFIX, KERNEL_SUM);
+
+		FloatGroupSum kernel = (FloatGroupSum) this.clInstance.getKernel("",
+				FloatGroupSum.KERNEL_NAME);
 		if (kernel == null) {
-			kernel = this.clInstance
-					.loadKernel(KERNEL_PATH, KERNEL_SUM, PREFIX);
+			kernel = new FloatGroupSum(context);
+			this.clInstance.addKernel("", FloatGroupSum.KERNEL_NAME, kernel);
 		}
 
 		try {
@@ -159,12 +161,8 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 							true, new CLEvent[0]);
 				}
 				localSize = this.clInstance.calcWorkGroupSize(globalSize);
-				kernel.setArg(0, resultBuffer);
-				kernel.setLocalArg(1, localSize * SIZEOF_CL_FLOAT);
 
-				// Run kernel
-				kernel.enqueueNDRange(cmdQ, new int[] { globalSize },
-						new int[] { localSize }, new CLEvent[0]);
+				kernel.run(resultBuffer, globalSize, localSize, 0);
 
 				size = globalSize / localSize;
 			} while (globalSize > localSize && localSize > 1);

@@ -4,17 +4,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Scanner;
 
 import lightLogger.Logger;
+
+import cl_kernel.ICLKernel;
 
 import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLDevice;
 import com.nativelibs4java.opencl.CLDevice.QueueProperties;
 import com.nativelibs4java.opencl.CLException;
-import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLPlatform;
-import com.nativelibs4java.opencl.CLProgram;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 
@@ -28,7 +27,7 @@ public class CLInstance {
 
 	public static final int WAVE_SIZE = 64;
 
-	private HashMap<String, CLKernel> kernels = new HashMap<String, CLKernel>();
+	private HashMap<String, ICLKernel> kernels = new HashMap<String, ICLKernel>();
 
 	public static enum TYPES {
 		CL_CPU, CL_GPU
@@ -82,11 +81,11 @@ public class CLInstance {
 		}
 	}
 	
-	public long getMaxGlobalMemSize() {
+	public long getMaxMemAllocSize() {
 		long size = Long.MAX_VALUE;
 		long tmp;
 		for(CLDevice dev : this.context.getDevices()) {
-			tmp = dev.getGlobalMemSize();
+			tmp = dev.getMaxMemAllocSize();
 			if(tmp < size)
 				size = tmp;
 		}
@@ -101,57 +100,62 @@ public class CLInstance {
 		return this.cmdQ;
 	}
 
-	public CLKernel loadKernel(String file, String kernelName, String prefix,
-			String extendSource) {
-		StringBuffer sb = new StringBuffer();
-		try {
-			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(file));
-			while (sc.hasNext())
-				sb.append(sc.nextLine());
-			sc.close();
-		} catch (Exception e) {
-			Logger.logError(CLAZZ, "Could not read file: " + file);
-			e.printStackTrace();
-			return null;
-		}
+//	
+//	public CLKernel loadKernel(String file, String kernelName, String prefix,
+//			String extendSource) {
+//		StringBuffer sb = new StringBuffer();
+//		try {
+//			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(file));
+//			while (sc.hasNext())
+//				sb.append(sc.nextLine());
+//			sc.close();
+//		} catch (Exception e) {
+//			Logger.logError(CLAZZ, "Could not read file: " + file);
+//			e.printStackTrace();
+//			return null;
+//		}
+//
+//		try {
+//			CLProgram program = context.createProgram(sb.toString());
+//			if (!"".equals(extendSource) && extendSource != null)
+//				program.addSource(extendSource);
+//
+//			try {
+//				program.build();
+//			} catch (Exception err) {
+//				Logger.logError(CLAZZ,
+//						"Build log for \"" + context.getDevices()[0] + "\n"
+//								+ err.getMessage());
+//				err.printStackTrace();
+//				return null;
+//			}
+//
+//			CLKernel kernel = program.createKernel(kernelName);
+//			this.kernels.put(prefix + kernelName, kernel);
+//
+//			return kernel;
+//		} catch (CLException err) {
+//			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
+//					+ err.getCode());
+//			err.printStackTrace();
+//			return null;
+//		} catch (Exception err) {
+//			Logger.logError(CLAZZ, "Error:\n" + err.getMessage() + "()");
+//			err.printStackTrace();
+//			return null;
+//		}
+//	}
+//
+//	public CLKernel loadKernel(String file, String kernelName, String prefix) {
+//		return this.loadKernel(file, kernelName, prefix, "");
+//	}
 
-		try {
-			CLProgram program = context.createProgram(sb.toString());
-			if (!"".equals(extendSource) && extendSource != null)
-				program.addSource(extendSource);
-
-			try {
-				program.build();
-			} catch (Exception err) {
-				Logger.logError(CLAZZ,
-						"Build log for \"" + context.getDevices()[0] + "\n"
-								+ err.getMessage());
-				err.printStackTrace();
-				return null;
-			}
-
-			CLKernel kernel = program.createKernel(kernelName);
-			this.kernels.put(prefix + kernelName, kernel);
-
-			return kernel;
-		} catch (CLException err) {
-			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
-					+ err.getCode());
-			err.printStackTrace();
-			return null;
-		} catch (Exception err) {
-			Logger.logError(CLAZZ, "Error:\n" + err.getMessage() + "()");
-			err.printStackTrace();
-			return null;
-		}
-	}
-
-	public CLKernel loadKernel(String file, String kernelName, String prefix) {
-		return this.loadKernel(file, kernelName, prefix, "");
-	}
-
-	public CLKernel getKernel(String prefix, String kernelName) {
+	public ICLKernel getKernel(String prefix, String kernelName) {
 		return this.kernels.get(prefix + kernelName);
+	}
+	
+	public void addKernel(String prefix, String kernelName, ICLKernel kernel) {
+		this.kernels.put(prefix + kernelName, kernel);
 	}
 
 	public int calcWorkGroupSize(int globalSize) {

@@ -1,4 +1,4 @@
-package kernel;
+package cl_kernel;
 
 import static org.junit.Assert.fail;
 
@@ -10,30 +10,28 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import cl_kernel.PointFloatNearestIndex;
+import cl_util.CLInstance;
+import cl_util.CLInstance.TYPES;
+
 import com.nativelibs4java.opencl.CLBuffer;
-import com.nativelibs4java.opencl.CLContext;
-import com.nativelibs4java.opencl.CLDevice;
 import com.nativelibs4java.opencl.CLMem.Usage;
-import com.nativelibs4java.opencl.CLPlatform;
-import com.nativelibs4java.opencl.JavaCL;
 
-public class PointFloatKernelTest {
+public class PointFloatNearestIndexTest {
 
-	private PointFloatKernel kernel;
+	private PointFloatNearestIndex kernel;
+	private CLInstance clInstance;
 	private final int DIM = 42, CENTROIDS = 33;
 
 	@Before
 	public void setUp() throws Exception {
-		CLPlatform[] platforms = JavaCL.listGPUPoweredPlatforms();
-		CLContext context = JavaCL.createContext(null,
-				platforms[0].listGPUDevices(true)[0]);
-		kernel = new PointFloatKernel(context, DIM);
+		clInstance = new CLInstance(TYPES.CL_GPU);
+		kernel = new PointFloatNearestIndex(clInstance.getContext(), DIM);
 	}
 
 	@Test
 	public void testRun() {
-		CLDevice device = kernel.getContext().getDevices()[0];
-		final int count = (int) (device.getMaxMemAllocSize() / 4 / DIM / 4);
+		final int count = (int) (clInstance.getMaxMemAllocSize() / 4 / DIM / 4);
 
 		float[] points = generateRandomArray(count * DIM);
 		float[] centroids = generateRandomArray(CENTROIDS * DIM);
@@ -52,8 +50,7 @@ public class PointFloatKernelTest {
 				Usage.Input, FloatBuffer.wrap(centroids), true);
 		IntBuffer res = kernel.run(resultBuffer, pointBuffer, count,
 				centroidBuffer, CENTROIDS);
-		for (int i = 0; i < result.length; ++i)
-			result[i] = res.get();
+		res.get(result);
 		timeOcl = System.currentTimeMillis() - timeOcl;
 
 		System.out.println("Time (CPU): " + timeCpu);

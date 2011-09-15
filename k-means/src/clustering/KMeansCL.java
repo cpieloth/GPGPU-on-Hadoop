@@ -7,14 +7,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import stopwatch.StopWatch;
-
 import lightLogger.Logger;
+import stopwatch.StopWatch;
 import cl_util.CLInstance;
 import cl_util.CLPointFloat;
-import cl_util.CLSummarizerFloat;
 import cl_util.ICLPointOperation;
-import cl_util.ICLSummarizer;
 
 /**
  * Untested sequential and undistributed K-Means implementation. TODO use

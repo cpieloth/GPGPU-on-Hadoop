@@ -1,4 +1,4 @@
-__kernel void sumFloat(__global float* values, __local float* localValues)
+__kernel void floatGroupSum(__global float* values, __local float* localValues)
 {
   const unsigned int LSIZE = get_local_size(0);
   const unsigned int LID = get_local_id(0);

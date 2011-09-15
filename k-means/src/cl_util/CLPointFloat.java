@@ -1,13 +1,11 @@
 package cl_util;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 
-import kernel.PointFloatKernel;
-
 import lightLogger.Logger;
+import cl_kernel.PointFloatNearestIndex;
 import clustering.ICPoint;
 import clustering.IPoint;
 
@@ -15,7 +13,6 @@ import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLException;
-import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLQueue;
 
@@ -26,11 +23,6 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private int MAX_BUFFER_SIZE;
 	private int BUFFER_ITEMS;
 	private static final int SIZEOF_CL_FLOAT = 4;
-	private static final int SIZEOF_CL_INT = 4;
-
-//	private static final String PREFIX = CLAZZ.getSimpleName();
-//	private static final String KERNEL_DIST = "distFloat";
-//	private static final String KERNEL_PATH = "/kernel/CLPointFloat.cl";
 
 	private final int DIM;
 	private final int ITEM_SIZE;
@@ -51,7 +43,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		this.DIM = dim;
 		this.ITEM_SIZE = dim * SIZEOF_CL_FLOAT;
 
-		MAX_BUFFER_SIZE = (int) (clInstance.getMaxGlobalMemSize());
+		MAX_BUFFER_SIZE = (int) (clInstance.getMaxMemAllocSize());
 		BUFFER_ITEMS = getMaxBufferItems() / 16;
 
 		this.resetBuffer(BUFFER_ITEMS);
@@ -79,7 +71,6 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 				bufferItems = bufferItems < 1 ? 1 : bufferItems;
 				BUFFER_ITEMS = (bufferItems * ITEM_SIZE) > MAX_BUFFER_SIZE ? (MAX_BUFFER_SIZE / ITEM_SIZE)
 						: bufferItems;
-				// BUFFER_SIZE = BUFFER_ITEMS * ITEM_SIZE;
 
 				if (this.itemBuffer == null
 						|| BUFFER_ITEMS > this.itemBuffer.length)
@@ -93,8 +84,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 						.createFloatBuffer(CLMem.Usage.Input,
 								BUFFER_ITEMS * DIM);
 				this.resultBuffer = this.clInstance.getContext()
-				.createIntBuffer(CLMem.Usage.Output,
-						BUFFER_ITEMS);
+						.createIntBuffer(CLMem.Usage.Output, BUFFER_ITEMS);
 			} catch (CLException.InvalidBufferSize e) {
 				Logger.logError(CLAZZ,
 						"Could not create CLBuffer! Resize buffer item.");
@@ -181,46 +171,27 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		Logger.logTrace(CLAZZ, "doNearestPoints(" + size + ")");
 		try {
 			CLContext context = this.clInstance.getContext();
-			PointFloatKernel kernel = new PointFloatKernel(context, DIM);
-			// TODO cmdQ
 			CLQueue cmdQ = this.clInstance.getQueue();
-//			CLKernel kernel = this.clInstance.getKernel(PREFIX, KERNEL_DIST);
-//			if (kernel == null)
-//				kernel = this.clInstance.loadKernel(KERNEL_PATH, KERNEL_DIST,
-//						PREFIX);
+
+			PointFloatNearestIndex kernel = (PointFloatNearestIndex) this.clInstance
+					.getKernel(new Integer(DIM).toString(),
+							PointFloatNearestIndex.KERNEL_NAME);
+			if (kernel == null) {
+				kernel = new PointFloatNearestIndex(context, DIM);
+				this.clInstance.addKernel(new Integer(DIM).toString(),
+						PointFloatNearestIndex.KERNEL_NAME, kernel);
+			}
 
 			// copy buffer to device
-			// TODO cmdQ
 			this.pointBuffer.write(cmdQ, 0, bufferCount,
 					FloatBuffer.wrap(this.buffer, 0, bufferCount), true,
 					new CLEvent[0]);
 
-			// int globalSize = bufferCount;
-			int globalSize = size;
+			// run kernel
+			IntBuffer res = kernel.run(resultBuffer, pointBuffer, size,
+					compareBuffer, COMPARE_ITEMS);
 
-			// TODO DIM in kernel dynamisch setzen!!!
-//			kernel.setArg(0, this.resultBuffer);
-//			kernel.setArg(1, this.pointBuffer);
-//			kernel.setArg(2, size);
-//			kernel.setArg(3, this.compareBuffer);
-//			kernel.setArg(4, COMPARE_ITEMS);
-//			kernel.setArg(5, DIM);
-//
-//			kernel.enqueueNDRange(cmdQ, new int[] { globalSize },
-//					new CLEvent[0]);
-//			cmdQ.finish();
-//
-//			IntBuffer res = ByteBuffer
-//					.allocateDirect(itemCount * SIZEOF_CL_INT)
-//					.order(context.getByteOrder()).asIntBuffer();
-			
-			IntBuffer res = kernel.run(resultBuffer, pointBuffer, size, compareBuffer, COMPARE_ITEMS);
-
-			//resultBuffer.read(cmdQ, 0, itemCount, res, true, new CLEvent[0]);
-
-			//cmdQ.finish();
-			//res.rewind();
-
+			// compute result
 			for (int i = 0; i < itemCount; i++) {
 				itemBuffer[i].setCentroid(this.centroids.get(res.get()));
 			}
