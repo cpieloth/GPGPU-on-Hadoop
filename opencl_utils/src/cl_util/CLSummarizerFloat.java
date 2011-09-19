@@ -22,7 +22,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	private CLInstance clInstance;
 
 	private final int BUFFER_SIZE;
-	private int bufferCount = 0;
+	private int bufferCount;
 
 	private final int MAX_ITEM_SIZE;
 	private int itemCount;
@@ -54,8 +54,9 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		this.buffer = new float[BUFFER_SIZE];
 		this.neutral = new float[BUFFER_SIZE];
 		Arrays.fill(neutral, 0);
+		
 		this.resetResult();
-		this.reset(BUFFER_SIZE * 4);
+		this.reset();
 	}
 
 	@Override

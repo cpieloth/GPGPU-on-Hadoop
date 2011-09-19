@@ -122,30 +122,30 @@ public class CLSummarizerFloatTest {
 				clInstance);
 		clBufferedOp.reset();
 		assertArrayEquals(new int[] { clBufferedOp.getMaxItemSize() },
-				new int[] { clBufferedOp.getCurrentMaxBufferItems() });
+				new int[] { clBufferedOp.getCurrentMaxItemSize() });
 
 		int items = 2 * clBufferedOp.getMaxItemSize();
 		clBufferedOp.reset(items);
 		assertArrayEquals(new int[] { clBufferedOp.getMaxItemSize() },
-				new int[] { clBufferedOp.getCurrentMaxBufferItems() });
+				new int[] { clBufferedOp.getCurrentMaxItemSize() });
 
 		items = clBufferedOp.getMaxItemSize() / 2;
 		clBufferedOp.reset(items);
-		int currItems = clBufferedOp.getCurrentMaxBufferItems();
+		int currItems = clBufferedOp.getCurrentMaxItemSize();
 		if (!(items <= currItems && currItems <= clBufferedOp
 				.getMaxItemSize()))
 			Assert.fail();
 
 		items = 0;
 		clBufferedOp.reset(items);
-		currItems = clBufferedOp.getCurrentMaxBufferItems();
+		currItems = clBufferedOp.getCurrentMaxItemSize();
 		if (!(items < currItems && currItems <= clBufferedOp
 				.getMaxItemSize()))
 			Assert.fail();
 
 		items = -1;
 		clBufferedOp.reset(items);
-		currItems = clBufferedOp.getCurrentMaxBufferItems();
+		currItems = clBufferedOp.getCurrentMaxItemSize();
 		if (!(items < currItems && currItems <= clBufferedOp
 				.getMaxItemSize()))
 			Assert.fail();
