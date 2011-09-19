@@ -21,79 +21,100 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	private CLInstance clInstance;
 
-	private int MAX_BUFFER_ITEMS;
-	private int BUFFER_ITEMS;
+	private final int BUFFER_SIZE;
+	private int bufferCount = 0;
+
+	private final int MAX_ITEM_SIZE;
+	private int itemCount;
+	private int itemSize;
+
 	private static final int SIZEOF_CL_FLOAT = 4;
 
-	private float[] buffer;
-	private int count;
-	private float sum;
 	private CLBuffer<Float> resultBuffer;
+	private float[] buffer;
+	private float[] neutral;
+	private float sum;
 
 	public CLSummarizerFloat(CLInstance clInstance) {
+		this(clInstance, 65536);
+	}
+
+	public CLSummarizerFloat(CLInstance clInstance, int bufferSize) {
+		BUFFER_SIZE = bufferSize;
 		this.clInstance = clInstance;
-		MAX_BUFFER_ITEMS = (int) ((clInstance.getMaxMemAllocSize()
-				/ SIZEOF_CL_FLOAT));
-		if ((MAX_BUFFER_ITEMS & (MAX_BUFFER_ITEMS - 1)) != 0)
-			MAX_BUFFER_ITEMS = (int) Math.pow(2,
-					Math.floor(Math.log(MAX_BUFFER_ITEMS) / Math.log(2)));
-		Logger.logDebug(CLAZZ, "MAX_BUFFER_ITEMS = " + MAX_BUFFER_ITEMS + "; "
-				+ (MAX_BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
-		BUFFER_ITEMS = MAX_BUFFER_ITEMS / 16;
+		int mxItmSize = (int) ((clInstance.getMaxMemAllocSize()
+				/ SIZEOF_CL_FLOAT / 8));
+		if ((mxItmSize & (mxItmSize - 1)) != 0)
+			mxItmSize = (int) Math.pow(2,
+					Math.floor(Math.log(mxItmSize) / Math.log(2)));
+		MAX_ITEM_SIZE = mxItmSize;
+		Logger.logDebug(CLAZZ, "MAX_ITEM_SIZE = " + MAX_ITEM_SIZE + "; "
+				+ (MAX_ITEM_SIZE * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
+
+		this.buffer = new float[BUFFER_SIZE];
+		this.neutral = new float[BUFFER_SIZE];
+		Arrays.fill(neutral, 0);
 		this.resetResult();
-		this.resetBuffer(BUFFER_ITEMS);
+		this.reset(BUFFER_SIZE * 4);
 	}
 
 	@Override
-	public int getMaxBufferItems() {
-		return MAX_BUFFER_ITEMS;
+	public int getBufferSize() {
+		return BUFFER_SIZE;
 	}
 
 	@Override
-	public int getCurrentMaxBufferItems() {
-		return BUFFER_ITEMS;
+	public int getBufferCount() {
+		return bufferCount;
 	}
 
 	@Override
-	public int resetBuffer(int bufferItems) {
-		Logger.logTrace(CLAZZ, "resetBuffer(" + bufferItems + ")");
+	public int getMaxItemSize() {
+		return MAX_ITEM_SIZE;
+	}
+
+	@Override
+	public int getCurrentMaxItemSize() {
+		return itemSize;
+	}
+
+	@Override
+	public int getItemCount() {
+		return itemCount;
+	}
+
+	@Override
+	public int reset(int expectedItemSize) {
+		Logger.logTrace(CLAZZ, "reset(" + expectedItemSize + ")");
 		boolean error;
+
+		this.bufferCount = 0;
+		this.itemCount = 0;
 		do {
 			error = false;
 			try {
-				BUFFER_ITEMS = this.getOptimalItemCount(bufferItems);
+				itemSize = this.getOptimalItemCount(expectedItemSize);
 
-				if (this.buffer == null || BUFFER_ITEMS > this.buffer.length)
-					this.buffer = new float[BUFFER_ITEMS];
-				this.count = 0;
+				if (this.resultBuffer != null)
+					this.resultBuffer.release();
 
 				this.resultBuffer = this.clInstance.getContext()
-						.createFloatBuffer(CLMem.Usage.InputOutput,
-								BUFFER_ITEMS);
-
+						.createFloatBuffer(CLMem.Usage.InputOutput, itemSize);
 			} catch (CLException.InvalidBufferSize e) {
 				Logger.logError(CLAZZ,
 						"Could not create CLBuffer! Resize buffer item.");
-				MAX_BUFFER_ITEMS = BUFFER_ITEMS / 2;
-				bufferItems /= 2;
+				expectedItemSize /= 2;
 				error = true;
-				this.buffer = null;
-			} catch (OutOfMemoryError e) {
-				Logger.logError(CLAZZ, "Could not create float array! Resize.");
-				MAX_BUFFER_ITEMS = BUFFER_ITEMS / 2;
-				bufferItems /= 2;
-				error = true;
-				this.buffer = null;
 			}
 		} while (error);
-		Logger.logDebug(CLAZZ, "resetBuffer() - BUFFER_ITEMS = " + BUFFER_ITEMS
-				+ " ~" + (BUFFER_ITEMS * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
-		return BUFFER_ITEMS;
+		Logger.logDebug(CLAZZ, "reset() - itemSize = " + itemSize + " ~"
+				+ (itemSize * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
+		return itemSize;
 	}
 
 	@Override
-	public int resetBuffer() {
-		return this.resetBuffer(MAX_BUFFER_ITEMS);
+	public int reset() {
+		return this.reset(MAX_ITEM_SIZE);
 	}
 
 	private int getOptimalItemCount(int bufferItems) {
@@ -101,7 +122,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 			return CLInstance.WAVE_SIZE;
 		else {
 			int dual = CLInstance.WAVE_SIZE;
-			while (dual < bufferItems && dual < MAX_BUFFER_ITEMS)
+			while (dual < bufferItems && dual < MAX_ITEM_SIZE)
 				dual *= 2;
 			return dual;
 		}
@@ -110,27 +131,44 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	@Override
 	public void resetResult() {
 		this.sum = 0;
-		this.count = 0;
+		this.bufferCount = 0;
+		this.itemCount = 0;
 	}
 
 	@Override
 	public void put(Float value) {
-		if (this.count < BUFFER_ITEMS) {
-			this.buffer[count++] = value;
+		// buffer ist noch nicht voll
+		if (bufferCount < BUFFER_SIZE) {
+			buffer[bufferCount++] = value;
 		} else {
-			this.doSum(count);
-			this.buffer[count++] = value;
+			writeBufferToOCL();
+			buffer[bufferCount++] = value;
 		}
 	}
 
-	private void doSum(int size) {
-		Logger.logTrace(CLAZZ, "doSum(" + size + ")");
-		int globalSize, localSize;
-		globalSize = this.getOptimalItemCount(size);
-		// fill offset with 0
-		Arrays.fill(this.buffer, size, globalSize, 0);
+	private void writeBufferToOCL() {
+		if (bufferCount == 0)
+			return;
 
-		size = globalSize;
+		// buffer fits into OCL memory
+		if ((itemSize - itemCount) >= bufferCount) {
+			resultBuffer.write(clInstance.getQueue(), itemCount, bufferCount,
+					FloatBuffer.wrap(buffer, 0, bufferCount), true);
+			itemCount += bufferCount;
+			bufferCount = 0;
+		} else {
+			doSum();
+			writeBufferToOCL();
+		}
+
+	}
+
+	private void doSum() {
+		Logger.logTrace(CLAZZ, "doSum()");
+		if (itemCount == 0)
+			return;
+
+		int globalSize, localSize, neutrals;
 
 		// get kernel and queue
 		CLContext context = this.clInstance.getContext();
@@ -144,27 +182,28 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		}
 
 		try {
-			// write buffer on device
-			this.resultBuffer.write(cmdQ, 0, BUFFER_ITEMS,
-					FloatBuffer.wrap(this.buffer, 0, BUFFER_ITEMS), true,
-					new CLEvent[0]);
-
 			// multiple rounds to sum each work group
 			do {
-				globalSize = this.getOptimalItemCount(size);
-				// fill offset with 0 and write on device
-				if (size < globalSize) {
-					for (int i = 0; i < globalSize - size; i++)
-						buffer[i] = 0;
-					resultBuffer.write(cmdQ, size, globalSize - size,
-							FloatBuffer.wrap(this.buffer, 0, BUFFER_ITEMS),
-							true, new CLEvent[0]);
+				globalSize = this.getOptimalItemCount(itemCount);
+				neutrals = globalSize - itemCount;
+				while (neutrals > 0) {
+					if (neutrals > neutral.length) {
+						resultBuffer.write(cmdQ, itemCount, neutral.length,
+								FloatBuffer.wrap(neutral), true);
+						itemCount += neutral.length;
+						neutrals -= neutral.length;
+					} else {
+						resultBuffer.write(cmdQ, itemCount, neutrals,
+								FloatBuffer.wrap(neutral, 0, neutrals), true);
+						itemCount += neutrals;
+						break;
+					}
 				}
 				localSize = this.clInstance.calcWorkGroupSize(globalSize);
 
 				kernel.run(resultBuffer, globalSize, localSize, 0);
 
-				size = globalSize / localSize;
+				itemCount = globalSize / localSize;
 			} while (globalSize > localSize && localSize > 1);
 
 			cmdQ.finish();
@@ -186,12 +225,18 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 			err.printStackTrace();
 		}
 		// all values in buffer are summarized and can be overwritten
-		this.count = 0;
+		this.itemCount = 0;
 	}
 
 	public Float getSum() {
-		if (0 < this.count || this.count == BUFFER_ITEMS)
-			this.doSum(this.count);
-		return this.sum;
+		writeBufferToOCL();
+		this.doSum();
+		return sum;
+	}
+
+	@Override
+	@Deprecated
+	public int getCurrentMaxBufferItems() {
+		return itemSize;
 	}
 }

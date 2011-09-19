@@ -44,13 +44,13 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		this.ITEM_SIZE = dim * SIZEOF_CL_FLOAT;
 
 		MAX_BUFFER_SIZE = (int) (clInstance.getMaxMemAllocSize());
-		BUFFER_ITEMS = getMaxBufferItems() / 16;
+		BUFFER_ITEMS = getMaxItemSize() / 16;
 
-		this.resetBuffer(BUFFER_ITEMS);
+		this.reset(BUFFER_ITEMS);
 	}
 
 	@Override
-	public int getMaxBufferItems() {
+	public int getMaxItemSize() {
 		return MAX_BUFFER_SIZE / ITEM_SIZE;
 	}
 
@@ -61,7 +61,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public int resetBuffer(int bufferItems) {
+	public int reset(int bufferItems) {
 		Logger.logTrace(CLAZZ, "resetBuffer(" + bufferItems + ")");
 		boolean error;
 		do {
@@ -109,8 +109,8 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	}
 
 	@Override
-	public int resetBuffer() {
-		return this.resetBuffer(MAX_BUFFER_SIZE / ITEM_SIZE);
+	public int reset() {
+		return this.reset(MAX_BUFFER_SIZE / ITEM_SIZE);
 	}
 
 	@Override

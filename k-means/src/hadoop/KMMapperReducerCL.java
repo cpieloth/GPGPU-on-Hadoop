@@ -95,7 +95,7 @@ public class KMMapperReducerCL {
 			tmpCentroids.addAll(this.centroids);
 			Logger.logDebug(CLAZZ, "Centroid size: " + tmpCentroids.size());
 			this.clPoint.prepareNearestPoints(tmpCentroids);
-			this.clPoint.resetBuffer(1);
+			this.clPoint.reset(1);
 		}
 
 		@Override

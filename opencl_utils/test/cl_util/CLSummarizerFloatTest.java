@@ -22,7 +22,7 @@ public class CLSummarizerFloatTest {
 		float VALUE, sum;
 
 		// full buffer size test
-		COUNT = clFloat.getMaxBufferItems();
+		COUNT = clFloat.getMaxItemSize();
 		VALUE = 1;
 		sum = COUNT * VALUE;
 		for (int i = 0; i < COUNT; i++) {
@@ -34,7 +34,7 @@ public class CLSummarizerFloatTest {
 		clFloat.resetResult();
 
 		// value test
-		COUNT = clFloat.getMaxBufferItems() & 1024;
+		COUNT = clFloat.getMaxItemSize() & 1024;
 		VALUE = (float) 1;
 		sum = COUNT / 2 * VALUE;
 		VALUE = (float) 2;
@@ -52,7 +52,7 @@ public class CLSummarizerFloatTest {
 		clFloat.resetResult();
 
 		// buffer overflow test
-		COUNT = 2 * clFloat.getMaxBufferItems() + 13;
+		COUNT = 2 * clFloat.getMaxItemSize() + 13;
 		VALUE = (float) 1;
 		sum = COUNT * VALUE;
 		for (int i = 0; i < COUNT; i++) {
@@ -73,7 +73,7 @@ public class CLSummarizerFloatTest {
 		clFloat.resetResult();
 
 		// less buffer items test
-		COUNT = clFloat.getMaxBufferItems() - 13;
+		COUNT = clFloat.getMaxItemSize() - 13;
 		VALUE = (float) 1;
 		sum = COUNT * VALUE;
 		for (int i = 0; i < COUNT; i++) {
@@ -91,7 +91,7 @@ public class CLSummarizerFloatTest {
 		COUNT = CLInstance.WAVE_SIZE;
 		VALUE = (float) 1;
 		sum = COUNT * VALUE;
-		clFloat.resetBuffer(COUNT);
+		clFloat.reset(COUNT);
 		for (int i = 0; i < COUNT; i++) {
 			clFloat.put(VALUE);
 		}
@@ -104,7 +104,7 @@ public class CLSummarizerFloatTest {
 		COUNT = 2 * CLInstance.WAVE_SIZE + 5;
 		VALUE = (float) 1;
 		sum = COUNT * VALUE;
-		clFloat.resetBuffer(COUNT);
+		clFloat.reset(COUNT);
 		for (int i = 0; i < COUNT; i++) {
 			clFloat.put(VALUE);
 		}
@@ -114,40 +114,40 @@ public class CLSummarizerFloatTest {
 	}
 
 	@Test
-	public void testResetBuffer() {
+	public void testReset() {
 		CLInstance clInstance = new CLInstance();
 		clInstance.initialize(CLInstance.TYPES.CL_GPU);
 
 		ICLBufferedOperation<Float> clBufferedOp = new CLSummarizerFloat(
 				clInstance);
-		clBufferedOp.resetBuffer();
-		assertArrayEquals(new int[] { clBufferedOp.getMaxBufferItems() },
+		clBufferedOp.reset();
+		assertArrayEquals(new int[] { clBufferedOp.getMaxItemSize() },
 				new int[] { clBufferedOp.getCurrentMaxBufferItems() });
 
-		int items = 2 * clBufferedOp.getMaxBufferItems();
-		clBufferedOp.resetBuffer(items);
-		assertArrayEquals(new int[] { clBufferedOp.getMaxBufferItems() },
+		int items = 2 * clBufferedOp.getMaxItemSize();
+		clBufferedOp.reset(items);
+		assertArrayEquals(new int[] { clBufferedOp.getMaxItemSize() },
 				new int[] { clBufferedOp.getCurrentMaxBufferItems() });
 
-		items = clBufferedOp.getMaxBufferItems() / 2;
-		clBufferedOp.resetBuffer(items);
+		items = clBufferedOp.getMaxItemSize() / 2;
+		clBufferedOp.reset(items);
 		int currItems = clBufferedOp.getCurrentMaxBufferItems();
 		if (!(items <= currItems && currItems <= clBufferedOp
-				.getMaxBufferItems()))
+				.getMaxItemSize()))
 			Assert.fail();
 
 		items = 0;
-		clBufferedOp.resetBuffer(items);
+		clBufferedOp.reset(items);
 		currItems = clBufferedOp.getCurrentMaxBufferItems();
 		if (!(items < currItems && currItems <= clBufferedOp
-				.getMaxBufferItems()))
+				.getMaxItemSize()))
 			Assert.fail();
 
 		items = -1;
-		clBufferedOp.resetBuffer(items);
+		clBufferedOp.reset(items);
 		currItems = clBufferedOp.getCurrentMaxBufferItems();
 		if (!(items < currItems && currItems <= clBufferedOp
-				.getMaxBufferItems()))
+				.getMaxItemSize()))
 			Assert.fail();
 	}
 
