@@ -52,14 +52,6 @@ public interface ICLBufferedOperation<T> {
 	public int getCurrentMaxItemSize();
 
 	/**
-	 * Current maximum buffer items. E.g. set by resetBuffer(int bufferItems);
-	 * 
-	 * @return Maximum objects which can be stored in the buffer.
-	 */
-	@Deprecated
-	public int getCurrentMaxBufferItems();
-
-	/**
 	 * Resets the counter and allocates new OCL memory. OCL memory could be
 	 * resized or fit to getMaxItemsSize().
 	 * 
