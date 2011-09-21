@@ -88,11 +88,11 @@ public class VecAdd {
 
 			tmpBuffer.clear();
 			tmpBuffer.put(vecB);
-			CLBuffer<IntBuffer> bBuffer = context.createBuffer(
+			CLBuffer<Integer> bBuffer = context.createBuffer(
 					CLMem.Usage.Input, tmpBuffer, true);
 
-			CLBuffer<IntBuffer> cBuffer = context.createBuffer(
-					CLMem.Usage.Output, vecC.length, IntBuffer.class);
+			CLBuffer<Integer> cBuffer = context.createIntBuffer(
+					CLMem.Usage.Output, vecC.length);
 
 			/*** Kernel-Argumente setzen ***/
 			kernel.setArg(0, cBuffer);

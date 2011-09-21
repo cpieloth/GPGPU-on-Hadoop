@@ -16,6 +16,7 @@ import com.nativelibs4java.opencl.JavaCL;
 
 public class readTest {
 
+	private static final String TIME_PER_VALUE = "\ttime/value (ms): ";
 	private static final int FACTOR = 8;
 	private static final int ROUNDS = 5;
 	private static final int SIZEOF_CL_INT = 4;
@@ -30,17 +31,18 @@ public class readTest {
 		final int MAX_COUNT = (int) Math.min(65536, device.getGlobalMemSize()
 				/ 8 / SIZEOF_CL_INT - 65536);
 		System.out.println("Device: " + device.getName());
+		System.out.println("ROUNDS: " + ROUNDS);
 		System.out.println("MAX_COUNT: " + MAX_COUNT);
 
 		System.out.println();
 
 		Random ran = new Random(System.currentTimeMillis());
 		int count;
-		StopWatch sw = new StopWatch("time", "");
+		StopWatch sw = new StopWatch("\ttime (ms): ", "");
 		double time;
 		int[] buffer;
-		CLBuffer<IntBuffer> clBuffer = context.createIntBuffer(
-				Usage.InputOutput, 1);
+		CLBuffer<Integer> clBuffer = context.createIntBuffer(Usage.InputOutput,
+				1);
 
 		// many single read
 		System.out.println("Many single reads");
@@ -67,10 +69,10 @@ public class readTest {
 				}
 			}
 			sw.stop();
-			
+
 			time = sw.getTime() / ROUNDS;
-			System.out.println("\ttime: " + time);
-			System.out.println("\ttime/value: " + time / count);
+			System.out.println(sw.prefix + time);
+			System.out.println(TIME_PER_VALUE + time / count);
 			System.out.println();
 		}
 
@@ -98,10 +100,10 @@ public class readTest {
 				}
 			}
 			sw.stop();
-			
+
 			time = sw.getTime() / ROUNDS;
-			System.out.println("\ttime: " + time);
-			System.out.println("\ttime/value: " + time / count);
+			System.out.println(sw.prefix + time);
+			System.out.println(TIME_PER_VALUE + time / count);
 			System.out.println();
 		}
 
@@ -119,7 +121,7 @@ public class readTest {
 			clBuffer.release();
 			clBuffer = context.createIntBuffer(Usage.InputOutput,
 					IntBuffer.wrap(buffer), true);
-			
+
 			sw.start();
 			for (int r = 0; r < ROUNDS; r++) {
 				IntBuffer intBuffer = ByteBuffer
@@ -132,31 +134,10 @@ public class readTest {
 				}
 			}
 			sw.stop();
-			
-			time = sw.getTime() / ROUNDS;
-			System.out.println("\ttime: " + time);
-			System.out.println("\ttime/value: " + time / count);
-			System.out.println();
-		}
 
-		// creation time
-		System.out.println("Buffer creation time");
-		count = MAX_COUNT;
-		for (count = 128; count <= MAX_COUNT; count *= FACTOR) {
-			sw.reset();
-			System.out.println("\tIntValues: " + count);
-			
-			sw.start();
-			for (int r = 0; r < ROUNDS; r++) {
-				clBuffer.release();
-				clBuffer = context.createIntBuffer(Usage.InputOutput, count);
-				
-			}
-			sw.stop();
-			
 			time = sw.getTime() / ROUNDS;
-			System.out.println("\ttime: " + time);
-			System.out.println("\ttime/value: " + time / count);
+			System.out.println(sw.prefix + time);
+			System.out.println(TIME_PER_VALUE + time / count);
 			System.out.println();
 		}
 

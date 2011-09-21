@@ -137,13 +137,12 @@ public class MatMul {
 
 			tmpBuffer.clear();
 			tmpBuffer.put(right.elements);
-			CLBuffer<IntBuffer> rightBuffer = context.createBuffer(
+			CLBuffer<Integer> rightBuffer = context.createIntBuffer(
 					CLMem.Usage.Input, tmpBuffer, true);
 
 			tmpBuffer.clear();
-			CLBuffer<IntBuffer> resultBuffer = context
-					.createBuffer(CLMem.Usage.Output, result.elements.length,
-							IntBuffer.class);
+			CLBuffer<Integer> resultBuffer = context
+					.createIntBuffer(CLMem.Usage.Output, result.elements.length);
 
 			/*** Kernel-Argumente setzen ***/
 			kernel.setArg(0, resultBuffer);

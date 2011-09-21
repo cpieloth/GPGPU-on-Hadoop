@@ -2,9 +2,13 @@ package performanceTests;
 
 import java.util.Scanner;
 
+import stopwatch.StopWatch;
+
+import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLDevice;
 import com.nativelibs4java.opencl.CLKernel;
+import com.nativelibs4java.opencl.CLMem.Usage;
 import com.nativelibs4java.opencl.CLPlatform;
 import com.nativelibs4java.opencl.CLProgram;
 import com.nativelibs4java.opencl.CLQueue;
@@ -15,13 +19,14 @@ public class CLQueryTest {
 	private static final Class<CLQueryTest> CLAZZ = CLQueryTest.class;
 
 	private static final int ROUNDS = 5;
+	private static final int SIZEOF_CL_INT = 4;
 
-	private static final String KERNEL_PATH = "/kernel.cl";
+	private static final String KERNEL_PATH = "/CLQueryTest.cl";
 	private static final String KENREL_NAME = "maxInt";
 
-	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		long tStart, tEnd, time;
+		double time;
+		StopWatch sw = new StopWatch("\ttime (ms): ", "");
 
 		CLPlatform[] platforms = null;
 		CLDevice[] devices = null;
@@ -32,102 +37,119 @@ public class CLQueryTest {
 		CLKernel kernel = null;
 
 		/* TEST */
-		System.out.println("OpenCL query time for platform:");
-		time = 0;
+		System.out.println("OpenCL query time for platform");
+		sw.reset();
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			platforms = JavaCL.listGPUPoweredPlatforms();
+			sw.pause();
 
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
-			for(CLPlatform p : platforms)
+			for (CLPlatform p : platforms)
 				p.release();
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
+		System.out.println("\tPlatforms: " + platforms.length);
 		System.out.println();
 
 		/* TEST */
-		System.out.println("OpenCL query time for devices:");
+		System.out.println("OpenCL query time for devices");
 		platforms = JavaCL.listGPUPoweredPlatforms();
-		time = 0;
+		sw.reset();
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			devices = platforms[0].listGPUDevices(true);
+			sw.pause();
 
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
-			for(CLDevice d : devices)
+			for (CLDevice d : devices)
 				d.release();
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
+		System.out.println("\tPlatform: " + platforms[0].getName());
+		System.out.println("\tDevices: " + devices.length);
 		System.out.println();
 
 		/* TEST */
-		System.out.println("Context creation time:");
+		System.out.println("Context creation time");
 		devices = platforms[0].listGPUDevices(true);
-		time = 0;
+		sw.reset();
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			context = JavaCL.createContext(null, devices);
+			sw.pause();
 
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
 			context.release();
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
+		System.out.println("\tDevices: " + devices.length);
 		System.out.println();
 
 		/* TEST */
-		System.out.println("CommandQueue creation time:");
+		System.out.println("CommandQueue creation time");
 		context = JavaCL.createContext(null, devices);
-		time = 0;
+		sw.reset();
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			cmdQ = context.createDefaultQueue(new CLDevice.QueueProperties[0]);
+			sw.pause();
 
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
 			cmdQ.release();
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
+		System.out.println("\tDevices: " + devices.length);
 		System.out.println();
+		context.release();
 
 		/* TEST */
-		System.out.println("Read file time:");
+		System.out.println("Read file time");
 		StringBuffer sb;
-		Scanner sc;
-		time = 0;
+		Scanner sc = null;
+		sw.reset();
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			sb = new StringBuffer();
 			try {
 				sc = new Scanner(CLAZZ.getResourceAsStream(KERNEL_PATH));
 				while (sc.hasNext())
 					sb.append(sc.nextLine());
-				sc.close();
 				clSource = sb.toString();
 			} catch (Exception e) {
 				System.out.println("Could not read file: " + KERNEL_PATH);
 				e.printStackTrace();
+			} finally {
+				if (sc != null)
+					sc.close();
 			}
-
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
 		System.out.println();
 
 		/* TEST */
-		System.out.println("Program creation time:");
-		time = 0;
+		System.out.println("Program creation time");
+		context = JavaCL.createContext(null, devices);
+		sw.reset();
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			try {
 				program = context.createProgram(clSource);
 				try {
@@ -143,31 +165,79 @@ public class CLQueryTest {
 				System.out.println("Error:\n" + err.getMessage() + "()");
 				err.printStackTrace();
 			}
+			sw.pause();
 
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
+			if (program != null)
+				program.release();
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
 		System.out.println();
 
 		/* TEST */
-		System.out.println("Kernel creation time:");
-		time = 0;
+		System.out.println("Kernel creation time");
+		context = JavaCL.createContext(null, devices);
+		try {
+			program = context.createProgram(clSource);
+			try {
+				program.build();
+			} catch (Exception err) {
+				System.out.println("Build log for \"" + context.getDevices()[0]
+						+ "\n" + err.getMessage());
+				err.printStackTrace();
+			}
+		} catch (Exception err) {
+			System.out.println("Error:\n" + err.getMessage() + "()");
+			err.printStackTrace();
+		}
+		sw.start();
 		for (int r = 0; r < ROUNDS; r++) {
-			tStart = System.currentTimeMillis();
-
+			sw.resume();
 			try {
 				kernel = program.createKernel(KENREL_NAME);
 			} catch (Exception err) {
 				System.out.println("Error:\n" + err.getMessage() + "()");
 				err.printStackTrace();
 			}
-
-			tEnd = System.currentTimeMillis();
-			time += tEnd - tStart;
+			sw.pause();
+			if (kernel != null)
+				kernel.release();
 		}
-		System.out.println("\ttime=" + (time / ROUNDS) + ";");
+		sw.stop();
+
+		time = sw.getTime() / ROUNDS;
+		System.out.println(sw.prefix + time);
 		System.out.println();
+
+		// creation time
+		final int MAX_COUNT = (int) Math.min(65536,
+				devices[0].getGlobalMemSize() / 8 / SIZEOF_CL_INT - 65536);
+		final int FACTOR = 8;
+		System.out.println("Buffer creation time");
+		int count = MAX_COUNT;
+		CLBuffer<Integer> clBuffer = null;
+		for (count = 128; count <= MAX_COUNT; count *= FACTOR) {
+			sw.reset();
+			System.out.println("\tIntValues: " + count);
+
+			sw.start();
+			for (int r = 0; r < ROUNDS; r++) {
+				sw.resume();
+				clBuffer = context.createIntBuffer(Usage.InputOutput, count);
+				sw.pause();
+
+				if (clBuffer != null)
+					clBuffer.release();
+			}
+			sw.stop();
+
+			time = sw.getTime() / ROUNDS;
+			System.out.println(sw.prefix + time);
+			System.out.println("\tDevice: " + devices[0].getName());
+			System.out.println();
+		}
 	}
 
 }
