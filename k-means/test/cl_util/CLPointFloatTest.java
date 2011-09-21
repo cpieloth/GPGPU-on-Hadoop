@@ -7,15 +7,24 @@ import java.util.List;
 
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import utils.Points;
+import cl_util.CLInstance.TYPES;
 import clustering.ICPoint;
 import clustering.IPoint;
 
 public class CLPointFloatTest {
 	
 	// private static final float DELTA = 0.001f;
+	
+	private CLInstance clInstance;
+	
+	@Before
+	public void setUp() throws Exception {
+		clInstance = new CLInstance(TYPES.CL_GPU);
+	}
 
 	@Test
 	public void testSetNearestPoints() {
@@ -25,7 +34,6 @@ public class CLPointFloatTest {
 		List<ICPoint<Float>> pointsExpected;
 		List<IPoint<Float>> centroids;
 		CLPointFloat clPoint;
-		CLInstance clInstance = new CLInstance(CLInstance.TYPES.CL_GPU);
 		
 		DIM = 7;
 		K = 5;
@@ -101,9 +109,6 @@ public class CLPointFloatTest {
 	
 	@Test
 	public void testResetBuffer(){
-		CLInstance clInstance = new CLInstance();
-		clInstance.initialize(CLInstance.TYPES.CL_GPU);
-
 		ICLBufferedOperation<ICPoint<Float>> clBufferedOp = new CLPointFloat(clInstance, 2);
 		clBufferedOp.reset();
 		assertArrayEquals(new int[]{clBufferedOp.getMaxItemSize()}, new int[]{clBufferedOp.getCurrentMaxItemSize()});

@@ -28,7 +28,7 @@
 		<jar destfile="${DEST_PATH}/KMeansStarter.jar">
 			<manifest>
 				<attribute name="Main-Class" value="utils.KMeansStarter" />
-				<attribute name="Class-Path" value=". ${USER_LIB}/javacl-1.0-beta-6-shaded.jar ${USER_LIB}/lightLogger-0.1.jar ${USER_LIB}/stopWatch-0.1.jar ${lib.list} ${jars.list}" />
+				<attribute name="Class-Path" value=". ${USER_LIB}/javacl-jna-1.0.0-RC1-shaded.jar ${USER_LIB}/lightLogger-0.1.jar ${USER_LIB}/stopWatch-0.1.jar ${lib.list} ${jars.list}" />
 			</manifest>
 			<fileset dir="/Users/christof/Documents/GPGPU-on-Hadoop/k-means/bin" />
 			<fileset dir="/Users/christof/Documents/GPGPU-on-Hadoop/opencl_utils/bin" />

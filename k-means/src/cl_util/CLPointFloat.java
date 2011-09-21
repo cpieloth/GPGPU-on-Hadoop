@@ -25,7 +25,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private final int DIM;
 	private final int SIZEOF_POINT;
 	private final CLInstance CL_INSTANCE;
-	
+
 	private final int BUFFER_SIZE;
 	private final int BUFFER_ITEM_SIZE;
 	private int bufferCount;
@@ -43,10 +43,12 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private int centroidItemSize;
 	private List<IPoint<Float>> centroids;
 
+	private PointFloatNearestIndex kernel;
+
 	public CLPointFloat(CLInstance clInstance, int dim) {
 		this(clInstance, dim, 65536);
 	}
-	
+
 	public CLPointFloat(CLInstance clInstance, int dim, int bufferItems) {
 		CL_INSTANCE = clInstance;
 		DIM = dim;
@@ -54,32 +56,39 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		BUFFER_ITEM_SIZE = bufferItems;
 		BUFFER_SIZE = bufferItems * DIM;
 		MAX_ITEM_SIZE = (int) (clInstance.getMaxMemAllocSize() / 8 / SIZEOF_POINT);
-		
+
 		buffer = new float[BUFFER_SIZE];
 		points = new LinkedList<ICPoint<Float>>();
+
+		kernel = (PointFloatNearestIndex) this.CL_INSTANCE
+				.getKernel(PointFloatNearestIndex.getIdentifier(dim));
+		if (kernel == null) {
+			kernel = new PointFloatNearestIndex(CL_INSTANCE, DIM);
+		}
+
 		this.reset();
 	}
-	
+
 	@Override
 	public int getBufferSize() {
 		return BUFFER_ITEM_SIZE;
 	}
-	
+
 	@Override
 	public int getBufferCount() {
 		return bufferItemCount;
 	}
-	
+
 	@Override
 	public int getMaxItemSize() {
 		return MAX_ITEM_SIZE;
 	}
-	
+
 	@Override
 	public int getItemCount() {
 		return itemCount;
 	}
-	
+
 	@Override
 	public int getCurrentMaxItemSize() {
 		return itemSize;
@@ -89,27 +98,26 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	public int reset(int expectedItemSize) {
 		Logger.logTrace(CLAZZ, "reset(" + expectedItemSize + ")");
 		boolean error;
-		
+
 		bufferCount = 0;
 		bufferItemCount = 0;
 		itemCount = 0;
-		
+
 		do {
 			error = false;
 			try {
 				itemSize = expectedItemSize < 1 ? 1 : expectedItemSize;
 				itemSize = MAX_ITEM_SIZE < itemSize ? MAX_ITEM_SIZE : itemSize;
-				
-				if(resultBuffer != null)
+
+				if (resultBuffer != null)
 					resultBuffer.release();
-				resultBuffer = CL_INSTANCE.getContext()
-				.createIntBuffer(CLMem.Usage.Output, itemSize);
-				
-				if(pointBuffer != null)
+				resultBuffer = CL_INSTANCE.getContext().createIntBuffer(
+						CLMem.Usage.Output, itemSize);
+
+				if (pointBuffer != null)
 					pointBuffer.release();
-				pointBuffer = CL_INSTANCE.getContext()
-				.createFloatBuffer(CLMem.Usage.Input,
-						itemSize * DIM);
+				pointBuffer = CL_INSTANCE.getContext().createFloatBuffer(
+						CLMem.Usage.Input, itemSize * DIM);
 				points.clear();
 			} catch (CLException.InvalidBufferSize e) {
 				Logger.logError(CLAZZ,
@@ -118,10 +126,10 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 				error = true;
 			}
 		} while (error);
-		
+
 		Logger.logDebug(CLAZZ, "reset() - itemSize = " + itemSize + " ~"
 				+ (itemSize * SIZEOF_POINT) / 1024 / 1024 + "MB");
-		
+
 		return itemSize;
 	}
 
@@ -149,7 +157,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 			CLContext context = CL_INSTANCE.getContext();
 			CLQueue cmdQ = CL_INSTANCE.getQueue();
 
-			if(centroidBuffer != null)
+			if (centroidBuffer != null)
 				centroidBuffer.release();
 			centroidBuffer = context.createFloatBuffer(CLMem.Usage.Input,
 					FloatBuffer.wrap(centroidsBuffer), true);
@@ -167,15 +175,15 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 
 	@Override
 	public void put(ICPoint<Float> p) {
-		if(bufferItemCount < BUFFER_ITEM_SIZE) {
+		if (bufferItemCount < BUFFER_ITEM_SIZE) {
 			points.add(p);
 
 			for (int d = 0; d < DIM; d++)
 				this.buffer[bufferCount++] = p.get(d);
-			
+
 			bufferItemCount++;
 		} else {
-			if(writeBufferToOCL())
+			if (writeBufferToOCL())
 				put(p);
 			else {
 				Logger.logError(CLAZZ, "Could not put point to list!");
@@ -183,15 +191,17 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 			}
 		}
 	}
-	
+
 	private boolean writeBufferToOCL() {
-		if(bufferItemCount == 0)
+		if (bufferItemCount == 0)
 			return true;
-		
+
 		// buffer fits into OCL memory
 		if ((itemSize - itemCount) >= bufferItemCount) {
-			pointBuffer.write(CL_INSTANCE.getQueue(), itemCount * DIM, bufferCount,
-					FloatBuffer.wrap(buffer, 0, bufferCount), true);
+			pointBuffer
+					.write(CL_INSTANCE.getQueue(), itemCount * DIM,
+							bufferCount,
+							FloatBuffer.wrap(buffer, 0, bufferCount), true);
 			itemCount += bufferItemCount;
 			bufferCount = 0;
 			bufferItemCount = 0;
@@ -211,21 +221,10 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 
 	private void doNearestPoints() {
 		Logger.logTrace(CLAZZ, "doNearestPoints()");
-		if(itemCount == 0)
+		if (itemCount == 0)
 			return;
-		
+
 		try {
-			CLContext context = this.CL_INSTANCE.getContext();
-
-			PointFloatNearestIndex kernel = (PointFloatNearestIndex) this.CL_INSTANCE
-					.getKernel(new Integer(DIM).toString(),
-							PointFloatNearestIndex.KERNEL_NAME);
-			if (kernel == null) {
-				kernel = new PointFloatNearestIndex(context, DIM);
-				this.CL_INSTANCE.addKernel(new Integer(DIM).toString(),
-						PointFloatNearestIndex.KERNEL_NAME, kernel);
-			}
-
 			// run kernel
 			IntBuffer res = kernel.run(resultBuffer, pointBuffer, itemCount,
 					centroidBuffer, centroidItemSize);

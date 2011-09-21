@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 import lightLogger.Logger;
+import cl_util.CLInstance;
 
-import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLProgram;
@@ -17,10 +17,10 @@ public abstract class AbstractKernel implements ICLKernel {
 
 	private static final Class<?> CLAZZ = AbstractKernel.class;
 
-	protected String kernelName, kernelPath;
+	protected final String KERNEL_NAME, KERNEL_PATH;
 
 	protected CLKernel kernel;
-	protected CLContext context;
+	protected final CLInstance CL_INSTANCE;
 
 	protected List<String> buildOptions = new LinkedList<String>();
 	protected List<String> includes = new LinkedList<String>();
@@ -28,38 +28,41 @@ public abstract class AbstractKernel implements ICLKernel {
 
 	protected Map<String, Object> defines = new HashMap<String, Object>();
 
-	public AbstractKernel(CLContext context, String kernelName, String kernelPath) {
-		this.context = context;
-		this.kernelName = kernelName;
-		this.kernelPath = kernelPath;
+	public AbstractKernel(CLInstance clInstance, String kernelName, String kernelPath) {
+		this.CL_INSTANCE = clInstance;
+		this.KERNEL_NAME = kernelName;
+		this.KERNEL_PATH = kernelPath;
 	}
 
 	@Override
 	public String getKernelName() {
-		return this.kernelName;
+		return this.KERNEL_NAME;
 	}
 
 	@Override
 	public String getKernelPath() {
-		return this.kernelPath;
+		return this.KERNEL_PATH;
 	}
 
 	@Override
 	public boolean createKernel() {
+		if(kernel != null)
+			return true;
+		
 		StringBuffer sb = new StringBuffer();
 		try {
-			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(kernelPath));
+			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(KERNEL_PATH));
 			while (sc.hasNext())
 				sb.append(sc.nextLine());
 			sc.close();
 		} catch (Exception e) {
-			Logger.logError(CLAZZ, "Could not read file: " + kernelPath);
+			Logger.logError(CLAZZ, "Could not read file: " + KERNEL_PATH);
 			e.printStackTrace();
 			return false;
 		}
 
 		try {
-			CLProgram program = context.createProgram(sb.toString());
+			CLProgram program = CL_INSTANCE.getContext().createProgram(sb.toString());
 
 			for (String bo : buildOptions)
 				program.addBuildOption(bo);
@@ -73,15 +76,14 @@ public abstract class AbstractKernel implements ICLKernel {
 				program.build();
 			} catch (Exception err) {
 				Logger.logError(CLAZZ,
-						"Build log for \"" + context.getDevices()[0] + "\n"
+						"Build log for \"" + CL_INSTANCE.getContext().getDevices()[0] + "\n"
 								+ err.getMessage());
 				err.printStackTrace();
 				return false;
 			}
 
-			kernel = program.createKernel(kernelName);
-			// this.kernels.put(prefix + kernelName, kernel);
-
+			kernel = program.createKernel(KERNEL_NAME);
+			CL_INSTANCE.addKernel(this.getIdentifier(), this);
 			return true;
 		} catch (CLException err) {
 			Logger.logError(CLAZZ, "OpenCL error:\n" + err.getMessage() + "():"
@@ -99,21 +101,26 @@ public abstract class AbstractKernel implements ICLKernel {
 	public CLKernel getKernel() {
 		return this.kernel;
 	}
-
+	
 	@Override
-	public void setKernel(CLKernel kernel) {
-		this.kernel = kernel;
+	public CLInstance getCLInstance() {
+		return this.CL_INSTANCE;
 	}
 
-	@Override
-	public CLContext getContext() {
-		return this.context;
-	}
+//	@Override
+//	public void setKernel(CLKernel kernel) {
+//		this.kernel = kernel;
+//	}
 
-	@Override
-	public void setContext(CLContext context) {
-		this.context = context;
-	}
+//	@Override
+//	public CLContext getContext() {
+//		return this.context;
+//	}
+
+//	@Override
+//	public void setContext(CLContext context) {
+//		this.context = context;
+//	}
 
 	@Override
 	public List<String> getBuildOptions() {

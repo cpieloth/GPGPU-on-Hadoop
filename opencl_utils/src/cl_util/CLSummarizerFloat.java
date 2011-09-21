@@ -5,11 +5,9 @@ import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import lightLogger.Logger;
-
 import cl_kernel.FloatGroupSum;
 
 import com.nativelibs4java.opencl.CLBuffer;
-import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLMem;
@@ -35,6 +33,8 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	private float[] neutral;
 	private float sum;
 
+	private FloatGroupSum kernel;
+	
 	public CLSummarizerFloat(CLInstance clInstance) {
 		this(clInstance, 65536);
 	}
@@ -57,6 +57,10 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		
 		this.resetResult();
 		this.reset();
+		
+		kernel = (FloatGroupSum) CL_INSTANCE.getKernel(FloatGroupSum.class.getName());
+		if(kernel == null)
+			kernel = new FloatGroupSum(CL_INSTANCE);
 	}
 
 	@Override
@@ -175,15 +179,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		int globalSize, localSize, neutrals;
 
 		// get kernel and queue
-		CLContext context = this.CL_INSTANCE.getContext();
 		CLQueue cmdQ = this.CL_INSTANCE.getQueue();
-
-		FloatGroupSum kernel = (FloatGroupSum) this.CL_INSTANCE.getKernel("",
-				FloatGroupSum.KERNEL_NAME);
-		if (kernel == null) {
-			kernel = new FloatGroupSum(context);
-			this.CL_INSTANCE.addKernel("", FloatGroupSum.KERNEL_NAME, kernel);
-		}
 
 		try {
 			// multiple rounds to sum each work group

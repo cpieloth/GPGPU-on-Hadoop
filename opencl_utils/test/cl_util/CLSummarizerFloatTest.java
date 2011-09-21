@@ -3,17 +3,24 @@ package cl_util;
 import static org.junit.Assert.assertArrayEquals;
 import junit.framework.Assert;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import cl_util.CLInstance.TYPES;
 
 public class CLSummarizerFloatTest {
 
 	private static final float DELTA = 0f;
+	
+	private CLInstance clInstance;
+	
+	@Before
+	public void setUp() throws Exception {
+		clInstance = new CLInstance(TYPES.CL_GPU);
+	}
 
 	@Test
 	public void testGetSum() {
-		CLInstance clInstance = new CLInstance();
-		clInstance.initialize(CLInstance.TYPES.CL_GPU);
-
 		CLSummarizerFloat clFloat = new CLSummarizerFloat(clInstance);
 		assertArrayEquals(new float[] { 0 }, new float[] { clFloat.getSum() },
 				0);
@@ -115,9 +122,6 @@ public class CLSummarizerFloatTest {
 
 	@Test
 	public void testReset() {
-		CLInstance clInstance = new CLInstance();
-		clInstance.initialize(CLInstance.TYPES.CL_GPU);
-
 		ICLBufferedOperation<Float> clBufferedOp = new CLSummarizerFloat(
 				clInstance);
 		clBufferedOp.reset();

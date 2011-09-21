@@ -6,12 +6,10 @@ import java.util.EnumSet;
 import java.util.HashMap;
 
 import lightLogger.Logger;
-
 import cl_kernel.ICLKernel;
 
 import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLDevice;
-import com.nativelibs4java.opencl.CLDevice.QueueProperties;
 import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLPlatform;
 import com.nativelibs4java.opencl.CLQueue;
@@ -20,10 +18,9 @@ import com.nativelibs4java.opencl.JavaCL;
 public class CLInstance {
 	private static final Class<CLInstance> CLAZZ = CLInstance.class;
 
-	private CLPlatform[] platforms;
-	private ArrayList<CLDevice> devices;
 	private CLContext context;
 	private CLQueue cmdQ;
+	private final boolean isInitialized;
 
 	public static final int WAVE_SIZE = 64;
 
@@ -34,13 +31,14 @@ public class CLInstance {
 	};
 
 	public CLInstance(TYPES type) {
-		this.initialize(type);
+		isInitialized = this.initialize(type);
 	}
 
-	public CLInstance() {
+	public boolean isInitialized() {
+		return isInitialized;
 	}
 
-	public boolean initialize(TYPES type) {
+	private boolean initialize(TYPES type) {
 		if (type == TYPES.CL_CPU)
 			return this.initialize(CLDevice.Type.CPU);
 		else if (type == TYPES.CL_GPU)
@@ -49,12 +47,12 @@ public class CLInstance {
 			return false;
 	}
 
-	public boolean initialize(CLDevice.Type type) {
+	private boolean initialize(CLDevice.Type type) {
 		try {
 			// Init OpenCL
-			platforms = JavaCL.listPlatforms();
+			CLPlatform[] platforms = JavaCL.listPlatforms();
 			EnumSet<CLDevice.Type> types = EnumSet.of(type);
-			devices = new ArrayList<CLDevice>();
+			ArrayList<CLDevice> devices = new ArrayList<CLDevice>();
 
 			CLDevice[] devTmp;
 			for (CLPlatform platform : platforms) {
@@ -65,7 +63,7 @@ public class CLInstance {
 			devTmp = new CLDevice[1];
 			devTmp[0] = devices.get(0);
 			context = JavaCL.createContext(null, devTmp);
-			cmdQ = context.createDefaultQueue(QueueProperties.ProfilingEnable);
+			cmdQ = context.createDefaultQueue();
 
 			Logger.logInfo(CLAZZ, "Selected device: " + devTmp[0].getName());
 			return true;
@@ -150,12 +148,12 @@ public class CLInstance {
 //		return this.loadKernel(file, kernelName, prefix, "");
 //	}
 
-	public ICLKernel getKernel(String prefix, String kernelName) {
-		return this.kernels.get(prefix + kernelName);
+	public ICLKernel getKernel(String identifier) {
+		return this.kernels.get(identifier);
 	}
 	
-	public void addKernel(String prefix, String kernelName, ICLKernel kernel) {
-		this.kernels.put(prefix + kernelName, kernel);
+	public void addKernel(String identifier, ICLKernel kernel) {
+		this.kernels.put(identifier, kernel);
 	}
 
 	public int calcWorkGroupSize(int globalSize) {
