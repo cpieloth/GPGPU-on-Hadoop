@@ -7,7 +7,6 @@ import cl_kernel.TrapeziumIntegrationFloat;
 import cl_util.CLInstance;
 
 import com.nativelibs4java.opencl.CLBuffer;
-import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLMem.Usage;
 
@@ -38,14 +37,11 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 		int n = interval.getResolution();
 
 		// get kernel and queue
-		CLContext context = this.clInstance.getContext();
 		TrapeziumIntegrationFloat kernel = (TrapeziumIntegrationFloat) this.clInstance
-				.getKernel("", TrapeziumIntegrationFloat.KERNEL_NAME);
+				.getKernel(TrapeziumIntegrationFloat.getIdentifier(function.getOpenCLFunction()));
 		if (kernel == null) {
-			kernel = new TrapeziumIntegrationFloat(context,
+			kernel = new TrapeziumIntegrationFloat(this.clInstance,
 					this.function.getOpenCLFunction());
-			this.clInstance.addKernel(function.toString(),
-					TrapeziumIntegrationFloat.KERNEL_NAME, kernel);
 		}
 
 		try {

@@ -23,7 +23,7 @@ public class KMeansStarter {
 
 	public enum Argument {
 		INPUT("input", 0), CENTROIDS("centroids", 1), OUTPUT("output", 2), TYPE(
-				Argument.CPU + "|" + Argument.OCL, 3);
+				Argument.CPU + "|" + Argument.OCL, 3), ITERATIONS("iterations", 4);
 
 		public final String name;
 		public final int index;
@@ -61,6 +61,12 @@ public class KMeansStarter {
 		final String cFile = args[Argument.CENTROIDS.index];
 		final String oFile = args[Argument.OUTPUT.index];
 		final String type = args[Argument.TYPE.index];
+		
+		int iterations;
+		if(args.length > 4)
+			iterations = Integer.parseInt(args[Argument.ITERATIONS.index]);
+		else
+			iterations = 1;
 
 		Logger.logInfo(CLAZZ, "Read input file ...");
 		List<ICPoint<Float>> points = KMeansData.readICPoints(new File(iFile));
@@ -95,7 +101,7 @@ public class KMeansStarter {
 		StopWatch swCompute = new StopWatch("timeCompute" + type + "=", ";");
 		swCompute.start();
 		
-		kmeans.run(points, centroids, 1);
+		kmeans.run(points, centroids, iterations);
 
 		swCompute.stop();
 		sw.stop();

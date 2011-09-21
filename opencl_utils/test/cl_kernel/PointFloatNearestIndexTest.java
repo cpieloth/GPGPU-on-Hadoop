@@ -10,7 +10,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import cl_kernel.PointFloatNearestIndex;
 import cl_util.CLInstance;
 import cl_util.CLInstance.TYPES;
 
@@ -26,7 +25,7 @@ public class PointFloatNearestIndexTest {
 	@Before
 	public void setUp() throws Exception {
 		clInstance = new CLInstance(TYPES.CL_GPU);
-		kernel = new PointFloatNearestIndex(clInstance.getContext(), DIM);
+		kernel = new PointFloatNearestIndex(clInstance, DIM);
 	}
 
 	@Test
@@ -42,11 +41,11 @@ public class PointFloatNearestIndexTest {
 		timeCpu = System.currentTimeMillis() - timeCpu;
 
 		long timeOcl = System.currentTimeMillis();
-		CLBuffer<Integer> resultBuffer = kernel.getContext().createIntBuffer(
+		CLBuffer<Integer> resultBuffer = clInstance.getContext().createIntBuffer(
 				Usage.Output, count);
-		CLBuffer<Float> pointBuffer = kernel.getContext().createFloatBuffer(
+		CLBuffer<Float> pointBuffer = clInstance.getContext().createFloatBuffer(
 				Usage.Input, FloatBuffer.wrap(points), true);
-		CLBuffer<Float> centroidBuffer = kernel.getContext().createFloatBuffer(
+		CLBuffer<Float> centroidBuffer = clInstance.getContext().createFloatBuffer(
 				Usage.Input, FloatBuffer.wrap(centroids), true);
 		IntBuffer res = kernel.run(resultBuffer, pointBuffer, count,
 				centroidBuffer, CENTROIDS);

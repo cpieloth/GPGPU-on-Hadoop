@@ -26,7 +26,7 @@ public class FloatGroupSumTest {
 	@Before
 	public void setUp() throws Exception {
 		clInstance = new CLInstance(TYPES.CL_GPU);
-		kernel = new FloatGroupSum(clInstance.getContext());
+		kernel = new FloatGroupSum(clInstance);
 	}
 
 	@Test
@@ -45,7 +45,7 @@ public class FloatGroupSumTest {
 		timeCpu = System.currentTimeMillis() - timeCpu;
 		
 		long timeOcl = System.currentTimeMillis();
-		CLBuffer<Float> resultBuffer = kernel.getContext().createFloatBuffer(
+		CLBuffer<Float> resultBuffer = clInstance.getContext().createFloatBuffer(
 				Usage.InputOutput, FloatBuffer.wrap(values), true);
 		long timeOclCompute = System.currentTimeMillis();
 		FloatBuffer res = kernel.run(resultBuffer, globalSize, localSize, localCount);

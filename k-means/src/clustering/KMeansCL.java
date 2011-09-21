@@ -68,7 +68,7 @@ public class KMeansCL implements IKMeans<Float> {
 		sw.start();
 
 		this.clPoint.prepareNearestPoints(centroids);
-		this.clPoint.resetBuffer(points.size());
+		this.clPoint.reset(points.size());
 
 		for (ICPoint<Float> p : points) {
 			this.clPoint.put(p);

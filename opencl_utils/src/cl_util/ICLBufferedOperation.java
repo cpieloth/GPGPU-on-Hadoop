@@ -15,35 +15,61 @@ package cl_util;
 public interface ICLBufferedOperation<T> {
 
 	/**
-	 * Maximum buffer items. Should be hardware and data type dependent!
+	 * Returns internal buffer size. If buffer is full, data is copied to OCL
+	 * device.
+	 * 
+	 * @return internal buffer size
+	 */
+	public int getBufferSize();
+
+	/**
+	 * Returns the number of items that are stored in the internal buffer.
+	 * 
+	 * @return current buffer counter.
+	 */
+	public int getBufferCount();
+
+	/**
+	 * Maximum items size which can be stored by the OCL device. Should be
+	 * hardware and data type dependent!
 	 * 
 	 * @return Maximum objects which can be stored in the buffer.
 	 */
-	public int getMaxBufferItems();
+	public int getMaxItemSize();
 
 	/**
-	 * Current maximum buffer items. E.g. set by resetBuffer(int bufferItems);
+	 * Returns the number of items that are stored in the OCL memory.
 	 * 
-	 * @return Maximum objects which can be stored in the buffer.
+	 * @return current item count.
 	 */
-	public int getCurrentMaxBufferItems();
+	public int getItemCount();
 
 	/**
-	 * Resets the counter and creates a new buffer. Buffer could be resized or
-	 * fit to getMaxBufferItems().
+	 * Size of the current allocated OCL memory.
 	 * 
-	 * @param bufferItems
+	 * @return Size of the current allocated OCL memory.
+	 */
+	public int getCurrentMaxItemSize();
+
+	/**
+	 * Resets the counter and allocates new OCL memory. OCL memory could be
+	 * resized or fit to getMaxItemsSize().
+	 * 
+	 * @param expectedItemSize
 	 *            Minimum buffer size.
+	 * @return actual allocated item size
 	 */
-	public int resetBuffer(int bufferItems);
+	public int reset(int expectedItemSize);
 
 	/**
-	 * Resets the buffer to its maximum.
+	 * Same like reset(getMaxItemSize()).
+	 * 
+	 * @return actual allocated item size
 	 */
-	public int resetBuffer();
+	public int reset();
 
 	/**
-	 * Appends a object to the buffer. If the buffer is full, a intermediate
+	 * Appends a object to the buffer. If the buffer is full, it should be copied to OCL memory or a intermediate
 	 * result should be computed.
 	 * 
 	 * @param v
