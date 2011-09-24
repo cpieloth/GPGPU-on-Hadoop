@@ -21,6 +21,8 @@ import org.apache.hadoop.mapreduce.Reducer;
 import stopwatch.StopWatch;
 import utils.Points;
 import cl_util.CLInstance;
+import cl_util.CLPointFloat;
+import clustering.IPoint;
 
 public class KMMapperReducerCL {
 
@@ -31,8 +33,7 @@ public class KMMapperReducerCL {
 
 		private List<PointWritable> centroids;
 		private CLPointFloat clPoint;
-	//	private List<PointWritable> pointBuffer;
-	//	private int pointCounter;
+		private List<PointWritable> pointBuffer;
 
 		private StopWatch swPhase = new StopWatch(
 				KMeansHadoop.Timer.MAPPHASE.prefix,
@@ -85,15 +86,14 @@ public class KMMapperReducerCL {
 			}
 
 			this.clPoint = new CLPointFloat(new CLInstance(
-					CLInstance.TYPES.CL_GPU), this.centroids.get(0).getDim(), context);
-			List<PointWritable> tmpCentroids = new ArrayList<PointWritable>(
+					CLInstance.TYPES.CL_GPU), this.centroids.get(0).getDim());
+			List<IPoint<Float>> tmpCentroids = new ArrayList<IPoint<Float>>(
 					this.centroids.size());
-			tmpCentroids.addAll(this.centroids);
-			Logger.logDebug(CLAZZ, "Centroid size: " + tmpCentroids.size());
-			this.clPoint.prepareNearestPoints(tmpCentroids);
-			//this.pointBuffer = new LinkedList<PointWritable>();
+					tmpCentroids.addAll(this.centroids);
+					Logger.logDebug(CLAZZ, "Centroid size: " + tmpCentroids.size());
+					this.clPoint.prepareNearestPoints(tmpCentroids);
+			this.pointBuffer = new LinkedList<PointWritable>();
 			this.clPoint.reset();
-		//	this.pointCounter = 0;
 		}
 
 		@Override
@@ -101,47 +101,27 @@ public class KMMapperReducerCL {
 				KMMapper.Context context) throws IOException,
 				InterruptedException {
 			swMethod.resume();
-
-			//ICPoint<Float> cp = new CPoint(value);
-
-//			if (pointCounter < pointBuffer.size()) {
-//				this.pointBuffer.add(value);
-//				this.clPoint.put(value);
-//				this.pointCounter++;
-//			} else {
-//				this.clPoint.setNearestPoints();
-//				write(context);
-//
-//				this.pointBuffer.add(value);
-//				this.clPoint.put(value);
-//				this.pointCounter++;
-//			}
 			
-			//this.pointBuffer.add(value);
+			// Points fit into RAM
+			this.pointBuffer.add(value);
 			this.clPoint.put(value);
-			// this.clPoint.setNearestPoints();
-			//
-			// PointWritable centroid = new PointWritable(cp.getCentroid());
-			//
-			// context.write(centroid, value);
 
 			swMethod.pause();
 		}
 
-//		private void write(KMMapper.Context context) throws IOException,
-//				InterruptedException {
-//			for (PointWritable cp : pointBuffer) {
-//				context.write((PointWritable)cp.getCentroid(), cp);
-//			}
-//			//this.pointBuffer.clear();
-//			//this.pointCounter = 0;
-//		}
+		private void write(KMMapper.Context context) throws IOException,
+				InterruptedException {
+			for (PointWritable cp : pointBuffer) {
+				context.write((PointWritable)cp.getCentroid(), cp);
+			}
+			this.pointBuffer.clear();
+		}
 
 		@Override
 		protected void cleanup(KMMapper.Context context) {
 			try {
 				this.clPoint.setNearestPoints();
-				//write(context);
+				write(context);
 			} catch (Exception e) {
 				Logger.logError(CLAZZ, "cleanup: " + e.getMessage());
 			}
@@ -155,6 +135,7 @@ public class KMMapperReducerCL {
 
 	}
 
+	// Old reduce with OCL
 	// public static class KMReducer extends
 	// Reducer<PointWritable, PointWritable, PointWritable, PointWritable> {
 	//
