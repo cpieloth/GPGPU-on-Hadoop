@@ -21,6 +21,10 @@ import org.apache.hadoop.mapreduce.Reducer;
 import stopwatch.StopWatch;
 import utils.Points;
 import cl_util.CLInstance;
+import cl_util.CLPointFloat;
+import clustering.CPoint;
+import clustering.ICPoint;
+import clustering.IPoint;
 
 public class KMMapperReducerCL {
 
@@ -31,8 +35,6 @@ public class KMMapperReducerCL {
 
 		private List<PointWritable> centroids;
 		private CLPointFloat clPoint;
-	//	private List<PointWritable> pointBuffer;
-	//	private int pointCounter;
 
 		private StopWatch swPhase = new StopWatch(
 				KMeansHadoop.Timer.MAPPHASE.prefix,
@@ -85,15 +87,13 @@ public class KMMapperReducerCL {
 			}
 
 			this.clPoint = new CLPointFloat(new CLInstance(
-					CLInstance.TYPES.CL_GPU), this.centroids.get(0).getDim(), context);
-			List<PointWritable> tmpCentroids = new ArrayList<PointWritable>(
+					CLInstance.TYPES.CL_GPU), this.centroids.get(0).getDim());
+			List<IPoint<Float>> tmpCentroids = new ArrayList<IPoint<Float>>(
 					this.centroids.size());
 			tmpCentroids.addAll(this.centroids);
 			Logger.logDebug(CLAZZ, "Centroid size: " + tmpCentroids.size());
 			this.clPoint.prepareNearestPoints(tmpCentroids);
-			//this.pointBuffer = new LinkedList<PointWritable>();
-			this.clPoint.reset();
-		//	this.pointCounter = 0;
+			this.clPoint.reset(1);
 		}
 
 		@Override
@@ -102,50 +102,20 @@ public class KMMapperReducerCL {
 				InterruptedException {
 			swMethod.resume();
 
-			//ICPoint<Float> cp = new CPoint(value);
+			ICPoint<Float> cp = new CPoint(value);
 
-//			if (pointCounter < pointBuffer.size()) {
-//				this.pointBuffer.add(value);
-//				this.clPoint.put(value);
-//				this.pointCounter++;
-//			} else {
-//				this.clPoint.setNearestPoints();
-//				write(context);
-//
-//				this.pointBuffer.add(value);
-//				this.clPoint.put(value);
-//				this.pointCounter++;
-//			}
-			
-			//this.pointBuffer.add(value);
-			this.clPoint.put(value);
-			// this.clPoint.setNearestPoints();
-			//
-			// PointWritable centroid = new PointWritable(cp.getCentroid());
-			//
-			// context.write(centroid, value);
+			this.clPoint.put(cp);
+			this.clPoint.setNearestPoints();
+
+			PointWritable centroid = new PointWritable(cp.getCentroid());
+
+			context.write(centroid, value);
 
 			swMethod.pause();
 		}
 
-//		private void write(KMMapper.Context context) throws IOException,
-//				InterruptedException {
-//			for (PointWritable cp : pointBuffer) {
-//				context.write((PointWritable)cp.getCentroid(), cp);
-//			}
-//			//this.pointBuffer.clear();
-//			//this.pointCounter = 0;
-//		}
-
 		@Override
 		protected void cleanup(KMMapper.Context context) {
-			try {
-				this.clPoint.setNearestPoints();
-				//write(context);
-			} catch (Exception e) {
-				Logger.logError(CLAZZ, "cleanup: " + e.getMessage());
-			}
-
 			swMethod.stop();
 			Logger.log(KMeansHadoop.TIME_LEVEL, CLAZZ, swMethod.getTimeString());
 
