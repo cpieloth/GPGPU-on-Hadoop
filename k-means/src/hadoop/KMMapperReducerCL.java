@@ -125,6 +125,7 @@ public class KMMapperReducerCL {
 
 	}
 
+	// Old reducer with OCL
 	// public static class KMReducer extends
 	// Reducer<PointWritable, PointWritable, PointWritable, PointWritable> {
 	//

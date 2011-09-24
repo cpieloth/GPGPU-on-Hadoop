@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;
 
-import clustering.ICPoint;
 import clustering.IPoint;
 import clustering.Point;
 
@@ -17,11 +16,9 @@ import clustering.Point;
  * @author christof
  * 
  */
-public class PointWritable implements ICPoint<Float>, WritableComparable<PointWritable> {
+public class PointWritable implements IPoint<Float>, WritableComparable<PointWritable> {
 
 	private IPoint<Float> point;
-	// new
-	private PointWritable centroid;
 	
 	public PointWritable() {
 		this(0);
@@ -107,17 +104,6 @@ public class PointWritable implements ICPoint<Float>, WritableComparable<PointWr
 			return false;
 		} else
 			return this.hashCode() == obj.hashCode();
-	}
-
-	// new
-	@Override
-	public IPoint<Float> getCentroid() {
-		return this.centroid;
-	}
-
-	@Override
-	public void setCentroid(IPoint<Float> centroid) {
-		this.centroid = (PointWritable)centroid;
 	}
 
 }
