@@ -18,7 +18,7 @@
 			<fileset dir="${PROJECT_PATH}/opencl_utils/bin"/>
 			
 			<zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/lightLogger-0.1.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/javacl-1.0-beta-6-shaded.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/javacl-jna-1.0.0-RC1-shaded.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/stopWatch-0.1.jar"/>
 		</jar>
 		
