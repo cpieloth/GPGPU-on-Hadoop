@@ -144,7 +144,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	}
 
 	@Override
-	public void put(Float value) {
+	public boolean put(Float value) {
 		// buffer ist noch nicht voll
 		if (bufferCount < BUFFER_SIZE) {
 			buffer[bufferCount++] = value;
@@ -152,6 +152,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 			writeBufferToOCL();
 			put(value);
 		}
+		return true;
 	}
 
 	private void writeBufferToOCL() {
