@@ -46,7 +46,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	private PointFloatNearestIndex kernel;
 
 	public CLPointFloat(CLInstance clInstance, int dim) {
-		this(clInstance, dim, 65536);
+		this(clInstance, dim, 65536 / dim);
 	}
 
 	public CLPointFloat(CLInstance clInstance, int dim, int bufferItems) {
@@ -55,7 +55,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 		SIZEOF_POINT = dim * SIZEOF_CL_FLOAT;
 		BUFFER_ITEM_SIZE = bufferItems;
 		BUFFER_SIZE = bufferItems * DIM;
-		MAX_ITEM_SIZE = (int) (clInstance.getMaxMemAllocSize() / 8 / SIZEOF_POINT);
+		MAX_ITEM_SIZE = (int) (clInstance.getMaxMemAllocSize() / 4 / SIZEOF_POINT);
 
 		buffer = new float[BUFFER_SIZE];
 		points = new LinkedList<ICPoint<Float>>();
@@ -174,7 +174,7 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 	}
 
 	@Override
-	public void put(ICPoint<Float> p) {
+	public boolean put(ICPoint<Float> p) {
 		if (bufferItemCount < BUFFER_ITEM_SIZE) {
 			points.add(p);
 
@@ -187,9 +187,10 @@ public class CLPointFloat implements ICLPointOperation<Float> {
 				put(p);
 			else {
 				Logger.logError(CLAZZ, "Could not put point to list!");
-				return;
+				return false;
 			}
 		}
+		return true;
 	}
 
 	private boolean writeBufferToOCL() {

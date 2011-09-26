@@ -73,7 +73,9 @@ public interface ICLBufferedOperation<T> {
 	 * result should be computed.
 	 * 
 	 * @param v
+	 * 
+	 * @return false, if no result could be computed or no data could be copied!
 	 */
-	public void put(T v);
+	public boolean put(T v);
 
 }

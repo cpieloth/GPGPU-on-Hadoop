@@ -12,7 +12,7 @@ import clustering.IPoint;
 import clustering.Point;
 
 /**
- * Decorator for Hadoop implementation of IPoint to use as key and value.
+ * Decorator for Hadoop implementation of ICPoint to use as key and value. NOTICE: Centroid is ignored by readFields() and write()!
  * 
  * @author christof
  * 
