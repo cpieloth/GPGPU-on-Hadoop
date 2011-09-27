@@ -108,6 +108,6 @@ public class KMeansStarter {
 		Logger.log(TIME_LEVEL, CLAZZ, swCompute.getTimeString());
 		Logger.log(TIME_LEVEL, CLAZZ, sw.getTimeString());
 
-		KMeansData.writeToLFS(points, oFile);
+		KMeansData.write(points, oFile);
 	}
 }

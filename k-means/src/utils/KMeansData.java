@@ -10,13 +10,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import lightLogger.Logger;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
-import org.apache.hadoop.fs.Path;
-
 import clustering.CPoint;
 import clustering.ICPoint;
 import clustering.IPoint;
@@ -32,7 +25,7 @@ public class KMeansData {
 
 	public enum Argument {
 		OUTPUT("output", 0), SIZE("size", 1), DIM("dimension", 2), CLUSTER(
-				"clusters", 3), FS(Argument.DFS + "|" + Argument.LFS, 4);
+				"clusters", 3), /*FS(Argument.DFS + "|" + Argument.LFS, 4)*/;
 
 		public final String name;
 		public final int index;
@@ -42,12 +35,12 @@ public class KMeansData {
 			this.index = index;
 		}
 
-		public static final String DFS = "dfs";
-		public static final String LFS = "lfs";
+		// public static final String DFS = "dfs";
+		// public static final String LFS = "lfs";
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 5) {
+		if (args.length < /*5*/4) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Arguments:");
 			for (Argument arg : Argument.values())
@@ -60,25 +53,19 @@ public class KMeansData {
 		final int size = Integer.parseInt(args[Argument.SIZE.index]);
 		final int dim = Integer.parseInt(args[Argument.DIM.index]);
 		final int k = Integer.parseInt(args[Argument.CLUSTER.index]);
-		final String fs = args[Argument.FS.index];
+		// final String fs = args[Argument.FS.index];
 
 		Points pHelper = new Points(dim);
 		List<ICPoint<Float>> points = pHelper.generate(k, size, 1);
 
-		if (Argument.DFS.equals(fs))
-			writeToDFS(points, output, null);
-		else if (Argument.LFS.equals(fs))
-			writeToLFS(points, output, null);
-		else
-			Logger.logError(CLAZZ, "Unknown file system!");
-
+		 write(points, output, null);
 	}
 
-	public static boolean writeToLFS(List<ICPoint<Float>> points, String file) {
-		return writeToLFS(points, file, SEPARATOR);
+	public static boolean write(List<ICPoint<Float>> points, String file) {
+		return write(points, file, SEPARATOR);
 	}
 
-	public static boolean writeToLFS(List<ICPoint<Float>> points, String file,
+	public static boolean write(List<ICPoint<Float>> points, String file,
 			final String separator) {
 		boolean res = true;
 		FileOutputStream fos = null;
@@ -97,54 +84,6 @@ public class KMeansData {
 					e.printStackTrace();
 				}
 		}
-		return res;
-	}
-
-	public static boolean writeToDFS(List<ICPoint<Float>> points, String file) {
-		return writeToDFS(points, file, SEPARATOR);
-	}
-
-	public static boolean writeToDFS(List<ICPoint<Float>> points, String file,
-			final String separator) {
-		boolean res = true;
-
-		try {
-			FsUrlStreamHandlerFactory factory = new org.apache.hadoop.fs.FsUrlStreamHandlerFactory();
-			java.net.URL.setURLStreamHandlerFactory(factory);
-		} catch (Exception e) {
-			Logger.logWarn(
-					CLAZZ,
-					"Could not set org.apache.hadoop.fs.FsUrlStreamHandlerFactory. May be it has been set before.");
-		}
-
-		Configuration configuration = new Configuration(true);
-
-		FileSystem fs = null;
-		FSDataOutputStream fos = null;
-		try {
-			fs = FileSystem.get(configuration);
-
-			fos = fs.create(new Path(file));
-			write(fos, points, separator);
-		} catch (IOException e) {
-			Logger.logError(CLAZZ, "Could not write input data.");
-			e.printStackTrace();
-			res = false;
-		} finally {
-			if (fs != null)
-				try {
-					fs.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (fos != null)
-				try {
-					fos.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-
 		return res;
 	}
 

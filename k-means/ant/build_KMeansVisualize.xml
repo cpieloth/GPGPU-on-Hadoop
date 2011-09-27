@@ -4,40 +4,21 @@
 	<!--ANT 1.7 is required                                        -->
 	<target name="create_run_jar">
 
-		<property name="DEST_PATH" value="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans" />
-		<property name="HADOOP_HOME" value="/opt/hadoop" />
-		<property name="USER_LIB" value="user_lib" />
-
-		<fileset dir="${HADOOP_HOME}/lib" id="hadoop.libs">
-			<include name="*.jar" />
-		</fileset>
-
-		<pathconvert pathsep=" " property="lib.list" refid="hadoop.libs">
-			<!-- <map from="${HADOOP_HOME}/lib" to="hadoop_lib" /> -->
-		</pathconvert>
-
-		<fileset dir="${HADOOP_HOME}" id="hadoop.jars">
-			<include name="*.jar" />
-		</fileset>
-
-		<pathconvert pathsep=" " property="jars.list" refid="hadoop.jars">
-			<!-- <map from="${HADOOP_HOME}" to="hadoop" /> -->
-		</pathconvert>
-		
+		<property name="HOME" value="/home/christof" />
+		<property name="DEST_PATH" value="${HOME}/Dropbox/GPGPU-on-Hadoop/Jars/KMeans" />
+		<property name="WORKSPACE_PATH" value="${HOME}/Documents/GPGPU-on-Hadoop" />
+		<property name="LIB_PATH" value="${HOME}/Dropbox/GPGPU-on-Hadoop/Libraries" />
 
 		<jar destfile="${DEST_PATH}/KMeansVisualize.jar">
 			<manifest>
-				<attribute name="Main-Class" value="utils.Visualize" />
-				<attribute name="Class-Path" value=". ${USER_LIB}/javacl-1.0-beta-6-shaded.jar ${USER_LIB}/lightLogger-0.1.jar ${USER_LIB}/stopWatch-0.1.jar ${lib.list} ${jars.list}" />
+				<attribute name="Main-Class" value="utils.KMeansVisualize" />
+				<attribute name="Class-Path" value="." />
 			</manifest>
-			<fileset dir="/Users/christof/Documents/GPGPU-on-Hadoop/k-means/bin" />
+			
+			<fileset dir="${WORKSPACE_PATH}/k-means/bin" />
+
+			<zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/lightLogger-0.1.jar" />
 		</jar>
-		<!--
-        <delete dir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <mkdir dir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <copy file="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries/javacl-1.0-beta-6-shaded.jar" todir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <copy file="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries/lightLogger-0.1.jar" todir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        <copy file="/Users/christof/Dropbox/GPGPU-on-Hadoop/Libraries/stopWatch-0.1.jar" todir="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/user_lib"/>
-        -->
+		
 	</target>
 </project>
