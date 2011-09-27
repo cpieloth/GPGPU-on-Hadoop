@@ -1,7 +1,7 @@
 package hadoop;
 
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,7 +88,14 @@ public class KMeansHadoop extends Configured implements Tool {
 		String centroids = rArgs[Argument.CENTROIDS.index];
 		final String jobName = rArgs[Argument.JOBNAME.index];
 
-		jobURLs = new ArrayList<String>(iterations);
+		StringBuilder argString = new StringBuilder();
+		for (String arg : args) {
+			argString.append(arg);
+			argString.append(" ");
+		}
+		Logger.logInfo(CLAZZ, argString.toString());
+
+		jobURLs = new LinkedList<String>();
 
 		// load HDFS handler, only once!
 		try {
@@ -128,12 +135,13 @@ public class KMeansHadoop extends Configured implements Tool {
 		Logger.log(TIME_LEVEL, CLAZZ, sw.getTimeString());
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("JobIDs:");
+		sb.append("JobIDs: ");
 		for (String url : jobURLs) {
-			sb.append(" ");
 			sb.append(getJobID(url));
+			sb.append(",");
 		}
-		Logger.logDebug(CLAZZ, sb.toString());
+		sb.deleteCharAt(sb.length() - 1);
+		Logger.logInfo(CLAZZ, sb.toString());
 
 		if (res != SUCCESS)
 			Logger.logError(CLAZZ, "Error during job execution!");
@@ -195,8 +203,8 @@ public class KMeansHadoop extends Configured implements Tool {
 				job.getConfiguration());
 
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
-		if (args[Argument.OUTPUT.index] != OUTPUT) // log complete m/r jobs only
-			jobURLs.add(job.getTrackingURL());
+
+		jobURLs.add(job.getTrackingURL());
 
 		return stat;
 	}

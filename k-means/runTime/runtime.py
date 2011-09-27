@@ -5,14 +5,18 @@ import subprocess
 import re
 
 # Variables
+HOME = "/home/christof"
 HADOOP_CMD = "/opt/hadoop/bin/hadoop"
-PRG_NAME =  '/opt/hadoop/jars/KMeans/KMeansHadoop.jar'    # TODO to set
-DATA_SIZES = ["128", "256", "512"]    # TODO to set
+PRG_NAME = HOME + "/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/KMeansHadoop.jar"    # TODO to set
+DATA_SIZES = ["16", "32", "64"]    # TODO to set
+#DATA_SIZES = ["2"]    # TODO to set
 DIM_SIZES = ["2", "64", "256"]    # TODO to set
+#DIM_SIZES = ["2"]    # TODO to set
 MODES = ["cpu", "ocl"]  # TODO to set
 RUNS = 3    # TODO to set
-LOG_PATH = "/tmp"
-DATA_PATH = "/Users/christof/Documents/km_data"
+ITERATIONS = "1"    # TODO to set
+LOG_PATH = "/tmp/km_logs"
+DATA_PATH = HOME + "/Documents/km_data"
 HDFS_INPUT = "/km_data/input"
 HDFS_CENTROIDS = "/km_data/centroids"
 HDFS_OUTPUT = "/km_data/output"
@@ -62,6 +66,7 @@ def clearIntermediateHdfs():
     p.wait()
 
 # Print information
+print('Home:', HOME)
 print('Hadoop:', HADOOP_CMD)
 print('Program:', PRG_NAME)
 print('Log path:', LOG_PATH)
@@ -69,6 +74,12 @@ print('HDFS input:', HDFS_INPUT)
 print('HDFS centroids:', HDFS_CENTROIDS)
 print('HDFS output:', HDFS_OUTPUT)
 print()
+
+# Create log path
+command = "mkdir " + LOG_PATH
+args = shlex.split(command)
+p = subprocess.Popen(args, stdout=subprocess.PIPE)
+p.wait()
 
 # Run tests
 print('Start runs ...')
@@ -90,11 +101,11 @@ for data in DATA_SIZES:
             print('    mode: ', mode)
             # prepare command to start
             jobName = "KMeans_" + data + "mb_" + dim + "d_" + mode
-            command = HADOOP_CMD + " jar " + PRG_NAME + " " + jobName + " " + HDFS_INPUT + " " + HDFS_CENTROIDS + " " + HDFS_OUTPUT + " "  + mode + " 5"   # TODO to set
+            command = HADOOP_CMD + " jar " + PRG_NAME + " " + jobName + " " + HDFS_INPUT + " " + HDFS_CENTROIDS + " " + HDFS_OUTPUT + " "  + mode + " "  + ITERATIONS   # TODO to set
             print('    command: ', command)
             args = shlex.split(command)
             # TODO start job
-            file = open(LOG_PATH + "/" + jobName, 'w')
+            file = open(LOG_PATH + "/" + jobName, 'w+b')
             
             for run in range(0, RUNS):
                 print("    Starting run #", run)
@@ -106,7 +117,7 @@ for data in DATA_SIZES:
                 p = subprocess.Popen(args, stdout=subprocess.PIPE)
                 p.wait()
                 
-                file.write(str(p.stdout.read()) + '\n')
+                file.write(p.stdout.read())
                 print("    Finished run #", run)
                 
             file.close()
