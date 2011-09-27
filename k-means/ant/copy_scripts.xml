@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="copy" name="Create Runnable Jar for Project k-means with libraries in sub-folder">
+	<!--this file was created by Eclipse Runnable JAR Export Wizard-->
+	<!--ANT 1.7 is required                                        -->
+	<target name="copy">
+
+		<property name="HOME" value="/home/christof" />
+		<property name="DEST_PATH" value="${HOME}/Dropbox/GPGPU-on-Hadoop/Jars/KMeans" />
+		<property name="WORKSPACE_PATH" value="${HOME}/Documents/GPGPU-on-Hadoop" />
+
+		<copy todir="${DEST_PATH}">
+			<fileset dir="${WORKSPACE_PATH}/k-means/runTime" />
+		</copy>
+		
+	</target>
+</project>
