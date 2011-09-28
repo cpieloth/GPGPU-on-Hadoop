@@ -96,6 +96,7 @@ public class KMeans implements IKMeans<Float> {
 			}
 			clusters.get(p.getCentroid()).add(p);
 		}
+		Logger.logDebug(CLAZZ, "clusters.size: " + clusters.size());
 
 		// Compute new centroid
 		IPoint<Float> newCentroid = null;

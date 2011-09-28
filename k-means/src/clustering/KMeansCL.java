@@ -80,14 +80,6 @@ public class KMeansCL implements IKMeans<Float> {
 		Logger.logDebug(CLAZZ, sw.getTimeString());
 	}
 
-	// TODO ist langsamer als Methode aus KMeans.java
-	// In assignCentroids wird für jeden Punkt ein neuer Centroid erstellt.
-	// Dadurch wird in HashMap.clusters für jedes containsKey() ein equals
-	// aufgrufen,
-	// welches in KMeans nicht aufgerufen wird, weil inhaltlich gleiche Objekte
-	// auch die gleichen Adressen haben.
-	// Aufgrund der "new Point()" in CLPointFloat, hat jeder Centroid der Punkte
-	// andere Adressen.
 	@Override
 	public List<IPoint<Float>> computeCentroids(List<ICPoint<Float>> points) {
 		Logger.logTrace(CLAZZ, "computeCentroids(" + points.size() + ")");
@@ -103,6 +95,7 @@ public class KMeansCL implements IKMeans<Float> {
 			}
 			clusters.get(p.getCentroid()).add(p);
 		}
+		Logger.logDebug(CLAZZ, "clusters.size: " + clusters.size());
 
 		// Compute new centroid
 		IPoint<Float> newCentroid = null;

@@ -26,14 +26,6 @@ import utils.Points;
 public class PointOutputFormat extends
 		FileOutputFormat<PointWritable, PointWritable> {
 
-//	public static String createString(IPoint<Float> value) {
-//		StringBuilder sb = new StringBuilder();
-//		for (int d = 0; d < value.getDim(); d++)
-//			sb.append(value.get(d) + ";");
-//		sb.deleteCharAt(sb.length() - 1);
-//		return sb.toString();
-//	}
-
 	public RecordWriter<PointWritable, PointWritable> getRecordWriter(
 			TaskAttemptContext job) throws IOException, InterruptedException {
 		Configuration conf = job.getConfiguration();
@@ -102,7 +94,7 @@ public class PointOutputFormat extends
 			if (key != null && value != null)
 				out.write(keyValueSeparator);
 			if (value != null) {
-				s = Points.createString(key);
+				s = Points.createString(value);
 				out.write(s.getBytes(utf8));
 			}
 			out.write(newline);

@@ -53,7 +53,6 @@ public class KMeansStarter {
 		try {
 			ir.readLine();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -72,6 +71,7 @@ public class KMeansStarter {
 		List<ICPoint<Float>> points = KMeansData.readICPoints(new File(iFile));
 		Logger.logInfo(CLAZZ, "Read center file ...");
 		List<IPoint<Float>> centroids = KMeansData.readIPoints(new File(cFile));
+		Logger.logDebug(CLAZZ, "Centroid size: " + centroids.size());
 
 		if (points.isEmpty() || centroids.isEmpty()) {
 			Logger.logError(CLAZZ, "Empty points or centroids!");
