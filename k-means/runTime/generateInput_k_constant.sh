@@ -6,7 +6,7 @@ DATA_SIZE=("16" "32" "64")
 DIM_SIZE=("2" "64" "256")
 ITEM_SIZE=11
 MB=1048576
-K_VALUE=512
+K_VALUE=256
 JAVA="java -Xms1536m -Xmx2048m -jar"
 JAVA_PROG="$HOME/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/KMeansData.jar"
 
