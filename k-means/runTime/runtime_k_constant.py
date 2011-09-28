@@ -3,15 +3,15 @@
 import shlex
 import subprocess
 import re
+import os
+import time
 
 # Variables
-HOME = "/home/christof"
+HOME = os.environ.get("HOME")
 HADOOP_CMD = "/opt/hadoop/bin/hadoop"
 PRG_NAME = HOME + "/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/KMeansHadoop.jar"    # TODO to set
 DATA_SIZES = ["16", "32", "64"]    # TODO to set
-#DATA_SIZES = ["2"]    # TODO to set
 DIM_SIZES = ["2", "64", "256"]    # TODO to set
-#DIM_SIZES = ["2"]    # TODO to set
 MODES = ["cpu", "ocl"]  # TODO to set
 RUNS = 3    # TODO to set
 ITERATIONS = "1"    # TODO to set
@@ -96,6 +96,8 @@ for data in DATA_SIZES:
         print("    Copy data to HDFS ...")
         copyHdfs(data, dim)
         print("    Copy data HDFS finished!")
+        print("    Waiting 10 seconds for duplication!")
+        time.sleep(10)
         
         for mode in MODES:
             print('    mode: ', mode)

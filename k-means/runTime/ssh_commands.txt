@@ -1,0 +1,6 @@
+# copy userlog file from remote to local
+scp -r localhost:<hadoop>logs/userlogs/ $HOME/Documents/km_data/
+scp -r localhost:/tmp/km_logs/ $HOME/Documents/km_data/
+
+# copy files from local to remote
+scp -r $HOME/Dropbox/GPGPU-on-Hadoop/Jars/KMeans/ localhost:/home/christof/Documents/km_data/
