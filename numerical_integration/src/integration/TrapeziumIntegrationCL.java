@@ -2,6 +2,8 @@ package integration;
 
 import java.nio.FloatBuffer;
 
+import stopwatch.StopWatch;
+
 import lightLogger.Logger;
 import cl_kernel.TrapeziumIntegrationFloat;
 import cl_util.CLInstance;
@@ -52,8 +54,12 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 			CLBuffer<Float> resultBuffer = this.clInstance.getContext()
 					.createFloatBuffer(Usage.Output, workGroups);
 
+			StopWatch sw = new StopWatch("timeKernel=", ";");
+			sw.start();
 			FloatBuffer resBuffer = kernel.run(resultBuffer, start, offset, n,
 					globalSize, localSize);
+			sw.stop();
+			Logger.logDebug(CLAZZ, sw.getTimeString());
 
 			for (int i = 0; i < workGroups; i++)
 				result += resBuffer.get();

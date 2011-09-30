@@ -1,7 +1,5 @@
 package utils;
 
-import hadoop.FloatIntervalInputFormat;
-import hadoop.FloatIntervalOutputFormat;
 import integration.FloatInterval;
 import integration.IInterval;
 
@@ -17,12 +15,6 @@ import java.util.Scanner;
 
 import lightLogger.Logger;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
-import org.apache.hadoop.fs.Path;
-
 public class NIData {
 
 	private static final Class<NIData> CLAZZ = NIData.class;
@@ -32,8 +24,7 @@ public class NIData {
 
 	public enum Argument {
 		OUTPUT("output", 0), START("start", 1), END("end", 2), INTERVALS(
-				"intervals", 3), RESOLUTION("resolutionPerInterval", 4), FS(
-				Argument.DFS + "|" + Argument.LFS, 5);
+				"intervals", 3), RESOLUTION("resolutionPerInterval", 4);
 
 		public final String name;
 		public final int index;
@@ -42,13 +33,10 @@ public class NIData {
 			this.name = name;
 			this.index = index;
 		}
-
-		public static final String DFS = "dfs";
-		public static final String LFS = "lfs";
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 6) {
+		if (args.length < 5) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Arguments:");
 			for (Argument arg : Argument.values())
@@ -63,17 +51,11 @@ public class NIData {
 		final int count = Integer.parseInt(args[Argument.INTERVALS.index]);
 		final int resolution = Integer
 				.parseInt(args[Argument.RESOLUTION.index]);
-		final String fs = args[Argument.FS.index];
 
 		List<IInterval<Float>> intervals = generateIntervals(start, end, count,
 				resolution);
 
-		if (Argument.DFS.equals(fs))
-			writeToDFS(intervals, output, WHITESPACE);
-		else if (Argument.LFS.equals(fs))
-			writeToLFS(intervals, output, WHITESPACE);
-		else
-			Logger.logError(CLAZZ, "Unknown file system!");
+		write(intervals, output, WHITESPACE);
 	}
 
 	public static List<IInterval<Float>> generateIntervals(float start,
@@ -94,13 +76,12 @@ public class NIData {
 		return intervals;
 	}
 
-	public static boolean writeToLFS(List<IInterval<Float>> intervals,
-			String file) {
-		return writeToLFS(intervals, file, WHITESPACE);
+	public static boolean write(List<IInterval<Float>> intervals, String file) {
+		return write(intervals, file, WHITESPACE);
 	}
 
-	public static boolean writeToLFS(List<IInterval<Float>> intervals,
-			String file, final String whitespace) {
+	public static boolean write(List<IInterval<Float>> intervals, String file,
+			final String whitespace) {
 		boolean res = true;
 		FileOutputStream fos = null;
 		try {
@@ -121,60 +102,11 @@ public class NIData {
 		return res;
 	}
 
-	public static boolean writeToDFS(List<IInterval<Float>> intervals,
-			String file) {
-		return writeToDFS(intervals, file, WHITESPACE);
-	}
-
-	public static boolean writeToDFS(List<IInterval<Float>> intervals,
-			String file, final String whitespace) {
-		boolean res = true;
-
-		try {
-			FsUrlStreamHandlerFactory factory = new org.apache.hadoop.fs.FsUrlStreamHandlerFactory();
-			java.net.URL.setURLStreamHandlerFactory(factory);
-		} catch (Exception e) {
-			Logger.logWarn(
-					CLAZZ,
-					"Could not set org.apache.hadoop.fs.FsUrlStreamHandlerFactory. May be it has been set before.");
-		}
-
-		Configuration configuration = new Configuration(true);
-
-		FileSystem fs = null;
-		FSDataOutputStream fos = null;
-		try {
-			fs = FileSystem.get(configuration);
-
-			fos = fs.create(new Path(file));
-			write(fos, intervals, whitespace);
-		} catch (IOException e) {
-			Logger.logError(CLAZZ, "Could not write input data.");
-			e.printStackTrace();
-			res = false;
-		} finally {
-			if (fs != null)
-				try {
-					fs.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			if (fos != null)
-				try {
-					fos.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-		}
-
-		return res;
-	}
-
 	private static void write(OutputStream os,
 			List<IInterval<Float>> intervals, final String whitespace)
 			throws UnsupportedEncodingException, IOException {
 		for (IInterval<Float> i : intervals) {
-			os.write(FloatIntervalOutputFormat.createString(i, whitespace)
+			os.write(Intervals.createString(i, whitespace)
 					.getBytes(CHARSET));
 			os.write("\n".getBytes(CHARSET));
 		}
@@ -196,8 +128,7 @@ public class NIData {
 			while (sc.hasNext()) {
 				line = sc.nextLine();
 
-				interval = FloatIntervalInputFormat
-						.createFloatIntervalWritable(line);
+				interval = Intervals.createFloatInterval(line);
 				intervals.add(interval);
 			}
 		} catch (Exception e) {

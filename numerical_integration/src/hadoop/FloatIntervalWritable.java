@@ -18,7 +18,7 @@ import org.apache.hadoop.io.WritableComparable;
 public class FloatIntervalWritable implements IInterval<Float>,
 		WritableComparable<FloatIntervalWritable> {
 
-	private FloatInterval intervall;
+	private IInterval<Float> intervall;
 
 	public FloatIntervalWritable() {
 		this(0, 0, 0);
@@ -28,7 +28,7 @@ public class FloatIntervalWritable implements IInterval<Float>,
 		this.intervall = new FloatInterval(begin, end, resolution);
 	}
 
-	public FloatIntervalWritable(FloatInterval intervall) {
+	public FloatIntervalWritable(IInterval<Float> intervall) {
 		this.intervall = intervall;
 	}
 

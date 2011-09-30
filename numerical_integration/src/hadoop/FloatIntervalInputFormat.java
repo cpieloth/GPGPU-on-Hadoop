@@ -3,8 +3,6 @@ package hadoop;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import lightLogger.Logger;
 
@@ -25,6 +23,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
 
+import utils.Intervals;
+
 /**
  * Same as NLineInputFormat with NullWritable as key and FloatIntervalWritable
  * as value.
@@ -34,9 +34,6 @@ import org.apache.hadoop.util.LineReader;
  */
 public class FloatIntervalInputFormat extends
 		FileInputFormat<NullWritable, FloatIntervalWritable> {
-
-	private static final Pattern pattern = Pattern
-			.compile("\\[(-*\\d+.\\d+),(-*\\d+.\\d+)\\]\\s+(\\d+)");
 
 	/**
 	 * Defines the lines per mapper/split.
@@ -99,22 +96,6 @@ public class FloatIntervalInputFormat extends
 			InputSplit split, TaskAttemptContext context) throws IOException,
 			InterruptedException {
 		return new IntervalRecordReader();
-	}
-
-	public static FloatIntervalWritable createFloatIntervalWritable(String line) {
-		Matcher matcher = pattern.matcher(line);
-		FloatIntervalWritable interval = new FloatIntervalWritable();
-		if (matcher.matches()) {
-			interval.setBegin(Float.valueOf(matcher.group(1)));
-			interval.setEnd(Float.valueOf(matcher.group(2)));
-			interval.setResolution(Integer.valueOf(matcher.group(3)));
-			return interval;
-
-		} else {
-			Logger.logError(FloatIntervalInputFormat.class,
-					"Could not create interval from line: " + line);
-			return interval;
-		}
 	}
 
 	protected static class IntervalRecordReader extends
@@ -209,8 +190,7 @@ public class FloatIntervalInputFormat extends
 		@Override
 		public FloatIntervalWritable getCurrentValue() throws IOException,
 				InterruptedException {
-			this.value = FloatIntervalInputFormat
-					.createFloatIntervalWritable(this.line.toString());
+			this.value = new FloatIntervalWritable(Intervals.createFloatInterval(this.line.toString()));
 			return this.value;
 		}
 
