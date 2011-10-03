@@ -8,10 +8,12 @@ import integration.IInterval;
 import integration.IMathFunction;
 import integration.INumeriacalIntegration;
 import integration.TrapeziumIntegration;
-import integration.TrapeziumIntegrationCL;
+import integration.TrapeziumIntegrationMultiCL;
 
 import java.io.File;
 import java.util.List;
+
+import cl_util.CLInstance;
 
 import lightLogger.Level;
 import lightLogger.Logger;
@@ -86,7 +88,7 @@ public class NIStarter {
 		if (Argument.CPU.equals(type))
 			integration = new TrapeziumIntegration();
 		else if (Argument.OCL.equals(type))
-			integration = new TrapeziumIntegrationCL();
+			integration = new TrapeziumIntegrationMultiCL(new CLInstance(CLInstance.TYPES.CL_GPU), 100000);
 		else {
 			Logger.logError(CLAZZ, "Unknown type");
 			System.exit(1);
@@ -98,8 +100,17 @@ public class NIStarter {
 		swCompute.start();
 
 		float integral = 0;
-		for (IInterval<Float> interval : intervals) {
-			integral += integration.getIntegral(interval);
+		if (Argument.OCL.equals(type)) {
+			for (IInterval<Float> interval : intervals) {
+				((TrapeziumIntegrationMultiCL)integration).put(interval);
+			}
+			List<Float> is = ((TrapeziumIntegrationMultiCL)integration).getIntegrals();
+			for(Float f : is)
+				integral += f;
+		} else {
+			for (IInterval<Float> interval : intervals) {
+				integral += integration.getIntegral(interval);
+			}
 		}
 
 		swCompute.stop();
