@@ -28,12 +28,11 @@ public class TrapeziumIntegrationMultiCL implements
 
 	private float[] begin;
 	private float[] end;
-	private int resolution;
 	private int bufferCount;
 	private int BUFFER_SIZE;
 	private final int STANDARD_BUFFER_SIZE = 256;
 
-	public TrapeziumIntegrationMultiCL(CLInstance clInstance, int resolution) {
+	public TrapeziumIntegrationMultiCL(CLInstance clInstance) {
 		this.CL_INSTANCE = clInstance;
 		// approximated MAX_ITEM_SIZE
 		// FIXME calculation ...
@@ -47,7 +46,6 @@ public class TrapeziumIntegrationMultiCL implements
 		MAX_ITEM_SIZE = mxItmSize;
 		Logger.logDebug(CLAZZ, "MAX_ITEM_SIZE: " + MAX_ITEM_SIZE);
 
-		this.resolution = resolution;
 		reset();
 	}
 
@@ -57,17 +55,17 @@ public class TrapeziumIntegrationMultiCL implements
 	}
 
 	@Override
-	public Float getIntegral(IInterval<Float> interval) {
+	public Float getIntegral(IInterval<Float> interval, int resolution) {
 		reset(1);
 		put(interval);
-		List<Float> integrals = getIntegrals();
+		List<Float> integrals = getIntegrals(resolution);
 		if (integrals.size() == 1) {
 			return integrals.get(0);
 		} else
 			return Float.NaN;
 	}
 
-	public List<Float> getIntegrals() {
+	public List<Float> getIntegrals(int resolution) {
 		List<Float> integrals = new ArrayList<Float>(bufferCount);
 		// get kernel and queue
 		TrapeziumIntegrationMultiFloat kernel = (TrapeziumIntegrationMultiFloat) this.CL_INSTANCE
@@ -108,7 +106,6 @@ public class TrapeziumIntegrationMultiCL implements
 				for (int i = 0; i < workGroups; i++) {
 					result += resBuffer.get();
 				}
-				Logger.logDebug(CLAZZ, "result = " + result);
 				integrals.add(new Float(result));
 			}
 

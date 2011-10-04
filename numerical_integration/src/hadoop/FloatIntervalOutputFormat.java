@@ -90,7 +90,7 @@ public class FloatIntervalOutputFormat extends
 //			if (key != null && value != null)
 //				out.write(keyValueSeparator);
 			if (value != null) {
-				s = Intervals.createString(value, "\t");
+				s = Intervals.createString(value);
 				out.write(s.getBytes(utf8));
 			}
 			out.write(newline);

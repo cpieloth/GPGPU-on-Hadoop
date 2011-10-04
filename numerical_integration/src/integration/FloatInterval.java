@@ -7,15 +7,15 @@ package integration;
  * 
  */
 
-public class FloatInterval implements IInterval<Float> {
+public class FloatInterval implements IIntervalNamed<String, Float> {
 
 	private Float begin, end;
-	private int resolution;
+	private String identifier;
 
-	public FloatInterval(Float begin, Float end, int resolution) {
+	public FloatInterval(Float begin, Float end, String identifier) {
 		this.begin = begin;
 		this.end = end;
-		this.resolution = resolution;
+		this.identifier = identifier;
 	}
 
 	@Override
@@ -39,24 +39,25 @@ public class FloatInterval implements IInterval<Float> {
 	}
 
 	@Override
-	public int getResolution() {
-		return this.resolution;
+	public String getIdentifier() {
+		return this.identifier;
 	}
 
 	@Override
-	public void setResolution(int resolution) {
-		this.resolution = resolution;
+	public void setIdentifier(String identifier) {
+		this.identifier = identifier;
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		sb.append(this.identifier);
+		sb.append(IInterval.WHITESPACE);
 		sb.append("[");
 		sb.append(this.begin.toString());
-		sb.append(",");
+		sb.append(IInterval.SEPARATOR);
 		sb.append(this.end.toString());
-		sb.append("] ");
-		sb.append(this.resolution);
+		sb.append("]");
 		return sb.toString();
 	}
 

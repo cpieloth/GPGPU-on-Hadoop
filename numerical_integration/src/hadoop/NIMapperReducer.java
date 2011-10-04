@@ -1,6 +1,5 @@
 package hadoop;
 
-import integration.FloatPolynomialFunction;
 import integration.IMathFunction;
 import integration.INumeriacalIntegration;
 import integration.TrapeziumIntegration;
@@ -10,12 +9,14 @@ import java.net.InetAddress;
 
 import lightLogger.Logger;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import stopwatch.StopWatch;
+import utils.MathFunctions;
 
 public class NIMapperReducer {
 
@@ -25,13 +26,16 @@ public class NIMapperReducer {
 
 		private static final Class<NIMapper> CLAZZ = NIMapper.class;
 
+		private int resolution;
 		private INumeriacalIntegration<Float> integration;
 		private IMathFunction<Float> function;
 
 		private StopWatch swPhase = new StopWatch(
-				NumericalIntegration.Timer.MAPPHASE.prefix, NumericalIntegration.Timer.MAPPHASE.suffix);
+				NumericalIntegration.Timer.MAPPHASE.prefix,
+				NumericalIntegration.Timer.MAPPHASE.suffix);
 		private StopWatch swMethod = new StopWatch(
-				NumericalIntegration.Timer.MAPMETHOD.prefix, NumericalIntegration.Timer.MAPMETHOD.suffix);
+				NumericalIntegration.Timer.MAPMETHOD.prefix,
+				NumericalIntegration.Timer.MAPMETHOD.suffix);
 
 		@Override
 		protected void setup(NIMapper.Context context) {
@@ -49,7 +53,13 @@ public class NIMapperReducer {
 			}
 
 			integration = new TrapeziumIntegration();
-			function = new FloatPolynomialFunction(5);
+			
+			Configuration conf = context.getConfiguration();
+			function = MathFunctions.getFunction(conf.get(NumericalIntegration.Argument.FUNCTION.name), conf.get(NumericalIntegration.Argument.EXPONENT.name));
+			Logger.logInfo(CLAZZ, "Function: " + conf.get(NumericalIntegration.Argument.FUNCTION.name));
+			
+			resolution = context.getConfiguration().getInt(NumericalIntegration.Argument.RESOLUTION.name, 0);
+			Logger.logInfo(CLAZZ, "Resolution: " + resolution);
 		}
 
 		@Override
@@ -60,7 +70,7 @@ public class NIMapperReducer {
 			Logger.logDebug(CLAZZ, value.toString());
 
 			integration.setFunction(this.function);
-			Float result = integration.getIntegral(value);
+			Float result = integration.getIntegral(value, resolution);
 			context.write(key, new FloatWritable(result));
 			swMethod.pause();
 		}
@@ -84,9 +94,11 @@ public class NIMapperReducer {
 		private static final Class<NIReducer> CLAZZ = NIReducer.class;
 
 		private StopWatch swPhase = new StopWatch(
-				NumericalIntegration.Timer.REDUCEPHASE.prefix, NumericalIntegration.Timer.REDUCEPHASE.suffix);
+				NumericalIntegration.Timer.REDUCEPHASE.prefix,
+				NumericalIntegration.Timer.REDUCEPHASE.suffix);
 		private StopWatch swMethod = new StopWatch(
-				NumericalIntegration.Timer.REDUCEMETHOD.prefix, NumericalIntegration.Timer.REDUCEMETHOD.suffix);
+				NumericalIntegration.Timer.REDUCEMETHOD.prefix,
+				NumericalIntegration.Timer.REDUCEMETHOD.suffix);
 
 		@Override
 		protected void setup(NIReducer.Context context) {

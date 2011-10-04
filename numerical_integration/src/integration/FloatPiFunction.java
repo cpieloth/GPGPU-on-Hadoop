@@ -11,4 +11,5 @@ public class FloatPiFunction implements IMathFunction<Float> {
 	public String getOpenCLFunction() {
 		return "float " + FUNCTION_NAME + "(float x) { return 4/(1+x*x); }";
 	}
+
 }

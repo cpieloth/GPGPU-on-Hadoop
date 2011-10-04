@@ -9,6 +9,8 @@ import integration.IInterval;
 
 import org.apache.hadoop.io.WritableComparable;
 
+import utils.Intervals;
+
 /**
  * Decorator for Hadoop implementation of IInterval to use as key and value.
  * 
@@ -18,38 +20,36 @@ import org.apache.hadoop.io.WritableComparable;
 public class FloatIntervalWritable implements IInterval<Float>,
 		WritableComparable<FloatIntervalWritable> {
 
-	private IInterval<Float> intervall;
+	private IInterval<Float> interval;
 
 	public FloatIntervalWritable() {
-		this(0, 0, 0);
+		this(0, 0);
 	}
 
-	public FloatIntervalWritable(float begin, float end, int resolution) {
-		this.intervall = new FloatInterval(begin, end, resolution);
+	public FloatIntervalWritable(float begin, float end) {
+		this.interval = new FloatInterval(begin, end, IInterval.DEFAULT_IDENTIFIER);
 	}
 
 	public FloatIntervalWritable(IInterval<Float> intervall) {
-		this.intervall = intervall;
+		this.interval = intervall;
 	}
 
 	@Override
 	public void write(DataOutput out) throws IOException {
 		out.writeFloat(this.getBegin());
 		out.writeFloat(this.getEnd());
-		out.writeInt(this.getResolution());
 	}
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
 		this.setBegin(in.readFloat());
 		this.setEnd(in.readFloat());
-		this.setResolution(in.readInt());
 	}
 
 	@Override
 	public int compareTo(FloatIntervalWritable arg0) {
-		float size = (this.getEnd() - this.getBegin()) * this.getResolution();
-		float oSize = (arg0.getEnd() - arg0.getBegin()) * arg0.getResolution();
+		float size = this.getEnd() - this.getBegin();
+		float oSize = arg0.getEnd() - arg0.getBegin();
 
 		size -= oSize;
 		if (size > 0)
@@ -62,37 +62,27 @@ public class FloatIntervalWritable implements IInterval<Float>,
 
 	@Override
 	public Float getBegin() {
-		return this.intervall.getBegin();
+		return this.interval.getBegin();
 	}
 
 	@Override
 	public void setBegin(Float begin) {
-		this.intervall.setBegin(begin);
+		this.interval.setBegin(begin);
 	}
 
 	@Override
 	public Float getEnd() {
-		return this.intervall.getEnd();
+		return this.interval.getEnd();
 	}
 
 	@Override
 	public void setEnd(Float end) {
-		this.intervall.setEnd(end);
-	}
-
-	@Override
-	public int getResolution() {
-		return this.intervall.getResolution();
-	}
-
-	@Override
-	public void setResolution(int resolution) {
-		this.intervall.setResolution(resolution);
+		this.interval.setEnd(end);
 	}
 
 	@Override
 	public String toString() {
-		return this.intervall.toString();
+		return Intervals.createString(this.interval);
 	}
 
 }

@@ -1,7 +1,7 @@
 package utils;
 
 import integration.FloatInterval;
-import integration.IInterval;
+import integration.IIntervalNamed;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,12 +19,11 @@ public class NIData {
 
 	private static final Class<NIData> CLAZZ = NIData.class;
 
-	public static final String WHITESPACE = " ";
 	public static final String CHARSET = "UTF-8";
 
 	public enum Argument {
 		OUTPUT("output", 0), START("start", 1), END("end", 2), INTERVALS(
-				"intervals", 3), RESOLUTION("resolutionPerInterval", 4);
+				"intervals", 3), IDENTIFIER("identifier", 4);
 
 		public final String name;
 		public final int index;
@@ -49,44 +48,38 @@ public class NIData {
 		final float start = Float.parseFloat(args[Argument.START.index]);
 		final float end = Float.parseFloat(args[Argument.END.index]);
 		final int count = Integer.parseInt(args[Argument.INTERVALS.index]);
-		final int resolution = Integer
-				.parseInt(args[Argument.RESOLUTION.index]);
+		final String identifier = args[Argument.IDENTIFIER.index];
 
-		List<IInterval<Float>> intervals = generateIntervals(start, end, count,
-				resolution);
+		List<IIntervalNamed<String, Float>> intervals = generateIntervals(start, end, count,
+				identifier);
 
-		write(intervals, output, WHITESPACE);
+		write(intervals, output);
 	}
 
-	public static List<IInterval<Float>> generateIntervals(float start,
-			float end, int count, int resolution) {
-		List<IInterval<Float>> intervals = new ArrayList<IInterval<Float>>(
+	public static List<IIntervalNamed<String, Float>> generateIntervals(float start,
+			float end, int count, String identifier) {
+		List<IIntervalNamed<String, Float>> intervals = new ArrayList<IIntervalNamed<String, Float>>(
 				count);
 		final float offset = (end - start) / count;
-		IInterval<Float> interval = null;
+		IIntervalNamed<String, Float> interval = null;
 
 		float tmpStart;
 		for (int i = 0; i < count; i++) {
 			tmpStart = start + i * offset;
 			interval = new FloatInterval(tmpStart, tmpStart + offset,
-					resolution);
+					identifier);
 			intervals.add(interval);
 		}
 
 		return intervals;
 	}
 
-	public static boolean write(List<IInterval<Float>> intervals, String file) {
-		return write(intervals, file, WHITESPACE);
-	}
-
-	public static boolean write(List<IInterval<Float>> intervals, String file,
-			final String whitespace) {
+	public static boolean write(List<IIntervalNamed<String, Float>> intervals, String file) {
 		boolean res = true;
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(file);
-			write(fos, intervals, whitespace);
+			write(fos, intervals);
 		} catch (IOException e) {
 			Logger.logError(CLAZZ, "Could not write input data.");
 			e.printStackTrace();
@@ -103,32 +96,27 @@ public class NIData {
 	}
 
 	private static void write(OutputStream os,
-			List<IInterval<Float>> intervals, final String whitespace)
+			List<IIntervalNamed<String, Float>> intervals)
 			throws UnsupportedEncodingException, IOException {
-		for (IInterval<Float> i : intervals) {
-			os.write(Intervals.createString(i, whitespace)
+		for (IIntervalNamed<String, Float> i : intervals) {
+			os.write(Intervals.createString(i)
 					.getBytes(CHARSET));
 			os.write("\n".getBytes(CHARSET));
 		}
 	}
 
-	public static List<IInterval<Float>> readIIntervals(File file) {
-		return readIIntervals(file, WHITESPACE);
-	}
-
-	public static List<IInterval<Float>> readIIntervals(File file,
-			final String separator) {
-		List<IInterval<Float>> intervals = new LinkedList<IInterval<Float>>();
+	public static List<IIntervalNamed<String, Float>> readIIntervals(File file) {
+		List<IIntervalNamed<String, Float>> intervals = new LinkedList<IIntervalNamed<String, Float>>();
 		Scanner sc = null;
 		try {
 			sc = new Scanner(file);
 
 			String line;
-			IInterval<Float> interval;
+			IIntervalNamed<String, Float> interval;
 			while (sc.hasNext()) {
 				line = sc.nextLine();
 
-				interval = Intervals.createFloatInterval(line);
+				interval = Intervals.createFloatIntervalNamed(line);
 				intervals.add(interval);
 			}
 		} catch (Exception e) {

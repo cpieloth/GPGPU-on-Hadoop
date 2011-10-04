@@ -25,10 +25,10 @@ public class TrapeziumIntegrationTest {
 
 		int degree = 7;
 		integration.setFunction(new FloatPolynomialFunction(degree));
-		interval = new FloatInterval(1f, 2f, RESOLUTION);
+		interval = new FloatInterval(1f, 2f, IInterval.DEFAULT_IDENTIFIER);
 
 		tStart = System.currentTimeMillis();
-		result = integration.getIntegral(interval);
+		result = integration.getIntegral(interval, RESOLUTION);
 		Logger.logInfo(CLAZZ, "Poly. (ms): "
 				+ (System.currentTimeMillis() - tStart));
 		resultExp = new FloatPolynomialFunction(degree).getIntegral(interval);
@@ -38,9 +38,9 @@ public class TrapeziumIntegrationTest {
 
 		float exp = 3;
 		integration.setFunction(new FloatPowerFunction(exp));
-		interval = new FloatInterval(1f, 6f, RESOLUTION);
+		interval = new FloatInterval(1f, 6f, IInterval.DEFAULT_IDENTIFIER);
 		tStart = System.currentTimeMillis();
-		result = integration.getIntegral(interval);
+		result = integration.getIntegral(interval, RESOLUTION);
 		Logger.logInfo(CLAZZ, "Power (ms): "
 				+ (System.currentTimeMillis() - tStart));
 		resultExp = new FloatPowerFunction(exp).getIntegral(interval);
@@ -49,9 +49,9 @@ public class TrapeziumIntegrationTest {
 				new float[] { result }, DELTA);
 
 		integration.setFunction(new FloatPiFunction());
-		interval = new FloatInterval(0f, 1f, RESOLUTION);
+		interval = new FloatInterval(0f, 1f, IInterval.DEFAULT_IDENTIFIER);
 		tStart = System.currentTimeMillis();
-		result = integration.getIntegral(interval);
+		result = integration.getIntegral(interval, RESOLUTION);
 		Logger.logInfo(CLAZZ, "Pi (ms): "
 				+ (System.currentTimeMillis() - tStart));
 		resultExp = (float) Math.PI;

@@ -190,7 +190,7 @@ public class FloatIntervalInputFormat extends
 		@Override
 		public FloatIntervalWritable getCurrentValue() throws IOException,
 				InterruptedException {
-			this.value = new FloatIntervalWritable(Intervals.createFloatInterval(this.line.toString()));
+			this.value = new FloatIntervalWritable(Intervals.createFloatIntervalNamed(this.line.toString()));
 			return this.value;
 		}
 

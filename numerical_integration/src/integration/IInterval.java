@@ -10,6 +10,10 @@ package integration;
  *            Should be Double or Float
  */
 public interface IInterval<T extends Number> {
+	
+	public static final char WHITESPACE = '\t';
+	public static final char SEPARATOR = ';';
+	public static final String DEFAULT_IDENTIFIER = "default";
 
 	/**
 	 * Returns the begin of the interval.
@@ -38,19 +42,5 @@ public interface IInterval<T extends Number> {
 	 * @param end
 	 */
 	public void setEnd(T end);
-
-	/**
-	 * Returns the resolution of the interval.
-	 * 
-	 * @return
-	 */
-	public int getResolution();
-
-	/**
-	 * Sets the resolution of the interval.
-	 * 
-	 * @param resolution
-	 */
-	public void setResolution(int resolution);
 
 }

@@ -14,14 +14,17 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import stopwatch.StopWatch;
+import utils.MathFunctions;
 
 public class NumericalIntegration extends Configured implements Tool {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");
 
 	public enum Argument {
-		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), INTERVALS(
-				"intervals", 3), TYPE(Argument.CPU + "|" + Argument.OCL, 4), ;
+		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), FUNCTION(
+				Argument.POLYNOM + "|" + Argument.POWER + "|" + Argument.XSINX,
+				3), EXPONENT("exponent", 4), RESOLUTION("resolution", 5), INTERVALS(
+				"intervals", 6), TYPE(Argument.CPU + "|" + Argument.OCL, 7), ;
 
 		public final String name;
 		public final int index;
@@ -34,6 +37,9 @@ public class NumericalIntegration extends Configured implements Tool {
 		public static final String CPU = "cpu";
 		public static final String OCL = "ocl";
 
+		public static final String POLYNOM = "poly";
+		public static final String POWER = "pow";
+		public static final String XSINX = "xsinx";
 	}
 
 	public enum Timer {
@@ -57,12 +63,22 @@ public class NumericalIntegration extends Configured implements Tool {
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
 		String[] rArgs = gop.getRemainingArgs();
-		if (rArgs.length < 4) {
+		if (rArgs.length < 8) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Arguments:");
 			for (Argument arg : Argument.values())
 				sb.append(" <" + arg.name + ">");
 			System.out.println(sb.toString());
+			System.exit(FAILURE);
+		}
+
+		if (!Argument.CPU.equals(args[Argument.TYPE.index])
+				&& !Argument.OCL.equals(args[Argument.TYPE.index])) {
+			Logger.logError(NumericalIntegration.class, "Unknown type!");
+			System.exit(FAILURE);
+		}
+		if (!MathFunctions.isFunctionAvailable(args[Argument.FUNCTION.index])) {
+			Logger.logError(NumericalIntegration.class, "Unknown function!");
 			System.exit(FAILURE);
 		}
 
@@ -84,6 +100,13 @@ public class NumericalIntegration extends Configured implements Tool {
 	@Override
 	public int run(String[] args) throws Exception {
 		Job job = new Job(this.getConf());
+
+		job.getConfiguration().setInt(Argument.RESOLUTION.name,
+				Integer.parseInt(args[Argument.RESOLUTION.index]));
+		job.getConfiguration().set(Argument.FUNCTION.name,
+				args[Argument.FUNCTION.index]);
+		job.getConfiguration().set(Argument.EXPONENT.name,
+				args[Argument.EXPONENT.index]);
 
 		job.setJobName(args[Argument.JOBNAME.index]);
 

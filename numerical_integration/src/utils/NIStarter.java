@@ -5,19 +5,19 @@ import integration.FloatPolynomialFunction;
 import integration.FloatPowerFunction;
 import integration.FloatXSINXFunction;
 import integration.IInterval;
+import integration.IIntervalNamed;
 import integration.IMathFunction;
-import integration.INumeriacalIntegration;
+import integration.INumeriacalIntegrationMulti;
 import integration.TrapeziumIntegration;
 import integration.TrapeziumIntegrationMultiCL;
 
 import java.io.File;
 import java.util.List;
 
-import cl_util.CLInstance;
-
 import lightLogger.Level;
 import lightLogger.Logger;
 import stopwatch.StopWatch;
+import cl_util.CLInstance;
 
 public class NIStarter {
 
@@ -26,9 +26,9 @@ public class NIStarter {
 	private static final Class<NIStarter> CLAZZ = NIStarter.class;
 
 	public enum Argument {
-		INPUT("input", 0), FUNCTION(Argument.POLYNOM + "|" + Argument.POWER
-				+ "|" + Argument.XSINX, 1), EXPONENT("exponent", 2), TYPE(
-				Argument.CPU + "|" + Argument.OCL, 3);
+		INPUT("input", 0), FUNCTION(MathFunctions.getAvailableIdentifer('|'), 1), EXPONENT(
+				"exponent", 2), RESOLUTION("resolution", 3), TYPE(Argument.CPU
+				+ "|" + Argument.OCL, 4);
 
 		public final String name;
 		public final int index;
@@ -40,14 +40,11 @@ public class NIStarter {
 
 		public static final String CPU = "cpu";
 		public static final String OCL = "ocl";
-		public static final String POLYNOM = "poly";
-		public static final String POWER = "pow";
-		public static final String XSINX = "xsinx";
 
 	}
 
 	public static void main(String[] args) {
-		if (args.length < 4) {
+		if (args.length < 5) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Arguments:");
 			for (Argument arg : Argument.values())
@@ -58,22 +55,17 @@ public class NIStarter {
 
 		final String iFile = args[Argument.INPUT.index];
 		final String type = args[Argument.TYPE.index];
-		final String func = args[Argument.FUNCTION.index];
-		final float exp = Float.parseFloat(args[Argument.EXPONENT.index]);
+		final int resolution = Integer
+				.parseInt(args[Argument.RESOLUTION.index]);
 
-		IMathFunction<Float> function = null;
-		if (Argument.POLYNOM.equals(func))
-			function = new FloatPolynomialFunction((int) exp);
-		else if (Argument.POWER.equals(func))
-			function = new FloatPowerFunction(exp);
-		else if (Argument.XSINX.equals(func))
-			function = new FloatXSINXFunction();
-		else {
+		IMathFunction<Float> function = MathFunctions.getFunction(
+				args[Argument.FUNCTION.index], args[Argument.EXPONENT.index]);
+		if (function == null) {
 			Logger.logError(CLAZZ, "Unknown function!");
 			System.exit(1);
 		}
 
-		List<IInterval<Float>> intervals = NIData
+		List<IIntervalNamed<String, Float>> intervals = NIData
 				.readIIntervals(new File(iFile));
 
 		if (intervals == null || intervals.isEmpty()) {
@@ -84,11 +76,12 @@ public class NIStarter {
 		StopWatch sw = new StopWatch("time" + type + "=", ";");
 		sw.start();
 
-		INumeriacalIntegration<Float> integration = null;
+		INumeriacalIntegrationMulti<Float> integration = null;
 		if (Argument.CPU.equals(type))
 			integration = new TrapeziumIntegration();
 		else if (Argument.OCL.equals(type))
-			integration = new TrapeziumIntegrationMultiCL(new CLInstance(CLInstance.TYPES.CL_GPU), 100000);
+			integration = new TrapeziumIntegrationMultiCL(new CLInstance(
+					CLInstance.TYPES.CL_GPU));
 		else {
 			Logger.logError(CLAZZ, "Unknown type");
 			System.exit(1);
@@ -100,18 +93,12 @@ public class NIStarter {
 		swCompute.start();
 
 		float integral = 0;
-		if (Argument.OCL.equals(type)) {
-			for (IInterval<Float> interval : intervals) {
-				((TrapeziumIntegrationMultiCL)integration).put(interval);
-			}
-			List<Float> is = ((TrapeziumIntegrationMultiCL)integration).getIntegrals();
-			for(Float f : is)
-				integral += f;
-		} else {
-			for (IInterval<Float> interval : intervals) {
-				integral += integration.getIntegral(interval);
-			}
+		for (IInterval<Float> interval : intervals) {
+			integration.put(interval);
 		}
+		List<Float> is = integration.getIntegrals(resolution);
+		for (Float f : is)
+			integral += f;
 
 		swCompute.stop();
 		sw.stop();
@@ -123,21 +110,26 @@ public class NIStarter {
 		try {
 			IInterval<Float> interval = new FloatInterval(intervals.get(0)
 					.getBegin(), intervals.get(intervals.size() - 1).getEnd(),
-					0);
+					IInterval.DEFAULT_IDENTIFIER);
+			float expected = Float.NaN;
 			if (FloatPolynomialFunction.class.isInstance(function)) {
-				integral = ((FloatPolynomialFunction) function)
+				expected = ((FloatPolynomialFunction) function)
 						.getIntegral(interval);
-				Logger.logInfo(CLAZZ, "Analytical result: " + integral);
+				Logger.logInfo(CLAZZ, "Analytical result: " + expected);
 			} else if (FloatPowerFunction.class.isInstance(function)) {
-				integral = ((FloatPowerFunction) function)
+				expected = ((FloatPowerFunction) function)
 						.getIntegral(interval);
-				Logger.logInfo(CLAZZ, "Analytical result: " + integral);
+				Logger.logInfo(CLAZZ, "Analytical result: " + expected);
 			} else if (FloatXSINXFunction.class.isInstance(function)) {
-				integral = ((FloatXSINXFunction) function)
+				expected = ((FloatXSINXFunction) function)
 						.getIntegral(interval);
-				Logger.logInfo(CLAZZ, "Analytical result: " + integral);
+				Logger.logInfo(CLAZZ, "Analytical result: " + expected);
 			} else {
 				Logger.logInfo(CLAZZ, "No analytical solution available!");
+			}
+			if (expected != Float.NaN) {
+				Logger.logInfo(CLAZZ,
+						"Abweichung: " + Math.abs(expected - integral));
 			}
 		} catch (Exception e) {
 			Logger.logError(CLAZZ, "Could not compute analytical result!");

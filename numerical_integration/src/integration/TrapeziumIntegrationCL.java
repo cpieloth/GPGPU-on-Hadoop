@@ -32,11 +32,11 @@ public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
 	}
 
 	@Override
-	public Float getIntegral(IInterval<Float> interval) {
+	public Float getIntegral(IInterval<Float> interval, int resolution) {
 		float offset = interval.getEnd() - interval.getBegin();
 		float result = 0;
 		float start = interval.getBegin();
-		int n = interval.getResolution();
+		int n = resolution;
 
 		// get kernel and queue
 		TrapeziumIntegrationFloat kernel = (TrapeziumIntegrationFloat) this.clInstance

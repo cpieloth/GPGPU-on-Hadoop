@@ -45,6 +45,5 @@ public class FloatPolynomialFunction  implements IMathFunction<Float> {
 		
 		return sb.toString();
 	}
-	
 
 }
