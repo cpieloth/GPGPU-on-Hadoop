@@ -11,11 +11,14 @@ import lightLogger.Logger;
 
 public class Intervals {
 
+	// private static final String patternFloat = "\\[(-*\\d+.\\d+)"
+	// + IInterval.SEPARATOR + "(-*\\d+.\\d+)\\]";
+	private static final String patternFloat = "\\[(.+)" + IInterval.SEPARATOR
+			+ "(.+)\\]";
+
 	private static final Pattern patternNamed = Pattern.compile("(.*)"
-			+ IInterval.WHITESPACE + "\\[(-*\\d+.\\d+)" + IInterval.SEPARATOR
-			+ "(-*\\d+.\\d+)\\]");
-	private static final Pattern pattern = Pattern.compile("\\[(-*\\d+.\\d+)"
-			+ IInterval.SEPARATOR + "(-*\\d+.\\d+)\\]");
+			+ IInterval.WHITESPACE + patternFloat);
+	private static final Pattern pattern = Pattern.compile(patternFloat);
 
 	public static String createString(IIntervalNamed<String, Float> value) {
 		StringBuilder sb = new StringBuilder();
@@ -43,8 +46,14 @@ public class Intervals {
 			String line) {
 		Matcher matcher = patternNamed.matcher(line);
 		if (matcher.matches()) {
-			return new FloatInterval(Float.valueOf(matcher.group(2)),
-					Float.valueOf(matcher.group(3)), matcher.group(1));
+			try {
+				return new FloatInterval(Float.parseFloat(matcher.group(2)),
+						Float.parseFloat(matcher.group(3)), matcher.group(1));
+			} catch (NumberFormatException e) {
+				Logger.logError(Intervals.class,
+						"Could not create interval from line: " + line);
+				return null;
+			}
 		} else {
 			Logger.logError(Intervals.class,
 					"Could not create interval from line: " + line);
@@ -55,19 +64,17 @@ public class Intervals {
 	public static IInterval<Float> createFloatInterval(String line) {
 		Matcher matcher = pattern.matcher(line);
 		if (matcher.matches()) {
-			return new FloatInterval(Float.valueOf(matcher.group(1)),
-					Float.valueOf(matcher.group(2)),
-					IInterval.DEFAULT_IDENTIFIER);
-		} else {
-			matcher = patternNamed.matcher(line);
-			if (matcher.matches()) {
-				return new FloatInterval(Float.valueOf(matcher.group(2)),
-						Float.valueOf(matcher.group(3)), matcher.group(1));
-			} else {
+			try {
+				return new FloatInterval(Float.valueOf(matcher.group(1)),
+						Float.valueOf(matcher.group(2)),
+						IInterval.DEFAULT_IDENTIFIER);
+			} catch (NumberFormatException e) {
 				Logger.logError(Intervals.class,
 						"Could not create interval from line: " + line);
 				return null;
 			}
+		} else {
+			return createFloatIntervalNamed(line);
 		}
 	}
 }

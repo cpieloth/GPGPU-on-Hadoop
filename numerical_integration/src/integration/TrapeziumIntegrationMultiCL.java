@@ -30,7 +30,7 @@ public class TrapeziumIntegrationMultiCL implements
 	private float[] end;
 	private int bufferCount;
 	private int BUFFER_SIZE;
-	private final int STANDARD_BUFFER_SIZE = 256;
+	private final int STANDARD_BUFFER_SIZE = 1024;
 
 	public TrapeziumIntegrationMultiCL(CLInstance clInstance) {
 		this.CL_INSTANCE = clInstance;
@@ -67,6 +67,8 @@ public class TrapeziumIntegrationMultiCL implements
 
 	public List<Float> getIntegrals(int resolution) {
 		List<Float> integrals = new ArrayList<Float>(bufferCount);
+		if(bufferCount < 1)
+			return integrals;
 		// get kernel and queue
 		TrapeziumIntegrationMultiFloat kernel = (TrapeziumIntegrationMultiFloat) this.CL_INSTANCE
 				.getKernel(TrapeziumIntegrationFloat.getIdentifier(function

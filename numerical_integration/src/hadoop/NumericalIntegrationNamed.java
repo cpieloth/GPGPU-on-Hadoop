@@ -6,8 +6,9 @@ import lightLogger.Logger;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FloatWritable;
-import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
@@ -16,14 +17,15 @@ import org.apache.hadoop.util.ToolRunner;
 import stopwatch.StopWatch;
 import utils.MathFunctions;
 
-public class NumericalIntegration extends Configured implements Tool {
+public class NumericalIntegrationNamed extends Configured implements Tool {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");
 
 	public enum Argument {
-		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), FUNCTION(MathFunctions.getAvailableIdentifer('|'),
-				3), EXPONENT("exponent", 4), RESOLUTION("resolution", 5), INTERVALS(
-				"intervals", 6), TYPE(Argument.CPU + "|" + Argument.OCL, 7), ;
+		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), FUNCTION(
+				MathFunctions.getAvailableIdentifer('|'), 3), EXPONENT(
+				"exponent", 4), RESOLUTION("resolution", 5), TYPE(Argument.CPU
+				+ "|" + Argument.OCL, 6), ;
 
 		public final String name;
 		public final int index;
@@ -58,7 +60,7 @@ public class NumericalIntegration extends Configured implements Tool {
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
 		String[] rArgs = gop.getRemainingArgs();
-		if (rArgs.length < 8) {
+		if (rArgs.length < 7) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("Arguments:");
 			for (Argument arg : Argument.values())
@@ -69,25 +71,28 @@ public class NumericalIntegration extends Configured implements Tool {
 
 		if (!Argument.CPU.equals(args[Argument.TYPE.index])
 				&& !Argument.OCL.equals(args[Argument.TYPE.index])) {
-			Logger.logError(NumericalIntegration.class, "Unknown type!");
+			Logger.logError(NumericalIntegrationNamed.class, "Unknown type!");
 			System.exit(FAILURE);
 		}
 		if (!MathFunctions.isFunctionAvailable(args[Argument.FUNCTION.index])) {
-			Logger.logError(NumericalIntegration.class, "Unknown function!");
+			Logger.logError(NumericalIntegrationNamed.class,
+					"Unknown function!");
 			System.exit(FAILURE);
 		}
 
-		final int intervals = Integer.parseInt(rArgs[Argument.INTERVALS.index]);
-		FloatIntervalInputFormat.LINES_PER_SPLIT = intervals;
+		// final int intervals =
+		// Integer.parseInt(rArgs[Argument.INTERVALS.index]);
+		// FloatIntervalInputFormat.LINES_PER_SPLIT = intervals;
 
 		StopWatch sw = new StopWatch("totalTime=", ";");
 		sw.start();
 
 		int res = ToolRunner.run(gop.getConfiguration(),
-				new NumericalIntegration(), rArgs);
+				new NumericalIntegrationNamed(), rArgs);
 
 		sw.stop();
-		Logger.log(TIME_LEVEL, NumericalIntegration.class, sw.getTimeString());
+		Logger.log(TIME_LEVEL, NumericalIntegrationNamed.class,
+				sw.getTimeString());
 
 		System.exit(res);
 	}
@@ -105,24 +110,28 @@ public class NumericalIntegration extends Configured implements Tool {
 
 		job.setJobName(args[Argument.JOBNAME.index]);
 
-		job.setJarByClass(NumericalIntegration.class);
+		job.setJarByClass(NumericalIntegrationNamed.class);
 
+		// TODO
+		//job.setNumReduceTasks(2);
+		Logger.logDebug(getClass(), "NumReduceTask: " + job.getNumReduceTasks());
+		
 		if (Argument.CPU.equals(args[Argument.TYPE.index])) {
-			job.setMapperClass(NIMapperReducer.NIMapper.class);
-			job.setReducerClass(NIMapperReducer.NIReducer.class);
+			job.setMapperClass(NIMapperReducerNamed.NIMapper.class);
+			job.setReducerClass(NIMapperReducerNamed.NIReducer.class);
 		} else if (Argument.OCL.equals(args[Argument.TYPE.index])) {
-			job.setMapperClass(NIMapperReducerCL.NIMapper.class);
-			job.setReducerClass(NIMapperReducerCL.NIReducer.class);
+			job.setMapperClass(NIMapperReducerCLNamed.NIMapper.class);
+			job.setReducerClass(NIMapperReducerCLNamed.NIReducer.class);
 		} else
 			return FAILURE;
 
-		job.setMapOutputKeyClass(NullWritable.class);
-		job.setMapOutputValueClass(FloatWritable.class);
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(FloatIntervalWritable.class);
 
-		job.setOutputKeyClass(NullWritable.class);
+		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(FloatWritable.class);
 
-		job.setInputFormatClass(FloatIntervalInputFormat.class);
+		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
 		FloatIntervalInputFormat.setInputPaths(job, new Path(

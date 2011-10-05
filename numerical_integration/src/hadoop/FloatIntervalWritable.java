@@ -30,8 +30,8 @@ public class FloatIntervalWritable implements IInterval<Float>,
 		this.interval = new FloatInterval(begin, end, IInterval.DEFAULT_IDENTIFIER);
 	}
 
-	public FloatIntervalWritable(IInterval<Float> intervall) {
-		this.interval = intervall;
+	public FloatIntervalWritable(IInterval<Float> interval) {
+		this.interval = interval;
 	}
 
 	@Override
