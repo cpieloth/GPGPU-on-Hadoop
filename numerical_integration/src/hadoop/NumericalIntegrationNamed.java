@@ -1,5 +1,10 @@
 package hadoop;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import lightLogger.Level;
 import lightLogger.Logger;
 
@@ -20,6 +25,8 @@ import utils.MathFunctions;
 public class NumericalIntegrationNamed extends Configured implements Tool {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");
+	
+	public static List<String> jobURLs = new LinkedList<String>();
 
 	public enum Argument {
 		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), FUNCTION(
@@ -57,6 +64,8 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 	public static final int SUCCESS = 0;
 	public static final int FAILURE = 1;
 
+	private static final Class<?> CLAZZ = NumericalIntegrationNamed.class;
+
 	public static void main(String[] args) throws Exception {
 		GenericOptionsParser gop = new GenericOptionsParser(args);
 		String[] rArgs = gop.getRemainingArgs();
@@ -71,11 +80,11 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 
 		if (!Argument.CPU.equals(args[Argument.TYPE.index])
 				&& !Argument.OCL.equals(args[Argument.TYPE.index])) {
-			Logger.logError(NumericalIntegrationNamed.class, "Unknown type!");
+			Logger.logError(CLAZZ, "Unknown type!");
 			System.exit(FAILURE);
 		}
 		if (!MathFunctions.isFunctionAvailable(args[Argument.FUNCTION.index])) {
-			Logger.logError(NumericalIntegrationNamed.class,
+			Logger.logError(CLAZZ,
 					"Unknown function!");
 			System.exit(FAILURE);
 		}
@@ -91,10 +100,28 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 				new NumericalIntegrationNamed(), rArgs);
 
 		sw.stop();
-		Logger.log(TIME_LEVEL, NumericalIntegrationNamed.class,
+		Logger.log(TIME_LEVEL, CLAZZ,
 				sw.getTimeString());
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append("JobIDs: ");
+		for (String url : jobURLs) {
+			sb.append(getJobID(url));
+			sb.append(",");
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		Logger.logInfo(CLAZZ, sb.toString());
 
 		System.exit(res);
+	}
+	
+	private static String getJobID(String url) {
+		final Pattern p = Pattern.compile(".*jobid=job_(\\d+_\\d+)");
+		Matcher m = p.matcher(url);
+		if (m.matches() && m.groupCount() > 0)
+			return m.group(1);
+		else
+			return null;
 	}
 
 	@Override
@@ -138,6 +165,8 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 				args[Argument.OUTPUT.index]));
 
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;
+		
+		jobURLs.add(job.getTrackingURL());
 
 		return stat;
 	}

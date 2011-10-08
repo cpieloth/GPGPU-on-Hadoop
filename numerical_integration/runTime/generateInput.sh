@@ -1,19 +1,39 @@
 #!/usr/bin/env sh
-OUTPUT_PATH="/Users/christof/Documents/ni_data"
+OUTPUT_PATH=$HOME"/Documents/ni_data"
 OUTPUT_FILE="intervals"
-RESOLUTION=("1000" "10000" "100000" "1000000")
-INTERVALS=("10" "100" "1000")
+INTERVAL="50"
 JAVA="java -jar"
-JAVA_PROG="/Users/christof/Dropbox/GPGPU-on-Hadoop/Jars/NumericalIntegration/NIData.jar"
-START=-100
-END=100
+JAVA_PROG=$HOME"/Dropbox/GPGPU-on-Hadoop/Jars/NumericalIntegration/NIData.jar"
 
-for res in ${RESOLUTION[@]}; do
-	for int in ${INTERVALS[@]}; do
-		# concat file name
-		output=$OUTPUT_PATH"/"$OUTPUT_FILE"_"$res"res_"$int"ints"
-		echo "Generating $int intervals with the resolution of $res ..."
-		# run the generator
-		$JAVA $JAVA_PROG $output $START $END $int $res "lfs"
-	done
-done
+START=-100
+END=-50
+# concat file name
+output=$OUTPUT_PATH"/"$OUTPUT_FILE"1"
+echo "Generating $INTERVAL intervals with the resolution of $res ..."
+# run the generator
+$JAVA $JAVA_PROG $output $START $END $INTERVAL $OUTPUT_FILE"1"
+
+START=-50
+END=0
+# concat file name
+output=$OUTPUT_PATH"/"$OUTPUT_FILE"2"
+echo "Generating $INTERVAL intervals with the resolution of $res ..."
+# run the generator
+$JAVA $JAVA_PROG $output $START $END $INTERVAL $OUTPUT_FILE"2"
+
+START=0
+END=50
+# concat file name
+output=$OUTPUT_PATH"/"$OUTPUT_FILE"3"
+echo "Generating $INTERVAL intervals with the resolution of $res ..."
+# run the generator
+$JAVA $JAVA_PROG $output $START $END $INTERVAL $OUTPUT_FILE"3"
+
+START=50
+END=100
+# concat file name
+output=$OUTPUT_PATH"/"$OUTPUT_FILE"4"
+echo "Generating $INTERVAL intervals with the resolution of $res ..."
+# run the generator
+$JAVA $JAVA_PROG $output $START $END $INTERVAL $OUTPUT_FILE"4"
+

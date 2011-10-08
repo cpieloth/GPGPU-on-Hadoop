@@ -6,3 +6,11 @@ limitations:
 
 mapper: OCL or CPU (single)
 reduce: CPU (single)
+
+mapred-site.xml
+	<property>
+		<name>mapred.reduce.tasks</name>
+		<value><!-- 2x nodes --></value>
+	</property>
+	
+NIHadoopNamed.jar
