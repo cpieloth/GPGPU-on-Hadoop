@@ -1,4 +1,4 @@
-package integration;
+package mathFunction;
 
 /**
  * Float implementation of IInterval.

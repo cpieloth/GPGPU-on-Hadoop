@@ -1,12 +1,5 @@
 package utils;
 
-import integration.FloatInterval;
-import integration.FloatPolynomialFunction;
-import integration.FloatPowerFunction;
-import integration.FloatXSINXFunction;
-import integration.IInterval;
-import integration.IIntervalNamed;
-import integration.IMathFunction;
 import integration.INumeriacalIntegrationMulti;
 import integration.TrapeziumIntegration;
 import integration.TrapeziumIntegrationMultiCL;
@@ -16,6 +9,13 @@ import java.util.List;
 
 import lightLogger.Level;
 import lightLogger.Logger;
+import mathFunction.FloatInterval;
+import mathFunction.FloatPolynomialFunction;
+import mathFunction.FloatPowerFunction;
+import mathFunction.FloatXSINXFunction;
+import mathFunction.IInterval;
+import mathFunction.IIntervalNamed;
+import mathFunction.IMathFunction;
 import stopwatch.StopWatch;
 import cl_util.CLInstance;
 

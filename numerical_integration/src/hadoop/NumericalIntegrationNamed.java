@@ -25,7 +25,7 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 		JOBNAME("jobname", 0), INPUT("input", 1), OUTPUT("output", 2), FUNCTION(
 				MathFunctions.getAvailableIdentifer('|'), 3), EXPONENT(
 				"exponent", 4), RESOLUTION("resolution", 5), TYPE(Argument.CPU
-				+ "|" + Argument.OCL, 6), ;
+				+ "|" + Argument.OCL, 6);
 
 		public final String name;
 		public final int index;
@@ -112,10 +112,8 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 
 		job.setJarByClass(NumericalIntegrationNamed.class);
 
-		// TODO
-		//job.setNumReduceTasks(2);
 		Logger.logDebug(getClass(), "NumReduceTask: " + job.getNumReduceTasks());
-		
+
 		if (Argument.CPU.equals(args[Argument.TYPE.index])) {
 			job.setMapperClass(NIMapperReducerNamed.NIMapper.class);
 			job.setReducerClass(NIMapperReducerNamed.NIReducer.class);

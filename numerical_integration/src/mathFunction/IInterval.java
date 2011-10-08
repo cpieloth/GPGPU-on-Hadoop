@@ -1,4 +1,4 @@
-package integration;
+package mathFunction;
 
 /**
  * Data structure for an interval with a given resolution. Resolution is the

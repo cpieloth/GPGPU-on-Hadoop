@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import mathFunction.IInterval;
+import mathFunction.IMathFunction;
+
 public class TrapeziumIntegration implements INumeriacalIntegrationMulti<Float> {
 
 	private IMathFunction<Float> function;

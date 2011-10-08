@@ -1,4 +1,5 @@
-package integration;
+package mathFunction;
+
 
 public class FloatPowerFunction implements IMathFunction<Float> {
 

@@ -1,7 +1,5 @@
 package utils;
 
-import integration.FloatInterval;
-import integration.IIntervalNamed;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,6 +12,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import lightLogger.Logger;
+import mathFunction.FloatInterval;
+import mathFunction.IIntervalNamed;
 
 public class NIData {
 

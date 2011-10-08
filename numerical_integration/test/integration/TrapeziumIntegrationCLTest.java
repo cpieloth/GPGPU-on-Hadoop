@@ -1,6 +1,11 @@
 package integration;
 
 import lightLogger.Logger;
+import mathFunction.FloatInterval;
+import mathFunction.FloatPiFunction;
+import mathFunction.FloatPolynomialFunction;
+import mathFunction.FloatPowerFunction;
+import mathFunction.IInterval;
 
 import org.junit.Assert;
 import org.junit.Test;

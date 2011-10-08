@@ -1,4 +1,5 @@
-package integration;
+package mathFunction;
+
 
 public class FloatPolynomialFunction  implements IMathFunction<Float> {
 

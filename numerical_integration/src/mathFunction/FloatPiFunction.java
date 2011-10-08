@@ -1,4 +1,4 @@
-package integration;
+package mathFunction;
 
 public class FloatPiFunction implements IMathFunction<Float> {
 

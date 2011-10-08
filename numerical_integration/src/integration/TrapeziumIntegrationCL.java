@@ -5,6 +5,8 @@ import java.nio.FloatBuffer;
 import stopwatch.StopWatch;
 
 import lightLogger.Logger;
+import mathFunction.IInterval;
+import mathFunction.IMathFunction;
 import cl_kernel.TrapeziumIntegrationFloat;
 import cl_util.CLInstance;
 

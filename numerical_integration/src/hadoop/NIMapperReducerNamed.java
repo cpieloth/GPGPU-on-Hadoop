@@ -1,8 +1,5 @@
 package hadoop;
 
-import integration.IInterval;
-import integration.IIntervalNamed;
-import integration.IMathFunction;
 import integration.INumeriacalIntegrationMulti;
 import integration.TrapeziumIntegration;
 
@@ -10,6 +7,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 import lightLogger.Logger;
+import mathFunction.IInterval;
+import mathFunction.IIntervalNamed;
+import mathFunction.IMathFunction;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.FloatWritable;

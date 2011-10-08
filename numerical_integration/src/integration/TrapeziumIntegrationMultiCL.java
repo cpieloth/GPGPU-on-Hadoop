@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lightLogger.Logger;
+import mathFunction.IInterval;
+import mathFunction.IMathFunction;
 import stopwatch.StopWatch;
 import cl_kernel.TrapeziumIntegrationFloat;
 import cl_kernel.TrapeziumIntegrationMultiFloat;

@@ -1,13 +1,13 @@
 package utils;
 
-import integration.FloatInterval;
-import integration.IInterval;
-import integration.IIntervalNamed;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import lightLogger.Logger;
+import mathFunction.FloatInterval;
+import mathFunction.IInterval;
+import mathFunction.IIntervalNamed;
 
 public class Intervals {
 

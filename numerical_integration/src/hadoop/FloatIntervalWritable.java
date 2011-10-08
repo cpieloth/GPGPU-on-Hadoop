@@ -4,8 +4,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import integration.FloatInterval;
-import integration.IInterval;
+
+import mathFunction.FloatInterval;
+import mathFunction.IInterval;
 
 import org.apache.hadoop.io.WritableComparable;
 

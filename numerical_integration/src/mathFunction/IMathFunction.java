@@ -1,4 +1,4 @@
-package integration;
+package mathFunction;
 
 public interface IMathFunction<T extends Number> {
 	

@@ -1,10 +1,10 @@
 package utils;
 
-import integration.FloatPiFunction;
-import integration.FloatPolynomialFunction;
-import integration.FloatPowerFunction;
-import integration.FloatXSINXFunction;
-import integration.IMathFunction;
+import mathFunction.FloatPiFunction;
+import mathFunction.FloatPolynomialFunction;
+import mathFunction.FloatPowerFunction;
+import mathFunction.FloatXSINXFunction;
+import mathFunction.IMathFunction;
 
 public class MathFunctions {
 

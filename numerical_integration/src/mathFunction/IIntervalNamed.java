@@ -1,4 +1,4 @@
-package integration;
+package mathFunction;
 
 public interface IIntervalNamed<K, T extends Number> extends IInterval<T> {
 
