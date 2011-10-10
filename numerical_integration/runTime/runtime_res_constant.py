@@ -10,26 +10,25 @@ import time
 HOME = os.environ.get("HOME")
 HADOOP_CMD = "/opt/hadoop/bin/hadoop"
 PRG_NAME = HOME + "/Dropbox/GPGPU-on-Hadoop/Jars/NumericalIntegration/NIHadoopNamed.jar"    # TODO to set
-RESOLUTIONS = ["1000", "10000", "1000000"]    # TODO to set
+RESOLUTIONS = "1000000"    # TODO to set
 MODES = ["cpu", "ocl"]  # TODO to set
 RUNS = 3    # TODO to set
 LOG_PATH = "/tmp/ni_logs"
 DATA_PATH = HOME + "/Documents/ni_data"
-INPUT_FILES = ["intervals1", "intervals2", "intervals3", "intervals4"]  # TODO to set
+INTERVALS = ["50", "250", "500", "750", "1000"]  # TODO to set
 HDFS_INPUT = "/ni_data/input"
 HDFS_OUTPUT = "/ni_data/output"
 
 # Functions
-def copyHdfs():
+def copyHdfs(data):
     command = HADOOP_CMD + " fs -mkdir " + HDFS_INPUT
     args = shlex.split(command)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
     p.wait()
-    for file in INPUT_FILES:
-        command = HADOOP_CMD + " fs -put " + DATA_PATH + "/" + file + " " + HDFS_INPUT + "/"
-        args = shlex.split(command)
-        p = subprocess.Popen(args, stdout=subprocess.PIPE)
-        p.wait()
+    command = HADOOP_CMD + " fs -put " + DATA_PATH + "/" + "intervals_" + data + " " + HDFS_INPUT + "/"
+    args = shlex.split(command)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE)
+    p.wait()
     
 def clearHdfs():
     command = HADOOP_CMD + " fs -rmr " + HDFS_INPUT
@@ -65,14 +64,14 @@ p.wait()
 # Run tests
 print('Start runs ...')
 
-for res in RESOLUTIONS:
-    print('    res size: ', res)
+for ints in INTERVALS:
+    print('    ints size: ', ints)
     # prepare HDFS
     print("    Clear HDFS ...")
     clearHdfs()
     print("    Clear HDFS finished!")
     print("    Copy data to HDFS ...")
-    copyHdfs()
+    copyHdfs(ints)
     print("    Copy data HDFS finished!")
     print("    Waiting 3 seconds for duplication!")
     time.sleep(3)
@@ -80,8 +79,8 @@ for res in RESOLUTIONS:
     for mode in MODES:
         print('    mode: ', mode)
         # prepare command to start
-        jobName = "NumIntegration_" + res + "_" + mode
-        command = HADOOP_CMD + " jar " + PRG_NAME + " " + jobName + " " + HDFS_INPUT + " " + HDFS_OUTPUT + " " + "xsinx" + " " + "0" + " " + res + " " + mode   # TODO to set
+        jobName = "NumIntegration_" + RESOLUTIONS + "rc_" + ints + "i_" + mode
+        command = HADOOP_CMD + " jar " + PRG_NAME + " " + jobName + " " + HDFS_INPUT + " " + HDFS_OUTPUT + " " + "xsinx" + " " + "0" + " " + RESOLUTIONS + " " + mode   # TODO to set
         print('    command: ', command)
         args = shlex.split(command)
         # TODO start job

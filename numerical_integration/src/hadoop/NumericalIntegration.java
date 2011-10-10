@@ -85,6 +85,13 @@ public class NumericalIntegration extends Configured implements Tool {
 			Logger.logError(CLAZZ, "Unknown function!");
 			System.exit(FAILURE);
 		}
+		
+		StringBuilder argString = new StringBuilder();
+		for (String arg : args) {
+			argString.append(arg);
+			argString.append(" ");
+		}
+		Logger.logInfo(CLAZZ, argString.toString());
 
 		final int intervals = Integer.parseInt(rArgs[Argument.INTERVALS.index]);
 		FloatIntervalInputFormat.LINES_PER_SPLIT = intervals;
