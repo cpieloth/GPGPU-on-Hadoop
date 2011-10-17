@@ -4,7 +4,8 @@
 	<!--ANT 1.7 is required                                        -->
 	<target name="create_run_jar">
 
-		<property name="HOME" value="/home/christof" />
+		<property environment="env" />
+		<property name="HOME" value="${env.HOME}" />
 		<property name="DEST_PATH" value="${HOME}/Dropbox/GPGPU-on-Hadoop/Jars/KMeans" />
 		<property name="WORKSPACE_PATH" value="${HOME}/Documents/GPGPU-on-Hadoop" />
 		<property name="LIB_PATH" value="${HOME}/Dropbox/GPGPU-on-Hadoop/Libraries" />
@@ -14,11 +15,11 @@
 				<attribute name="Main-Class" value="utils.KMeansVisualize" />
 				<attribute name="Class-Path" value="." />
 			</manifest>
-			
+
 			<fileset dir="${WORKSPACE_PATH}/k-means/bin" />
 
 			<zipfileset excludes="META-INF/*.SF" src="${LIB_PATH}/lightLogger-0.1.jar" />
 		</jar>
-		
+
 	</target>
 </project>

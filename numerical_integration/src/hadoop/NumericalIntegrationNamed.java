@@ -88,6 +88,13 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 					"Unknown function!");
 			System.exit(FAILURE);
 		}
+		
+		StringBuilder argString = new StringBuilder();
+		for (String arg : args) {
+			argString.append(arg);
+			argString.append(" ");
+		}
+		Logger.logInfo(CLAZZ, argString.toString());
 
 		// final int intervals =
 		// Integer.parseInt(rArgs[Argument.INTERVALS.index]);
