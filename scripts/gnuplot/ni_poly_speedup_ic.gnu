@@ -1,9 +1,9 @@
 set terminal postscript eps color
 set key left top box
 set grid
-set title "Numerische Integration mit Hadoop & OpenCL (1000 Intervalle, f(x)=xsinx)"
-set output "ni_xsinx_time_constK.eps"
-set ylabel "Laufzeit [s]"
+set title "Numerische Integration mit Hadoop & OpenCL (Polynom 3. Ordnung)"
+set output "ni_poly_speedup_ic.eps"
+set ylabel "Speedup"
 set xlabel "Aufloesung"
 
 set boxwidth 1.00 absolute
@@ -25,5 +25,4 @@ x=1
 y="6"
 
 plot \
-'times_1000ic_cpu.csv' u x:($6/1000) t " CPU" w linespoints, \
-'times_1000ic_ocl.csv' u x:($6/1000) t " GPU" w linespoints
+'times_500ic.csv' u x:($6/$11) t "500 Intervalle" w linespoints

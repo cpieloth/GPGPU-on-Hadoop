@@ -2,7 +2,7 @@ set terminal postscript eps color
 set key left top box
 set grid
 set title "K-Means mit Hadoop & OpenCL (256 Cluster)"
-set output "km_time_constK.eps"
+set output "km_time_kc.eps"
 set ylabel "Laufzeit [s]"
 set xlabel "Daten [MB]"
 

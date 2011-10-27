@@ -2,7 +2,7 @@ set terminal postscript eps color
 set key left top box
 set grid
 set title "Numerische Integration mit Hadoop & OpenCL (100.000 Schritte, f(x)=xsinx)"
-set output "ni_xsinx_time_constR.eps"
+set output "ni_xsinx_time_rc.eps"
 set ylabel "Laufzeit [s]"
 set xlabel "Intervalle"
 

@@ -2,7 +2,7 @@ set terminal postscript eps color
 set key left top box
 set grid
 set title "Numerische Integration mit Hadoop & OpenCL (100.000 Schritte, Polynom 3. Ordnung)"
-set output "ni_poly_time_constR.eps"
+set output "ni_poly_time_rc.eps"
 set ylabel "Laufzeit [s]"
 set xlabel "Intervalle"
 
