@@ -1,8 +1,8 @@
-set terminal postscript eps color
+set terminal pdf
 set key left top box
 set grid
 set title "K-Means mit Hadoop & OpenCL (64 Dimensionen)"
-set output "km_time_dc.eps"
+set output "km_time_dc.pdf"
 set ylabel "Laufzeit [s]"
 set xlabel "Daten [MB]"
 
