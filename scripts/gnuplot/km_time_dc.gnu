@@ -1,5 +1,6 @@
+reset
 set terminal pdf
-set key left top box
+set key under nobox
 set grid
 set title "K-Means mit Hadoop & OpenCL (64 Dimensionen)"
 set output "km_time_dc.pdf"
@@ -14,11 +15,11 @@ set style fill solid 1.00 border -1
 
 #set mxtics 2
 set mytics 2
-#set ytics 5 nomirror
-set xtics 16 nomirror
+set ytics nomirror
+set xtics nomirror
 
-set offset 16,16,0,0
-#set xrange[0:144]
+set offset 0,0,0,0
+set xrange[0:144]
 set yrange[0:*]
 
 x=1

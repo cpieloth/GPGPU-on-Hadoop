@@ -1,3 +1,4 @@
+reset
 set terminal pdf
 set key left top box
 set grid
