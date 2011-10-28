@@ -1,28 +1,29 @@
-set terminal postscript eps color
-set key left top box
+set terminal pdf
+set key outside right top nobox
 
 set title "MaxTemperature mit Hadoop & OpenCL"
-set output "maxTemp.eps"
+set output "maxTemp.pdf"
 set ylabel "Laufzeit [s]"
 set xlabel "Daten [MB]"
 
-set boxwidth 1.00 absolute
+set boxwidth 0.9 absolute
 
 set style fill solid 1.00 border -1
 set style data histogram
 set style histogram cluster gap 2
 
-set mxtics 1
-set mytics 1
-set ytics 5 nomirror
-set xtics 1 nomirror
+set mxtics 0
+set mytics 2
+set ytics 10 nomirror
+set xtics 0 nomirror
+set grid y
 
-#set xrange[32:*]
-#set yrange[0:30]
+set xrange[-0.5:2.6]
+set yrange[0:*]
 
 plot \
-'hadoop.dat' using 2:xtic(1) t "Hadoop", \
-'javacl.dat' using 2 t "JavaCL", \
-'jocl.dat' using 2 t "JOCL", \
-'streaming.dat' using 2 t "Streaming", \
-'pipes.dat' using 2 t "Pipes"
+'hadoop.dat' u 2:xtic(1) t "Hadoop", \
+'javacl.dat' u 2 t "JavaCL", \
+'jocl.dat' u 2 t "JOCL", \
+'streaming.dat' u 2 t "Streaming", \
+'pipes.dat' u 2 t "Pipes"
