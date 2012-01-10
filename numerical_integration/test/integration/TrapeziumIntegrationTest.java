@@ -22,7 +22,7 @@ public class TrapeziumIntegrationTest {
 		long tStart;
 
 		tStart = System.currentTimeMillis();
-		INumeriacalIntegration<Float> integration = new TrapeziumIntegration();
+		INumericalIntegration<Float> integration = new TrapeziumIntegration();
 		Logger.logInfo(CLAZZ,
 				"Constructor (ms): " + (System.currentTimeMillis() - tStart));
 		IInterval<Float> interval;

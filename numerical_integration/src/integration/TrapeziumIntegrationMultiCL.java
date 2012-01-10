@@ -17,7 +17,7 @@ import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLMem.Usage;
 
 public class TrapeziumIntegrationMultiCL implements
-		INumeriacalIntegrationMulti<Float> {
+		INumericalIntegrationMulti<Float> {
 
 	private static final Class<TrapeziumIntegrationMultiCL> CLAZZ = TrapeziumIntegrationMultiCL.class;
 	private static final int SIZEOF_CL_FLOAT = 4;

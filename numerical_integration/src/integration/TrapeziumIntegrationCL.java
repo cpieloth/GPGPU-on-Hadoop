@@ -14,7 +14,7 @@ import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLMem.Usage;
 
-public class TrapeziumIntegrationCL implements INumeriacalIntegration<Float> {
+public class TrapeziumIntegrationCL implements INumericalIntegration<Float> {
 
 	private static final Class<TrapeziumIntegrationCL> CLAZZ = TrapeziumIntegrationCL.class;
 	private static final int MAX_ITEMS = 8388608; // Fan-In Summation ->

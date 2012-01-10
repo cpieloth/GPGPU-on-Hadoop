@@ -1,6 +1,6 @@
 package utils;
 
-import integration.INumeriacalIntegrationMulti;
+import integration.INumericalIntegrationMulti;
 import integration.TrapeziumIntegration;
 import integration.TrapeziumIntegrationMultiCL;
 
@@ -76,7 +76,7 @@ public class NIStarter {
 		StopWatch sw = new StopWatch("time" + type + "=", ";");
 		sw.start();
 
-		INumeriacalIntegrationMulti<Float> integration = null;
+		INumericalIntegrationMulti<Float> integration = null;
 		if (Argument.CPU.equals(type))
 			integration = new TrapeziumIntegration();
 		else if (Argument.OCL.equals(type))
