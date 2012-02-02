@@ -1,8 +1,9 @@
-set terminal postscript eps color
-set key left top box
+reset
+set terminal pdf
+set key left box
 set grid
-set title "Numerische Integration mit Hadoop & OpenCL (100.000 Schritte, f(x)=xsinx)"
-set output "ni_xsinx_time_rc.eps"
+set title "Numerische Integration mit Hadoop & OpenCL\n(Auflösung: 100K, f(x)=xsinx)"
+set output "ni_time_rc.pdf"
 set ylabel "Laufzeit [s]"
 set xlabel "Intervalle"
 
@@ -12,18 +13,15 @@ set style fill solid 1.00 border -1
 #set style data histogram
 #set style histogram cluster gap 2
 
-#set mxtics 2
+set mxtics 2
 set mytics 2
-#set ytics 5 nomirror
-#set xtics 16 nomirror
+set ytics 10
+#set xtics 10 nomirror
 
-set offset 0,50,0,0
-#set xrange[0:144]
-set yrange[0:*]
-
-x=1
-y="6"
+#set offset 1,1,1,1
+set xrange[0:1050]
+#set yrange[0:220]
 
 plot \
-'times_100000rc_cpu.csv' u x:($6/1000) t " CPU" w linespoints, \
-'times_100000rc_ocl.csv' u x:($6/1000) t " GPU" w linespoints
+'times_100000rc_cpu.csv' u ($1):($6/1000) t " CPU" w linespoints, \
+'times_100000rc_ocl.csv' u ($1):($6/1000) t " GPU" w linespoints

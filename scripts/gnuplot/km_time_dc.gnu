@@ -2,7 +2,7 @@ reset
 set terminal pdf
 set key under nobox
 set grid
-set title "K-Means mit Hadoop & OpenCL (64 Dimensionen)"
+set title "k-Means mit Hadoop & OpenCL (64 Dimensionen)"
 set output "km_time_dc.pdf"
 set ylabel "Laufzeit [s]"
 set xlabel "Daten [MB]"
@@ -26,9 +26,9 @@ x=1
 y=6
 
 plot \
-'times_64k_cpu.csv' u x:($6/1000) t "64 Cluster (CPU) " w linespoints, \
-'times_64k_ocl.csv' u x:($6/1000) t "64 Cluster (GPU)" w linespoints, \
-'times_256k_cpu.csv' u x:($6/1000) t "256 Cluster (CPU) " w linespoints, \
-'times_256k_ocl.csv' u x:($6/1000) t "256 Cluster (GPU)" w linespoints, \
-'times_1024k_cpu.csv' u x:($6/1000) t "1024 Cluster (CPU) " w linespoints, \
-'times_1024k_ocl.csv' u x:($6/1000) t "1024 Cluster (GPU)" w linespoints
+'times_64k_cpu.csv' u x:($6/1000) t "64 Gruppen (CPU) " w linespoints, \
+'times_64k_ocl.csv' u x:($6/1000) t "64 Gruppen (GPU)" w linespoints, \
+'times_256k_cpu.csv' u x:($6/1000) t "256 Gruppen (CPU) " w linespoints, \
+'times_256k_ocl.csv' u x:($6/1000) t "256 Gruppen (GPU)" w linespoints, \
+'times_1024k_cpu.csv' u x:($6/1000) t "1024 Gruppen (CPU) " w linespoints, \
+'times_1024k_ocl.csv' u x:($6/1000) t "1024 Gruppen (GPU)" w linespoints

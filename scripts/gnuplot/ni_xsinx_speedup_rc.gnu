@@ -1,8 +1,9 @@
-set terminal postscript eps color
+reset
+set terminal pdf
 set key left top box
 set grid
-set title "Numerische Integration mit Hadoop & OpenCL (f(x)=xsinx)"
-set output "ni_xsinx_speedup_rc.eps"
+set title "Numerische Integration mit Hadoop & OpenCL\n(Auflösung: 100K, f(x)=xsinx)"
+set output "ni_speedup_rc.pdf"
 set ylabel "Speedup"
 set xlabel "Intervalle"
 
@@ -17,12 +18,9 @@ set mytics 2
 #set ytics 5 nomirror
 #set xtics 16 nomirror
 
-set offset 0,50,0,0
-#set xrange[0:144]
+#set offset 1,1,0,0
+set xrange[0:1050]
 set yrange[0:*]
 
-x=1
-y="6"
-
 plot \
-'times_100000rc.csv' u x:($6/$11) t " 100.000 Schritte" w linespoints
+'times_100000rc.csv' u ($1):($6/$11) t "CPU/GPU" w linespoints

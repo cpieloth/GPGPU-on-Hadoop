@@ -1,10 +1,11 @@
-set terminal postscript eps color
+reset
+set terminal pdf
 set key left top box
 set grid
-set title "Numerische Integration mit Hadoop & OpenCL (Polynom 3. Ordnung)"
-set output "ni_poly_speedup_ic.eps"
+set title "Numerische Integration mit Hadoop & OpenCL\n(500 Intervalle, Polynom 3. Ordnung)"
+set output "ni_speedup_ic.pdf"
 set ylabel "Speedup"
-set xlabel "Aufloesung"
+set xlabel "Auflösung [Kilo]"
 
 set boxwidth 1.00 absolute
 
@@ -14,15 +15,12 @@ set style fill solid 1.00 border -1
 
 #set mxtics 2
 set mytics 2
-#set ytics 5 nomirror
+#set ytics 0.5 nomirror
 #set xtics 16 nomirror
 
-set offset 100,100,0,0
-#set xrange[0:144]
-set yrange[0:*]
-
-x=1
-y="6"
+#set offset 1,1,0,0
+set xrange[0:1050]
+set yrange[0.5:*]
 
 plot \
-'times_500ic.csv' u x:($6/$11) t "500 Intervalle" w linespoints
+'times_500ic.csv' u ($1/1000):($6/$11) t "CPU/GPU" w linespoints

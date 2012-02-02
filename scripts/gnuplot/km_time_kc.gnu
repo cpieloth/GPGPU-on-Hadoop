@@ -2,7 +2,7 @@ reset
 set terminal pdf
 set key under nobox
 set grid
-set title "K-Means mit Hadoop & OpenCL (256 Cluster)"
+set title "k-Means mit Hadoop & OpenCL (256 Gruppen)"
 set output "km_time_kc.pdf
 set ylabel "Laufzeit [s]"
 set xlabel "Daten [MB]"

@@ -16,20 +16,20 @@ map="Map"
 misc="Hadoop"
 reduce="Reduce"
 
-set title "K-Means mit Hadoop & OpenCL - 64 Dimensionen & 64 Cluster"
+set title "k-Means mit Hadoop & OpenCL (64 Dimensionen, 64 Gruppen)"
 set output "km_time_histo_64k_dc.pdf"
 plot \
 newhistogram "CPU" lt 1, 'times_64k_cpu.csv' u ($3/1000):xtic(1) t map, '' u (($6-$3-$5)/1000) t misc, '' u ($5/1000) t reduce, \
 newhistogram "GPU" lt 1, 'times_64k_ocl.csv' u ($3/1000):xtic(1) notitle, '' u (($6-$3-$5)/1000) notitle, '' u ($5/1000) notitle
 
-set title "K-Means mit Hadoop & OpenCL - 64 Dimensionen & 256 Cluster"
+set title "k-Means mit Hadoop & OpenCL (64 Dimensionen, 256 Gruppen)"
 set output "km_time_histo_256k_dc.pdf"
 plot \
 newhistogram "CPU" lt 1, 'times_256k_cpu.csv' u ($3/1000):xtic(1) t map, '' u (($6-$3-$5)/1000) t misc, '' u ($5/1000) t reduce, \
 newhistogram "GPU" lt 1, 'times_256k_ocl.csv' u ($3/1000):xtic(1) notitle, '' u (($6-$3-$5)/1000) notitle, '' u ($5/1000) notitle
 
-set title "K-Means mit Hadoop & OpenCL - 64 Dimensionen & 1024 Cluster"
-set output "km_time_histo_1024_dc.pdf"
+set title "k-Means mit Hadoop & OpenCL (64 Dimensionen, 1024 Gruppen)"
+set output "km_time_histo_1024k_dc.pdf"
 plot \
 newhistogram "CPU" lt 1, 'times_1024k_cpu.csv' u ($3/1000):xtic(1) t map, '' u (($6-$3-$5)/1000) t misc, '' u ($5/1000) t reduce, \
 newhistogram "GPU" lt 1, 'times_1024k_ocl.csv' u ($3/1000):xtic(1) notitle, '' u (($6-$3-$5)/1000) notitle, '' u ($5/1000) notitle
