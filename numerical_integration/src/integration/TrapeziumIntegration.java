@@ -7,7 +7,7 @@ import java.util.List;
 import mathFunction.IInterval;
 import mathFunction.IMathFunction;
 
-public class TrapeziumIntegration implements INumeriacalIntegrationMulti<Float> {
+public class TrapeziumIntegration implements INumericalIntegrationMulti<Float> {
 
 	private IMathFunction<Float> function;
 	private final int MAX_ITEM_SIZE = 1024;

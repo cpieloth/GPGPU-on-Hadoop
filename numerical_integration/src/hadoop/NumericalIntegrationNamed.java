@@ -166,9 +166,9 @@ public class NumericalIntegrationNamed extends Configured implements Tool {
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
-		FloatIntervalInputFormat.setInputPaths(job, new Path(
+		TextInputFormat.setInputPaths(job, new Path(
 				args[Argument.INPUT.index]));
-		FloatIntervalOutputFormat.setOutputPath(job, new Path(
+		TextOutputFormat.setOutputPath(job, new Path(
 				args[Argument.OUTPUT.index]));
 
 		int stat = job.waitForCompletion(true) ? SUCCESS : FAILURE;

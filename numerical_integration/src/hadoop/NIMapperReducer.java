@@ -1,6 +1,6 @@
 package hadoop;
 
-import integration.INumeriacalIntegration;
+import integration.INumericalIntegration;
 import integration.TrapeziumIntegration;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ public class NIMapperReducer {
 		private static final Class<NIMapper> CLAZZ = NIMapper.class;
 
 		private int resolution;
-		private INumeriacalIntegration<Float> integration;
+		private INumericalIntegration<Float> integration;
 		private IMathFunction<Float> function;
 
 		private StopWatch swPhase = new StopWatch(

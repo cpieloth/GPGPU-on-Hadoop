@@ -1,6 +1,6 @@
 package hadoop;
 
-import integration.INumeriacalIntegrationMulti;
+import integration.INumericalIntegrationMulti;
 import integration.TrapeziumIntegration;
 
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class NIMapperReducerNamed {
 				NumericalIntegration.Timer.REDUCEMETHOD.prefix,
 				NumericalIntegration.Timer.REDUCEMETHOD.suffix);
 
-		private INumeriacalIntegrationMulti<Float> integration;
+		private INumericalIntegrationMulti<Float> integration;
 
 		private IMathFunction<Float> function;
 

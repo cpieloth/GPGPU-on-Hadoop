@@ -13,7 +13,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -157,7 +156,7 @@ public class NumericalIntegration extends Configured implements Tool {
 		job.setOutputValueClass(FloatWritable.class);
 
 		job.setInputFormatClass(FloatIntervalInputFormat.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
+		job.setOutputFormatClass(FloatIntervalOutputFormat.class);
 
 		FloatIntervalInputFormat.setInputPaths(job, new Path(
 				args[Argument.INPUT.index]));
