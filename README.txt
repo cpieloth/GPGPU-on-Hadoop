@@ -6,7 +6,7 @@ Website:	http://christof.pieloth.org/blog/masterarbeit
 Example jobs:	k-Means Clustering, Numerical Integration
 Description:	 
 This code does not provide a ready-to-use OpenCL support for Hadoop. The code is part of a master's thesis, which investigates the possibilities of a GPU-based acceleration of Hadoop.
-It tests different libraries for linking OpenCL to MapReduce framework (Hadoop streaming, Hadoop Pipes, JavaCL, JOCL). In addition, the GPU-based acceleration of the map phase and reduce phase is analysed. Furthermore, the impact of memory organization (Hadoop <> OpenCL) is investigated. For each study, there is a sub-project with the necessary code.
+It tests different libraries for linking OpenCL to MapReduce framework (Hadoop Streaming, Hadoop Pipes, JavaCL, JOCL). In addition, the GPU-based acceleration of the map phase and reduce phase is analysed. Furthermore, the impact of memory organization (Hadoop <> OpenCL) is investigated. For each study, there is a sub-project with the necessary code.
 
 
 Used libraries & software:
