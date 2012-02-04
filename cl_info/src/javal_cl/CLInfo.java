@@ -5,11 +5,14 @@ import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLPlatform;
 import com.nativelibs4java.opencl.JavaCL;
 
+/**
+ * Prints information about OpenCL platforms and devices.
+ * 
+ * @author Christof Pieloth
+ *
+ */
 public class CLInfo {
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
 		try {
 			/*** Hole OpenCL-Plattformen z.B. AMD APP, NVIDIA CUDA ***/
