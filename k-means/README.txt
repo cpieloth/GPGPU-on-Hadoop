@@ -7,7 +7,7 @@ Mapper:
 Shuffle:
 * groups all points of one centroids
 
-Reduce:
+Reducer:
 * calculates the new mean of one group (CPU)
 
 Folders:

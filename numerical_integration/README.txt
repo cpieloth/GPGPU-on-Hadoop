@@ -7,7 +7,7 @@ Mapper:
 Shuffle:
 * groups all intervals with same identifier
 
-Reduce:
+Reducer:
 * calculates integrals (CPU or GPU)
 * integrals with same identifier are added to one sum
 
