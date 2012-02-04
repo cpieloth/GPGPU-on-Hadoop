@@ -1,4 +1,4 @@
-Implementation of k-means clustering for a n-dimensional space.
+Implementation of k-means clustering in a n-dimensional space.
 
 Mapper:
 * setup() reads the centroids from distributed cache to local RAM
