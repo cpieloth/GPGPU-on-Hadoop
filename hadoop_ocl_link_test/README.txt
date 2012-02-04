@@ -12,7 +12,7 @@ Reducer:
 * pics the maximum temperature (CPU or GPU)
 
 Folders:
-* runtime: scripts for automated time measurements
+* runTime: scripts for automated time measurements
 * src: code for hadoop and java implementation
 
 Required libraries:

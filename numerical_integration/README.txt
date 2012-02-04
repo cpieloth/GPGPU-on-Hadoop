@@ -13,7 +13,7 @@ Reducer:
 
 Folders:
 * ant: ant scripts to pack JARs from binaries
-* runtime: scripts for automated time measurements
+* runTime: scripts for automated time measurements
 * src: code for hadoop and java implementation
 * test: JUnit tests
 
