@@ -8,7 +8,7 @@ Shuffle:
 * groups all intervals with same identifier
 
 Reduce:
-* calculates on CPU or GPU
+* calculates integrals (CPU or GPU)
 * integrals with same identifier are added to one sum
 
 Folders:
