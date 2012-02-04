@@ -1,1 +1,5 @@
-Create a symbolic link "kernel" in binary folder to find *.cl
+Useful interfaces, data structures and kernels for OpenCL.
+
+Required libraries:
+* JavaCL JNA-1.0.0-RC1
+* LightLogger v0.1

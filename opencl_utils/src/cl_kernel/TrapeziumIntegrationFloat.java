@@ -10,6 +10,12 @@ import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLQueue;
 
+/**
+ * Numerical integration for one interval and mathematical function.
+ * 
+ * @author Christof Pieloth
+ *
+ */
 public class TrapeziumIntegrationFloat extends AbstractKernel {
 
 	private static final String KERNEL_NAME = "integrationFloat";
@@ -32,6 +38,17 @@ public class TrapeziumIntegrationFloat extends AbstractKernel {
 		
 	}
 
+	/**
+	 * Calculates the integral for different groups which must be added.
+	 * 
+	 * @param resultBuffer
+	 * @param start
+	 * @param offset
+	 * @param n
+	 * @param globalSize
+	 * @param localSize
+	 * @return
+	 */
 	public FloatBuffer run(CLBuffer<Float> resultBuffer, float start,
 			float offset, int n, int globalSize, int localSize) {
 		kernel.setArg(0, resultBuffer);

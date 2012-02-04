@@ -10,16 +10,22 @@ import com.nativelibs4java.opencl.CLContext;
 import com.nativelibs4java.opencl.CLEvent;
 import com.nativelibs4java.opencl.CLQueue;
 
+/**
+ * Numerical integration for many intervals on one mathematical function.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class TrapeziumIntegrationMultiFloat extends AbstractKernel {
 
 	private static final String KERNEL_NAME = "integrationMultiFloat";
 	private static final String KERNEL_PATH = "/cl_kernel/CLTrapeziumIntegrationFloat.cl";
 
 	private static final int SIZEOF_CL_FLOAT = 4;
-	
+
 	private final CLQueue QUEUE;
 	private final CLContext CONTEXT;
-	
+
 	private final int FUNCTION_HASH;
 
 	public TrapeziumIntegrationMultiFloat(CLInstance clInstance, String function) {
@@ -29,11 +35,24 @@ public class TrapeziumIntegrationMultiFloat extends AbstractKernel {
 		CONTEXT = clInstance.getContext();
 		createKernel();
 		FUNCTION_HASH = function.hashCode();
-		
+
 	}
 
-	public FloatBuffer run(CLBuffer<Float> resultBuffer, CLBuffer<Float> beginBuffer,
-			CLBuffer<Float> endBuffer, int size, int n, int globalSize, int localSize) {
+	/**
+	 * Calculates the integral for different groups which must be added.
+	 * 
+	 * @param resultBuffer
+	 * @param beginBuffer
+	 * @param endBuffer
+	 * @param size
+	 * @param n
+	 * @param globalSize
+	 * @param localSize
+	 * @return
+	 */
+	public FloatBuffer run(CLBuffer<Float> resultBuffer,
+			CLBuffer<Float> beginBuffer, CLBuffer<Float> endBuffer, int size,
+			int n, int globalSize, int localSize) {
 		kernel.setArg(0, resultBuffer);
 		kernel.setArg(1, beginBuffer);
 		kernel.setArg(2, endBuffer);
@@ -62,9 +81,10 @@ public class TrapeziumIntegrationMultiFloat extends AbstractKernel {
 	public String getIdentifier() {
 		return TrapeziumIntegrationMultiFloat.class.getName() + FUNCTION_HASH;
 	}
-	
+
 	public static String getIdentifier(String function) {
-		return TrapeziumIntegrationMultiFloat.class.getName() + function.hashCode();
+		return TrapeziumIntegrationMultiFloat.class.getName()
+				+ function.hashCode();
 	}
 
 }

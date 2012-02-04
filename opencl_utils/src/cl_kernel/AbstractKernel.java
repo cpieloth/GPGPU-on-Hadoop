@@ -13,6 +13,12 @@ import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLKernel;
 import com.nativelibs4java.opencl.CLProgram;
 
+/**
+ * Implements common used methods of ICLKernel.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public abstract class AbstractKernel implements ICLKernel {
 
 	private static final Class<?> CLAZZ = AbstractKernel.class;
@@ -28,7 +34,8 @@ public abstract class AbstractKernel implements ICLKernel {
 
 	protected Map<String, Object> defines = new HashMap<String, Object>();
 
-	public AbstractKernel(CLInstance clInstance, String kernelName, String kernelPath) {
+	public AbstractKernel(CLInstance clInstance, String kernelName,
+			String kernelPath) {
 		this.CL_INSTANCE = clInstance;
 		this.KERNEL_NAME = kernelName;
 		this.KERNEL_PATH = kernelPath;
@@ -46,9 +53,9 @@ public abstract class AbstractKernel implements ICLKernel {
 
 	@Override
 	public boolean createKernel() {
-		if(kernel != null)
+		if (kernel != null)
 			return true;
-		
+
 		StringBuffer sb = new StringBuffer();
 		try {
 			Scanner sc = new Scanner(CLAZZ.getResourceAsStream(KERNEL_PATH));
@@ -62,7 +69,8 @@ public abstract class AbstractKernel implements ICLKernel {
 		}
 
 		try {
-			CLProgram program = CL_INSTANCE.getContext().createProgram(sb.toString());
+			CLProgram program = CL_INSTANCE.getContext().createProgram(
+					sb.toString());
 
 			for (String bo : buildOptions)
 				program.addBuildOption(bo);
@@ -76,8 +84,9 @@ public abstract class AbstractKernel implements ICLKernel {
 				program.build();
 			} catch (Exception err) {
 				Logger.logError(CLAZZ,
-						"Build log for \"" + CL_INSTANCE.getContext().getDevices()[0] + "\n"
-								+ err.getMessage());
+						"Build log for \""
+								+ CL_INSTANCE.getContext().getDevices()[0]
+								+ "\n" + err.getMessage());
 				err.printStackTrace();
 				return false;
 			}
@@ -101,26 +110,11 @@ public abstract class AbstractKernel implements ICLKernel {
 	public CLKernel getKernel() {
 		return this.kernel;
 	}
-	
+
 	@Override
 	public CLInstance getCLInstance() {
 		return this.CL_INSTANCE;
 	}
-
-//	@Override
-//	public void setKernel(CLKernel kernel) {
-//		this.kernel = kernel;
-//	}
-
-//	@Override
-//	public CLContext getContext() {
-//		return this.context;
-//	}
-
-//	@Override
-//	public void setContext(CLContext context) {
-//		this.context = context;
-//	}
 
 	@Override
 	public List<String> getBuildOptions() {
@@ -136,7 +130,7 @@ public abstract class AbstractKernel implements ICLKernel {
 	public List<String> getIncludes() {
 		return this.includes;
 	}
-	
+
 	@Override
 	public List<String> getExtendedSource() {
 		return this.extendedSource;

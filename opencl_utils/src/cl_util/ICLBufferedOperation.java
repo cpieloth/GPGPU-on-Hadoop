@@ -1,16 +1,16 @@
 package cl_util;
 
 /**
- * Interface for a buffered OpenCL operation. The implementation contains a
- * fixed-sized buffer (mostly an array) and the associated OpenCL buffer. Due to
+ * Interface for a buffered OpenCL operation. An implementation contains a
+ * fixed-sized buffer (mostly an array), the associated OpenCL buffer and one or more kernels. Due to
  * performance issues the buffer should only created once at initialization or
  * resetBuffer(). Each implementation must provide a getResult() method or
  * similar.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  * @param <T>
- *            Data types to be stored in the buffer or to be computed.
+ *            Data type to be stored in the buffer or to be computed.
  */
 public interface ICLBufferedOperation<T> {
 
@@ -23,7 +23,7 @@ public interface ICLBufferedOperation<T> {
 	public int getBufferSize();
 
 	/**
-	 * Returns the number of items that are stored in the internal buffer.
+	 * Returns the number of elements that are stored in the internal buffer.
 	 * 
 	 * @return current buffer counter.
 	 */
@@ -69,8 +69,8 @@ public interface ICLBufferedOperation<T> {
 	public int reset();
 
 	/**
-	 * Appends a object to the buffer. If the buffer is full, it should be copied to OCL memory or a intermediate
-	 * result should be computed.
+	 * Appends a object to the buffer. If the buffer is full, it should be
+	 * copied to OCL memory or a intermediate result should be computed.
 	 * 
 	 * @param v
 	 * 

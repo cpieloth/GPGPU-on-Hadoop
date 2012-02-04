@@ -13,6 +13,12 @@ import com.nativelibs4java.opencl.CLException;
 import com.nativelibs4java.opencl.CLMem;
 import com.nativelibs4java.opencl.CLQueue;
 
+/**
+ * Buffered parallel summation of float values.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 	private static final Class<CLSummarizerFloat> CLAZZ = CLSummarizerFloat.class;
@@ -34,7 +40,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 	private float sum;
 
 	private FloatGroupSum kernel;
-	
+
 	public CLSummarizerFloat(CLInstance clInstance) {
 		this(clInstance, 65536);
 	}
@@ -54,12 +60,13 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		this.buffer = new float[BUFFER_SIZE];
 		this.neutral = new float[BUFFER_SIZE];
 		Arrays.fill(neutral, 0);
-		
+
 		this.resetResult();
 		this.reset();
-		
-		kernel = (FloatGroupSum) CL_INSTANCE.getKernel(FloatGroupSum.class.getName());
-		if(kernel == null)
+
+		kernel = (FloatGroupSum) CL_INSTANCE.getKernel(FloatGroupSum.class
+				.getName());
+		if (kernel == null)
 			kernel = new FloatGroupSum(CL_INSTANCE);
 	}
 
@@ -95,7 +102,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 
 		bufferCount = 0;
 		itemCount = 0;
-		
+
 		do {
 			error = false;
 			try {
@@ -104,8 +111,8 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 				if (resultBuffer != null)
 					resultBuffer.release();
 
-				resultBuffer = CL_INSTANCE.getContext()
-						.createFloatBuffer(CLMem.Usage.InputOutput, itemSize);
+				resultBuffer = CL_INSTANCE.getContext().createFloatBuffer(
+						CLMem.Usage.InputOutput, itemSize);
 			} catch (CLException.InvalidBufferSize e) {
 				Logger.logError(CLAZZ,
 						"Could not create CLBuffer! Resize buffer item.");
@@ -113,10 +120,10 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 				error = true;
 			}
 		} while (error);
-		
+
 		Logger.logDebug(CLAZZ, "reset() - itemSize = " + itemSize + " ~"
 				+ (itemSize * SIZEOF_CL_FLOAT) / 1024 / 1024 + "MB");
-		
+
 		return itemSize;
 	}
 
@@ -229,6 +236,7 @@ public class CLSummarizerFloat implements ICLSummarizer<Float> {
 		this.itemCount = 0;
 	}
 
+	@Override
 	public Float getSum() {
 		writeBufferToOCL();
 		this.doSum();
