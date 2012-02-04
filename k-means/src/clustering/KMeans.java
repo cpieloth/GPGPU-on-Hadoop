@@ -13,7 +13,7 @@ import stopwatch.StopWatch;
 /**
  * Untested sequential and undistributed K-Means implementation.
  * 
- * @author christof
+ * @author Christof Pieloth
  */
 public class KMeans implements IKMeans<Float> {
 

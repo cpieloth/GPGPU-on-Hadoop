@@ -24,7 +24,7 @@ import utils.Points;
 /**
  * Reads and deserializes the output of PointOutputFormat.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  */
 public class PointInputFormat extends

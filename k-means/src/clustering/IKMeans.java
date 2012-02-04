@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Interface for a runnable K-Means implementation.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  * @param <T>
  * @param <K>

@@ -15,7 +15,7 @@ import clustering.Point;
  * Decorator for Hadoop implementation of ICPoint to use as key and value.
  * NOTICE: Centroid is ignored by readFields() and write()!
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  */
 public class PointWritable implements ICPoint<Float>,

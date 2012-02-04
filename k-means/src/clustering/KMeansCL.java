@@ -14,10 +14,10 @@ import cl_util.CLPointFloat;
 import cl_util.ICLPointOperation;
 
 /**
- * Untested sequential and undistributed K-Means implementation. TODO use
- * CLInstance, CLFLoat, CLPointFloat
+ * Untested sequential and undistributed K-Means implementation.
+ * TODO use CLInstance, CLFLoat, CLPointFloat
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  * @param <T>
  * @param <K>

@@ -3,7 +3,7 @@ package clustering;
 /**
  * Represents a Point with a label.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  * @param <T>
  * @param <K>

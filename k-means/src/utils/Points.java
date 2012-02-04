@@ -10,6 +10,12 @@ import clustering.ICPoint;
 import clustering.IPoint;
 import clustering.Point;
 
+/**
+ * Helper class to generate points and transform data.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class Points {
 
 	private int dim;

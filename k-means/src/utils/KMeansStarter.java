@@ -15,6 +15,12 @@ import clustering.IPoint;
 import clustering.KMeans;
 import clustering.KMeansCL;
 
+/**
+ * Command line interface for the implementations without Hadoop.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class KMeansStarter {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");

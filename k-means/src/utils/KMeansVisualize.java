@@ -18,6 +18,12 @@ import lightLogger.Logger;
 import clustering.ICPoint;
 import clustering.IPoint;
 
+/**
+ * Visualization of the input and output data of k-means.
+ * 
+ * @author Christof Pieloth
+ *
+ */
 public class KMeansVisualize extends JFrame {
 
 	private static final Class<KMeansVisualize> CLAZZ = KMeansVisualize.class;

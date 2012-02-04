@@ -20,7 +20,7 @@ import utils.Points;
 /**
  * Writes PointWritable in a human readable format to a file.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  */
 public class PointOutputFormat extends

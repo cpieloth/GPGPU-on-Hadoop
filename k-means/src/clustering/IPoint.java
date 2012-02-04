@@ -3,7 +3,7 @@ package clustering;
 /**
  * Represents a n-dimensional Point.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  * @param <T>
  */
