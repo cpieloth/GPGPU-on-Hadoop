@@ -19,6 +19,12 @@ import mathFunction.IMathFunction;
 import stopwatch.StopWatch;
 import cl_util.CLInstance;
 
+/**
+ * Command line interface for the implementations without Hadoop.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class NIStarter {
 
 	public static final Level TIME_LEVEL = new Level(128, "TIME");

@@ -1,6 +1,5 @@
 package utils;
 
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,10 +8,18 @@ import mathFunction.FloatInterval;
 import mathFunction.IInterval;
 import mathFunction.IIntervalNamed;
 
+/**
+ * Helper class to generate intervals and transform data.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class Intervals {
 
-	// private static final String patternFloat = "\\[(-*\\d+.\\d+)"
-	// + IInterval.SEPARATOR + "(-*\\d+.\\d+)\\]";
+	/*
+	 * private static final String patternFloat = "\\[(-*\\d+.\\d+)" +
+	 * IInterval.SEPARATOR + "(-*\\d+.\\d+)\\]";
+	 */
 	private static final String patternFloat = "\\[(.+)" + IInterval.SEPARATOR
 			+ "(.+)\\]";
 

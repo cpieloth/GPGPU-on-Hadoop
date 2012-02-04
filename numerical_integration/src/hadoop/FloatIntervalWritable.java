@@ -15,7 +15,7 @@ import utils.Intervals;
 /**
  * Decorator for Hadoop implementation of IInterval to use as key and value.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  */
 public class FloatIntervalWritable implements IInterval<Float>,

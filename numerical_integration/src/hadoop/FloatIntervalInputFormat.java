@@ -29,7 +29,7 @@ import utils.Intervals;
  * Same as NLineInputFormat with NullWritable as key and FloatIntervalWritable
  * as value.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  */
 public class FloatIntervalInputFormat extends

@@ -1,5 +1,13 @@
 package mathFunction;
 
+/**
+ * Named interval.
+ * 
+ * @author Christof Pieloth
+ *
+ * @param <K>
+ * @param <T>
+ */
 public interface IIntervalNamed<K, T extends Number> extends IInterval<T> {
 
 	/**
@@ -10,7 +18,7 @@ public interface IIntervalNamed<K, T extends Number> extends IInterval<T> {
 	public K getIdentifier();
 
 	/**
-	 * Sets the resolution of the interval.
+	 * Sets the identifier of the interval.
 	 * 
 	 * @param resolution
 	 */

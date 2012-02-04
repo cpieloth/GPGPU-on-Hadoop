@@ -15,6 +15,12 @@ import lightLogger.Logger;
 import mathFunction.FloatInterval;
 import mathFunction.IIntervalNamed;
 
+/**
+ * Helper class to generate intervals and transform data.
+ * 
+ * @author Christof Pieloth
+ * 
+ */
 public class NIData {
 
 	private static final Class<NIData> CLAZZ = NIData.class;

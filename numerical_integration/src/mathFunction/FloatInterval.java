@@ -3,7 +3,7 @@ package mathFunction;
 /**
  * Float implementation of IInterval.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  */
 

@@ -4,7 +4,7 @@ package mathFunction;
  * Data structure for an interval with a given resolution. Resolution is the
  * number of discrete values between begin and end.
  * 
- * @author christof
+ * @author Christof Pieloth
  * 
  * @param <T>
  *            Should be Double or Float
