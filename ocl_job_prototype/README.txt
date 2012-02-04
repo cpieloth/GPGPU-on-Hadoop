@@ -1,0 +1,1 @@
+First experiments with Hadoop MapReduce and JavalCL/OpenCL.
