@@ -4,7 +4,7 @@ Mapper:
 * reads input data
 * transforms text to IIntervalNamed (identifier, interval)
 
-Suffle:
+Shuffle:
 * groups all intervals with same identifier
 
 Reduce:
@@ -19,7 +19,7 @@ Folders:
 
 Note:
 The calculation of the integrals in map phase and summation in reduce phase is a better choice.
-But in this example job the GPU computation shall take place in reduce phase to investigate both phases (map phase was used in k-Means). 
+But in this example job the GPU computation shall take place in reduce phase to investigate both phases (map phase is used in k-Means). 
 
 Required libraries:
 * Hadoop v0.20.2
