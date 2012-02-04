@@ -14,6 +14,12 @@ import com.nativelibs4java.opencl.CLProgram;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 
+/**
+ * Performance tests of OpenCL API calls.
+ * 
+ * @author Christof Pieloth
+ *
+ */
 public class CLQueryTest {
 
 	private static final Class<CLQueryTest> CLAZZ = CLQueryTest.class;

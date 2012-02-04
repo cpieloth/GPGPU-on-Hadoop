@@ -13,6 +13,12 @@ import com.nativelibs4java.opencl.CLPlatform;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 
+/**
+ * Tests the memory write performance.
+ * 
+ * @author Christof Pieloth
+ *
+ */
 public class writeTest {
 
 	private static final String TIME_PER_VALUE = "\ttime/value (ms): ";
