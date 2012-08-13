@@ -11,6 +11,6 @@ Used libraries & software:
 * JOCL (v0.1.6) - http://www.jocl.org/
 * AMD Aparapi - http://developer.amd.com/zones/java/aparapi/
 * Hadoop (v0.20.2) - http://hadoop.apache.org/
-* LightLogger (v0.1) - https://github.com/executor85/lightLogger_Java
-* StopWatch (v0.1) - https://github.com/executor85/JavaUtils
+* LightLogger (v0.1) - https://github.com/cpieloth/lightLogger_Java
+* StopWatch (v0.1) - https://github.com/cpieloth/JavaUtils
 * OpenCL driver (OpenCL Version 1.0)
